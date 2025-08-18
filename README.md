@@ -1,1 +1,1 @@
-A multithreaded physics engine I made in c++. WASD to move, O to rotate. 
+an extension of the physics system i made in c++
