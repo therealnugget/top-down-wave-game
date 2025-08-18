@@ -1,0 +1,488 @@
+﻿  create shapes.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'create%20shapes.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(197,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(201,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(206,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(262,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(271,444): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         ]
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         ]
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(482,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'create%20shapes.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(490,8):
+          while compiling class template 'QuadNode'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\create shapes.hpp(51,21): warning C4018: '<': signed/unsigned mismatch
+  (compiling source file 'create%20shapes.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         ]
+  (compiling source file 'create%20shapes.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(20,8):
+          while compiling class template 'Vector2'
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(66,23):
+          see reference to class template instantiation 'Vector2<float>' being compiled
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(96,14):
+          while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(249,22):
+              see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         ]
+  (compiling source file 'create%20shapes.cpp')
+  
+  linkedList.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'linkedList.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(197,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(201,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(206,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(262,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(271,444): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         ]
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         ]
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(482,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'linkedList.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'linkedList.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(490,8):
+          while compiling class template 'QuadNode'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         ]
+  (compiling source file 'linkedList.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(20,8):
+          while compiling class template 'Vector2'
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(66,23):
+          see reference to class template instantiation 'Vector2<float>' being compiled
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(96,14):
+          while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(249,22):
+              see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         ]
+  (compiling source file 'linkedList.cpp')
+  
+  linkedList.hpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+  player.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'player.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(197,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(201,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(206,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(262,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(271,444): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         ]
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         ]
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(482,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'player.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(490,8):
+          while compiling class template 'QuadNode'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\create shapes.hpp(51,21): warning C4018: '<': signed/unsigned mismatch
+  (compiling source file 'player.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\player.cpp(58,15): warning C4101: 'i': unreferenced local variable
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         ]
+  (compiling source file 'player.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(20,8):
+          while compiling class template 'Vector2'
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(66,23):
+          see reference to class template instantiation 'Vector2<float>' being compiled
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(96,14):
+          while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(249,22):
+              see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         ]
+  (compiling source file 'player.cpp')
+  
+  physics.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'physics.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(197,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(201,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(206,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(262,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(271,444): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         ]
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         ]
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(482,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'physics.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'physics.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(490,8):
+          while compiling class template 'QuadNode'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.cpp(120,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<RigidBody *>::TypeOfNode' when no variable is declared
+  (compiling source file 'physics.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.cpp(267,31):
+          see reference to class template instantiation 'QuadNode<RigidBody *>' being compiled
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         ]
+  (compiling source file 'physics.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(20,8):
+          while compiling class template 'Vector2'
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(66,23):
+          see reference to class template instantiation 'Vector2<float>' being compiled
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(96,14):
+          while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(249,22):
+              see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         ]
+  (compiling source file 'physics.cpp')
+  
+  textures.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'textures.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'textures.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\textures.cpp(19,3): warning C4102: 'err': unreferenced label
+  main.cpp
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(230,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18): warning C4477: 'sprintf' : format string '%llu' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'uint'
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%u' in the format string
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(314,18):
+      consider using '%I32u' in the format string
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(159,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(197,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(201,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(206,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(262,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(271,444): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,42): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(392,33): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(482,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(495,15):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(490,8):
+          while compiling class template 'QuadNode'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,192): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,192): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,192): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,192): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,192): warning C4244:         ]
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,81): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,81): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,81): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,81): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(61,81): warning C4244:         ]
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,99): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,99): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,99): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,99): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,99): warning C4244:         ]
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,50): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,50): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,50): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,50): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(62,50): warning C4244:         ]
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(130,40): warning C4244: 'argument': conversion from 'Uint64' to 'unsigned int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(168,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(97,13):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(20,8):
+          while compiling class template 'Vector2'
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(66,23):
+          see reference to class template instantiation 'Vector2<float>' being compiled
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(96,14):
+          while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(249,22):
+              see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(98,13): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36): warning C4244: 'initializing': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,36):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,2):
+          while compiling class template member function 'Vector2<float>::Vector2(SDL_DisplayMode &)'
+              C:\Users\drago\source\repos\simple-physics-system\simple physics system\main.cpp(97,17):
+              see the first reference to 'Vector2<float>::Vector2' in 'Main::Start'
+  
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,47): warning C4244: 'initializing': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,47): warning C4244:         with
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,47): warning C4244:         [
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,47): warning C4244:             T=float
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\physics.hpp(25,47): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+  winMgr.cpp
+x64\Release\linkedList.obj : warning LNK4042: object specified more than once; extras ignored
+  Generating code
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(79): warning C4172: returning address of local variable or temporary : _this
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(79): warning C4172: returning address of local variable or temporary : _this
+C:\Users\drago\source\repos\simple-physics-system\simple physics system\linkedList.hpp(79): warning C4172: returning address of local variable or temporary : _this
+  778 of 785 functions (99.1%) were compiled, the rest were copied from previous compilation.
+    53 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  simple physics system.vcxproj -> C:\Users\drago\source\repos\simple-physics-system\x64\Release\simple physics system.exe

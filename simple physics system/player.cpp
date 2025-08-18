@@ -1,0 +1,125 @@
+﻿#include "player.hpp"
+#include "textures.hpp"
+#include "winMgr.hpp"
+#include <tuple>
+#include "create shapes.hpp"
+#include "array.hpp"
+#include "linkedList.hpp"
+#include <algorithm>
+#define PLAYER_WIDTH 100
+#define PLAYER_HEIGHT 100
+float Player::accel = 40000.f;
+float Player::speed = 70000.f;
+static RigidBody *player;
+static rbList *plrNode;
+static rbList* player2;
+static RigidBody* player2Rb;
+std::unordered_map<const char*, SDL_Texture*> Images::loadedTexs;
+std::unordered_map<const char*, SDL_Surface*> Images::loadedSurfaces;
+static FVector2 currentVel;
+rbList** shapesTemp;
+rbList** shapesTemp2;
+//#define SHOW_AABB
+#ifdef SHOW_AABB
+static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
+	rbs[i]->value->SetPosition(rb->GetNarrowPhaseVertices()[j] + ((static_cast<FVector2>(FVector2::Left) + FVector2::Down) * 2.5f));
+}
+#endif
+constexpr static double rotationSpeed = 144.0 * 2.0;
+void Player::Init() {
+	Main::Updates += Player::Update;
+	FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
+	//#define MAKE_SHAPES
+	uint_fast8_t i;
+#ifdef MAKE_SHAPES
+	constexpr uint num_shapes_temp = 9000;
+	constexpr uint_fast8_t entropyFactor = 10;
+	for (int i = 0; i < entropyFactor; i++) rand();
+	auto GetRandomVal = []() {
+		return static_cast<double>(rand() - RAND_MAX / 2) / static_cast<double>(RAND_MAX / 2);
+		};
+	Node<RigidBody*>** shapes = Shapes::CreateShapes(num_shapes_temp, Physics::DefaultSquareVerticesAsList, Main::halfDisplaySize, IntVec2::One);
+	for (int i = 0; i < num_shapes_temp; i++) {
+		shapes[i]->value->SetSize(static_cast<IntVec2>(IntVec2::One) * (GetRandomVal() + 2.0) * 2);
+		shapes[i]->value->AddForce((static_cast<FVector2>(FVector2::Right) * GetRandomVal() + static_cast<FVector2>(FVector2::Down) * GetRandomVal()) * 62000.0);
+	}
+#else
+#ifdef SHOW_AABB
+	constexpr uint_fast8_t numShapesTemp = 2;
+
+	auto AssignShape = [numShapesTemp](rbList**& rbs, Shapes::TypeOfShape typeOfShape) {
+		rbs = Shapes::CreateShapes(numShapesTemp, Physics::DefaultSquareVerticesAsList, FVector2::Zero, static_cast<IntVec2>(IntVec2::One) * 5, 1.f, typeOfShape);
+		};
+	AssignShape(shapesTemp, Shapes::TypeOfShape::blueSqr);
+	AssignShape(shapesTemp2, Shapes::TypeOfShape::greenSqr);
+	uint_fast8_t i;
+	auto SetDbgSqr = [i](rbList** rbs) {
+		rbs[i]->value->isDebugSquare = true;
+		};
+	for (i = 0; i < numShapesTemp; i++) {
+		SetDbgSqr(shapesTemp);
+		SetDbgSqr(shapesTemp2);
+	}
+#endif
+#endif
+#define USE_NORMAL_PLAYER_POS
+	FVector2 defaultPlrPos = 
+		#ifdef USE_NORMAL_PLAYER_POS
+		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSize * .5f
+		#else
+		FVector2::Zero
+#endif
+		;
+	const auto IdlePath = [](const char *app) {
+		return "Top_Down_Adventure_Pack_v.1.0/Char_Sprites/idle_" + std::string(app);
+		};
+	auto basePaths = std::vector<const char*>();
+	basePaths.resize(num_directions);
+	//the .c_str() code duplication is necessary here because the alternate way of implementing this is with const char *s, which will need to be deleted after, which will take even more chars. i'm not using dictionaries here and doing it this way instead because i don't want to be indexing into dictionaries every single frame where i don't need to (the code's slow enough as it is 💀.
+//TODO: expand
+	std::for_each(dirNames.begin(), dirNames.end(), [basePaths, IdlePath](auto keyVal){
+		basePaths.insert(basePaths.begin() + keyVal.second, IdlePath(keyVal.first).c_str());
+	};
+	const auto basePathsList = std::initializer_list<const char*>(basePaths._Unchecked_begin(), basePaths._Unchecked_end());
+	plrNode = Physics::SubscribeEntity(basePathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	constexpr int numShapes = 0;
+	player = plrNode->value;
+	if (!numShapes) return;
+	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	constexpr float scaleFact = .1f;
+	FVector2 shapeSize = playerSize * scaleFact;
+	std::initializer_list<FVector2> shapeColVertices = Physics::DefaultSquareVerticesAsList;
+	for (auto& vec : shapeColVertices) {
+		static_cast<FVector2>(vec) *= scaleFact;
+	}
+	constexpr float border = .05f;
+	constexpr float invBorder = 1.f - border;
+	for (int i = 0; i < numShapes; i++) Shapes::CreateShape(shapeColVertices, Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
+	//player2Rb = player2->value;
+}
+void Player::Update(void) {
+	player->AddForce(Main::fInputVec * accel);
+	//player2Rb->AddForce(Main::fInputVec2 * accel);
+	currentVel = player->GetVelocity();/*
+	cout << "player is located at ";
+	player->GetPosition().PrintVec();
+	cout << "and player 2 is located at ";
+	player2Rb->GetPosition().PrintVec();*/
+	if (currentVel.Magnitude() > speed) player->SetVelocity(currentVel.Normalized() * speed);
+	//currentVel = player2Rb->GetVelocity();
+	//if (currentVel.Magnitude() > speed) player2Rb->SetVelocity(currentVel.Normalized() * speed);
+	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + static_cast<double>(Main::DeltaTime()) * rotationSpeed);
+#ifdef SHOW_AABB
+	for (int i = 0; i < 2; i++) {
+		int j = i ? 2 : 0;
+		//the last term is just to correct for the size of the square itself.
+		SetPositions(shapesTemp, i, j, player);
+		SetPositions(shapesTemp2, i, j, player2Rb);
+		/*cout << "vertex at " << std::to_string(j) << " is ";
+		player->GetNarrowPhaseVertices()[j].PrintVec();*/
+	}
+#endif
+	if (Main::GetKey(SDL_SCANCODE_K)) {
+		//player->SetPosition(FVector2::GetOne() * 100.f);
+	}
+}
