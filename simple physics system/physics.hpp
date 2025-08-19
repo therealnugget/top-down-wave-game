@@ -144,6 +144,21 @@ public:
 	inline static Vector2 GetUp() {
 		return Up;
 	}
+	inline static const Vector2 DirToVec(Main::direction dir) {
+		switch (dir) {
+		case Main::down:
+			return Down;
+		case Main::up:
+			return Up;
+		case Main::left:
+			return Left;
+		case Main::right:
+			return Right;
+		}
+	}
+	inline static Vector2 GetDirToVec(Main::direction dir) {
+		return const_cast<Vector2>(DirToVec(dir));
+	}
 private:
 	inline T Sqr(T n) {
 		return n * n;
@@ -206,7 +221,7 @@ public:
 		float r = Magnitude();
 		if (!r) goto ret;
 		*this /= r;
-		ret:
+	ret:
 		return *this;
 	}
 	inline void IntoRectWH(SDL_Rect* rect) {
@@ -238,6 +253,37 @@ public:
 	inline static Vector2 GetUp() {
 		return Up;
 	}
+	//y is reversed
+	inline static const Vector2 DirToVec(Main::direction dir) {
+		switch (dir) {
+		case Main::down:
+			return Up;
+		case Main::up:
+			return Down;
+		case Main::left:
+			return Left;
+		case Main::right:
+			return Right;
+		}
+	}
+	//y is reversed
+	inline static const int VecToDir(Vector2 vec) {
+		switch (vec.x) {
+		case 1:
+			return Main::right;
+		case -1:
+			return Main::left;
+		}
+		switch (vec.y) {
+		case 1:
+			return Main::down;
+		case -1:
+			return Main::up;
+		}
+#ifdef DEBUG_BUILD
+		ThrowError("value not supported");
+#endif
+	}
 private:
 	inline int Sqr(int n) {
 		return n * n;
@@ -250,14 +296,16 @@ private:
 	float angle;
 	friend class Physics;
 public:
-	Entity(FVector2 _position, float _angle, const std::initializer_list<const char*> basePaths, IntVec2 size) : position(_position), angle(_angle), pastPosition(_position) {
+	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &endPaths, IntVec2 size) : position(_position), angle(_angle), pastPosition(_position) {
 		rect = new SDL_Rect;
 		position.IntoRectXY(rect);
 		size.IntoRectWH(rect);
 #ifdef DEBUG_BUILD
-		if (basePaths.size() == 0) ThrowError(4, "\"base paths\"'s size is 0 at ", to_string(__LINE__), " in ", __FILE__);
+		if (endPaths.size() == 0) ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__), " in ", __FILE__);
 #endif
-		std::for_each(basePaths.begin(), basePaths.end(), [this](const char* basePath) {Textures::InitAnim(*this, basePath); });
+		for (auto& path : endPaths){
+			Textures::InitAnim(*this, (basePath + path).c_str());
+		}
 	}
 	void Finalize();
 	inline void SetTexture(SDL_Texture* tex) {
@@ -288,11 +336,11 @@ public:
 struct RigidBody : public Entity {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::initializer_list<const char*> basePaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string &basePath, const std::initializer_list<const char*> &endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
-		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePaths, size) {
+		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePath, endPaths, size) {
 		SetInitCOR();
 		centreOfRotation = new SDL_Point;
 		if (_centreOfRotation.size()) {
@@ -303,9 +351,9 @@ public:
 			centreOfRotation->y = size.y / 2;
 		}
 		int i = 0;
-		std::for_each(_narrowPhaseVertices.begin(), _narrowPhaseVertices.end(), [&](auto vec) {
+		for (auto& vec : _narrowPhaseVertices) {
 			origNarrowPVertices[i++] = vec;
-			});
+		}
 #ifdef DEBUG_BUILD
 		constexpr int numVertInBox = 4;
 		if (numNarrowPhaseVertices < numVertInBox) {
@@ -455,7 +503,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::initializer_list<const char*> texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void Finalize();
 	static void Update(float dt);

@@ -67,7 +67,7 @@ void Main::EarlyUpdate() {
     SDL_RenderClear(renderer);
     fInputVec = FVector2((GetKey(SDL_SCANCODE_RIGHT) || GetKey(SDL_SCANCODE_D)) - (GetKey(SDL_SCANCODE_LEFT) || GetKey(SDL_SCANCODE_A)), (GetKey(SDL_SCANCODE_DOWN) || GetKey(SDL_SCANCODE_S)) - (GetKey(SDL_SCANCODE_UP) || GetKey(SDL_SCANCODE_W))).Normalized();
     fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
-    //iInputVec = IntVec2(fInputVec);//uncomment this if it's needed
+    iInputVec = IntVec2(fInputVec);
 }
 bool Main::CheckPauseState() {
     if (!Main::KeyPressed(SDL_SCANCODE_ESCAPE)) return false;

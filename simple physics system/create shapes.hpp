@@ -40,7 +40,8 @@ public:
 		}
 	}
 	static inline Node<RigidBody*>* CreateShape(std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 position = Main::halfDisplaySize, IntVec2 size = IntVec2::One, float _mass = 1.f, TypeOfShape typeOfShape = TypeOfShape::square, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) {
-		RigidBody* _this = new RigidBody(position, FVector2::Zero, .0f, { GetTexture(typeOfShape) }, size, _mass, narrowPhaseVertices, _centreOfRot, _centreOfRotNarrowPVert, _renderOffset);
+		const std::string debugImgStart = std::string("images/debug ");
+		RigidBody* _this = new RigidBody(position, FVector2::Zero, .0f, debugImgStart, { GetTexture(typeOfShape) }, size, _mass, narrowPhaseVertices, _centreOfRot, _centreOfRotNarrowPVert, _renderOffset);
 		return Physics::SubscribeEntity(_this);
 	}
 	static inline Node<RigidBody*>** CreateShapes(const uint numShapes, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 position = Main::halfDisplaySize, IntVec2 size = IntVec2::One, float _mass = 1.f, TypeOfShape typeOfShape = TypeOfShape::square, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNarrowPVert = FVector2::Zero) {

@@ -1,8 +1,7 @@
 #include "create shapes.hpp"
-static const string debugImgStart = string("images/debug "), debugImgEnd = string(".bmp");
 const std::string Shapes::squareString = "square";
-const std::string Shapes::squarePath = debugImgStart + Shapes::squareString + debugImgEnd;
-const std::string Shapes::circlePath = debugImgStart + "circle" + debugImgEnd;
-const std::string Shapes::trianglePath = debugImgStart + "triangle" + debugImgEnd;
-const std::string Shapes::blueSqrPath = debugImgStart + Shapes::squareString + " blue" + debugImgEnd;
-const std::string Shapes::greenSqrPath = debugImgStart + Shapes::squareString + " green" + debugImgEnd;
+const std::string Shapes::squarePath = Shapes::squareString;
+const std::string Shapes::circlePath = "circle";
+const std::string Shapes::trianglePath = "triangle";
+const std::string Shapes::blueSqrPath = Shapes::squareString + " blue";
+const std::string Shapes::greenSqrPath = Shapes::squareString + " green";

@@ -22,6 +22,7 @@ void Textures::InitAnim(Animator& anim, const char* basePath) {
 		filePath = new char[strlen(iStr.c_str()) + pathLen];
 		strcpy(filePath, (imagesPath + basePath + '_' + iStr + bmp).c_str());
 		if (stat(filePath, &buffer)) {
+			if (i == 0) DebugBreak();
 			animation->numOfFrames = i;
 			return;
 		}

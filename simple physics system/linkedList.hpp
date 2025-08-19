@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <source_location>
+#define NUM_BYTES_IN_64_BIT 8
 class Behaviour {
 public:
 	void Start();
@@ -239,6 +240,13 @@ public:
 	static inline bool GetKey(int key) {
 		return pressingKey[key];
 	}
+	static enum direction {
+		down = 0,
+		right = 1,
+		left = 2,
+		up = 3,
+		num_directions = 4,
+	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
 	static IntVec2 iInputVec;

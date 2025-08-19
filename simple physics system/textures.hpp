@@ -33,9 +33,6 @@ private:
 	friend class Textures;
 };
 struct Animator {
-public:
-	constexpr static float default_anim_time = 1.f / 12.f;
-	constexpr static float neg_anim_time = -default_anim_time;
 protected:
 	int currentAnimation = 0, animFrameIndex = -1;
 	int numAnims = 0;
@@ -47,6 +44,12 @@ private:
 		return &anims[numAnims++];
 	}
 	friend class Textures;
+public:
+	constexpr static float default_anim_time = 1.f / 12.f;
+	constexpr static float neg_anim_time = -default_anim_time;
+	void SetAnimation(int anim) {
+		currentAnimation = anim;
+	}
 };
 //static class
 class Textures {

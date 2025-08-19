@@ -16,6 +16,13 @@ static rbList* player2;
 static RigidBody* player2Rb;
 std::unordered_map<const char*, SDL_Texture*> Images::loadedTexs;
 std::unordered_map<const char*, SDL_Surface*> Images::loadedSurfaces;
+//order unimportant.
+std::unordered_map<int, const char*> Player::dirNames = {
+	{Main::down, "down"},
+	{Main::left, "left"},
+	{Main::up, "up"},
+	{Main::right, "right"},
+};
 static FVector2 currentVel;
 rbList** shapesTemp;
 rbList** shapesTemp2;
@@ -70,18 +77,14 @@ void Player::Init() {
 		FVector2::Zero
 #endif
 		;
-	const auto IdlePath = [](const char *app) {
-		return "Top_Down_Adventure_Pack_v.1.0/Char_Sprites/idle_" + std::string(app);
-		};
-	auto basePaths = std::vector<const char*>();
-	basePaths.resize(num_directions);
-	//the .c_str() code duplication is necessary here because the alternate way of implementing this is with const char *s, which will need to be deleted after, which will take even more chars. i'm not using dictionaries here and doing it this way instead because i don't want to be indexing into dictionaries every single frame where i don't need to (the code's slow enough as it is 💀.
-//TODO: expand
-	std::for_each(dirNames.begin(), dirNames.end(), [basePaths, IdlePath](auto keyVal){
-		basePaths.insert(basePaths.begin() + keyVal.second, IdlePath(keyVal.first).c_str());
-	};
-	const auto basePathsList = std::initializer_list<const char*>(basePaths._Unchecked_begin(), basePaths._Unchecked_end());
-	plrNode = Physics::SubscribeEntity(basePathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	auto endPaths = std::vector<const char*>();
+	endPaths.reserve(Main::num_directions);
+	std::vector<std::string> idleStrs;
+	for (int i = 0; i < Main::num_directions; i++) {
+		endPaths.push_back(dirNames[i]);
+	}
+	const auto endPathsList = std::initializer_list<const char*>(endPaths._Unchecked_begin(), endPaths._Unchecked_end());
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/idle_", endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr int numShapes = 0;
 	player = plrNode->value;
 	if (!numShapes) return;
@@ -122,4 +125,6 @@ void Player::Update(void) {
 	if (Main::GetKey(SDL_SCANCODE_K)) {
 		//player->SetPosition(FVector2::GetOne() * 100.f);
 	}
+	if (Main::fInputVec == FVector2::Zero) return;
+	player->SetAnimation(IntVec2::VecToDir(Main::iInputVec));
 }

@@ -5,14 +5,8 @@
 //static
 class Player : public Behaviour {
 private:
-	static enum direction {
-		down = 0,
-		right = 1,
-		left = 2,
-		up = 3,
-		num_directions = 4,
-	};
-	static std::unordered_map<const char *, int> dirNames;
+	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
+	static std::unordered_map<int, const char *> dirNames;
 	static float accel, speed;
 public:
 	static void Init();
