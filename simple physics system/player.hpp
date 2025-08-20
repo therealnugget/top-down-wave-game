@@ -5,12 +5,18 @@
 //static
 class Player : public Behaviour {
 private:
-	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
-	static std::unordered_map<int, const char *> dirNames;
 	static float accel, speed;
+	static IntVec2 pastInp;
+	static void PlayAnim(int);
 public:
 	static void Init();
 	static void Finalize();
 	static void Update(void);
 	friend class Main;
+	static enum PlrAnim {
+		idle,
+		run,
+
+		numAnims,
+	};
 };

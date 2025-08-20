@@ -11,6 +11,7 @@
 #include <atomic>
 #include <functional>
 #include <condition_variable>
+#include <sstream>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
@@ -280,9 +281,6 @@ public:
 		case -1:
 			return Main::up;
 		}
-#ifdef DEBUG_BUILD
-		ThrowError("value not supported");
-#endif
 	}
 private:
 	inline int Sqr(int n) {
@@ -296,15 +294,19 @@ private:
 	float angle;
 	friend class Physics;
 public:
-	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &endPaths, IntVec2 size) : position(_position), angle(_angle), pastPosition(_position) {
+	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size) : position(_position), angle(_angle), pastPosition(_position) {
 		rect = new SDL_Rect;
 		position.IntoRectXY(rect);
 		size.IntoRectWH(rect);
 #ifdef DEBUG_BUILD
-		if (endPaths.size() == 0) ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__), " in ", __FILE__);
+		if (dirPaths.size() == 0) {
+			ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__).c_str(), " in ", __FILE__);
+		}
 #endif
-		for (auto& path : endPaths){
-			Textures::InitAnim(*this, (basePath + path).c_str());
+		for (auto& animPath : animPaths) {
+			for (auto& path : dirPaths) {
+				Textures::InitAnim(*this, (basePath + animPath + '_' + path).c_str());
+			}
 		}
 	}
 	void Finalize();
@@ -322,6 +324,9 @@ public:
 		Animation& curAnim = anims[currentAnimation];
 		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + inc) % curAnim.numOfFrames))]);
 	}
+	const inline int GetNumAnimFrames(int animation) const {
+		return anims[animation].numOfFrames;
+	}
 protected:
 	FVector2 position;
 	FVector2 pastPosition;
@@ -336,11 +341,11 @@ public:
 struct RigidBody : public Entity {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string &basePath, const std::initializer_list<const char*> &endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
-		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePath, endPaths, size) {
+		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePath, animPaths, endPaths, size) {
 		SetInitCOR();
 		centreOfRotation = new SDL_Point;
 		if (_centreOfRotation.size()) {
@@ -503,7 +508,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void Finalize();
 	static void Update(float dt);

@@ -47,8 +47,11 @@ private:
 public:
 	constexpr static float default_anim_time = 1.f / 12.f;
 	constexpr static float neg_anim_time = -default_anim_time;
-	void SetAnimation(int anim) {
+	inline void SetAnimation(int anim) {
 		currentAnimation = anim;
+	}
+	const inline int GetNumAnims() const {
+		return numAnims;
 	}
 };
 //static class
@@ -57,5 +60,6 @@ private:
 	static rbList *curAnimNode;
 	static RigidBody *curAnimRB;
 public:
-	static void InitAnim(Animator &animator, const char *basePath);
+	//return value: whether an animation was actually created
+	static bool InitAnim(Animator &animator, const char *basePath);
 };

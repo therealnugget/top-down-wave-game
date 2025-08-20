@@ -32,6 +32,8 @@ bool Main::fullScreen;
 FVector2 Main::fInputVec;
 FVector2 Main::fInputVec2;
 IntVec2 Main::iInputVec;
+bool Main::moveD, Main::moveL, Main::moveU, Main::moveR;
+bool Main::staticHorizon, Main::staticVert;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
@@ -65,8 +67,16 @@ void Main::RegisterInput() {
 void Main::EarlyUpdate() {
     RegisterInput();
     SDL_RenderClear(renderer);
-    fInputVec = FVector2((GetKey(SDL_SCANCODE_RIGHT) || GetKey(SDL_SCANCODE_D)) - (GetKey(SDL_SCANCODE_LEFT) || GetKey(SDL_SCANCODE_A)), (GetKey(SDL_SCANCODE_DOWN) || GetKey(SDL_SCANCODE_S)) - (GetKey(SDL_SCANCODE_UP) || GetKey(SDL_SCANCODE_W))).Normalized();
-    fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
+    moveR = KeyPressed(SDL_SCANCODE_RIGHT) || KeyPressed(SDL_SCANCODE_D);
+    moveL = KeyPressed(SDL_SCANCODE_LEFT) || KeyPressed(SDL_SCANCODE_A);
+    moveD = KeyPressed(SDL_SCANCODE_DOWN) || KeyPressed(SDL_SCANCODE_S);
+    moveU = KeyPressed(SDL_SCANCODE_UP) || KeyPressed(SDL_SCANCODE_W);
+    staticVert = !moveU && !moveD;
+    staticHorizon = !moveR && !moveL;
+    //inverted y
+    fInputVec = FVector2((moveR && staticVert) - (moveL && staticVert), (moveD && staticHorizon) - (moveU && staticHorizon));
+    //uncomment if needed
+    //fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
     iInputVec = IntVec2(fInputVec);
 }
 bool Main::CheckPauseState() {
@@ -118,6 +128,7 @@ void Main::Start() {
         return;
     }
     renderer = SDL_CreateRenderer(WindowManager::window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetRenderDrawColor(renderer, 163, 215, 245, 255);
     if (!renderer) {
         ThrowError("renderer couldn't be created");
     }

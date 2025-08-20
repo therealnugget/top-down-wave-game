@@ -12,10 +12,17 @@
 #include <string>
 #include <vector>
 #include <source_location>
+#include <unordered_map>
 #define NUM_BYTES_IN_64_BIT 8
 class Behaviour {
+protected:
+	static std::initializer_list<const char*> anims;
+	static std::unordered_map<int, const char*> animNames;
+	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
+	static std::unordered_map<int, const char*> dirNames;
+	//TODO: finish generic case of instantiation of behaviour.
+	Behaviour();
 public:
-	void Start();
 	void Update();
 };
 using namespace std;
@@ -240,6 +247,16 @@ public:
 	static inline bool GetKey(int key) {
 		return pressingKey[key];
 	}
+	//whether the key was pressed this frame but not last frame
+	static inline bool KeyPressed(int key) {
+#define KeyBP GetKey(key)
+		return KeyBP && !PressedKeyLastFrm(key);
+	}
+	//whether the key was pressed last frame AND this frame
+	static inline bool KeyHeld(int key) {
+		return KeyBP && PressedKeyLastFrm(key);
+	}
+	//order unimportant.
 	static enum direction {
 		down = 0,
 		right = 1,
@@ -265,15 +282,6 @@ public:
 	}
 	static inline bool ModKeyHeld(int key) {
 		return ModKeyBP && PressedModKeyLastFrm(key);
-	}
-	//whether the key was pressed this frame but not last frame
-	static inline bool KeyPressed(int key) {
-#define KeyBP GetKey(key)
-		return KeyBP && !PressedKeyLastFrm(key);
-	}
-	//whether the key was pressed last frame AND this frame
-	static inline bool KeyHeld(int key) {
-		return KeyBP && PressedKeyLastFrm(key);
 	}
 	static SDL_Renderer* renderer;
 	static SDL_DisplayMode DM;//not direct messages XD
@@ -369,7 +377,16 @@ public:
 	}
 	//inclusive max, min. WILL NOT swap args when they are the wrong way around in non-debug builds (i.e., when the DEBUG_BUILD macro isn't defined)
 	static FVector2 GetRandFVec(FVector2 min, FVector2 max);
+	template<typename T>
+	static inline std::initializer_list<T> VecToInitList(std::vector<T>& vec) {
+		return std::initializer_list<T>(vec._Unchecked_begin(), vec._Unchecked_end());
+	}
+	static inline int GetAnimOffset(int animation) {
+		return Main::num_directions * animation;
+	}
 private:
+	static bool moveU, moveD, moveL, moveR;
+	static bool staticHorizon, staticVert;
 	static Node<int>* setPressed;
 	static bool pressingKey[];//whether the key was pressed this frame
 	static bool pressedKey[];//^^ that of last frame

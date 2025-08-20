@@ -8,7 +8,7 @@ static const std::string imagesPath = "images/";
 static const char *bmp = ".bmp";
 rbList *Textures::curAnimNode = nullptr;
 RigidBody *Textures::curAnimRB = nullptr;
-void Textures::InitAnim(Animator& anim, const char* basePath) {
+bool Textures::InitAnim(Animator& anim, const char* basePath) {
 	struct stat buffer;
 	char *filePath;
 	int i = 0;
@@ -16,17 +16,21 @@ void Textures::InitAnim(Animator& anim, const char* basePath) {
 	//one for null-terminating character, one for underscore character length
 	const size_t endBuffer = 2;
 	const size_t pathLen = strlen(imagesPath.c_str()) + strlen(basePath) + strlen(bmp) + endBuffer;
-	Animation *animation = anim.LoadNextAnim();
+	Animation* nextAnim = nullptr;
+	const auto GetAnim = [&]() {
+		if (nextAnim != nullptr) return nextAnim;
+		return nextAnim = anim.LoadNextAnim();
+		};
 	for(;;) {
 		iStr = to_string(i);
 		filePath = new char[strlen(iStr.c_str()) + pathLen];
 		strcpy(filePath, (imagesPath + basePath + '_' + iStr + bmp).c_str());
 		if (stat(filePath, &buffer)) {
-			if (i == 0) DebugBreak();
-			animation->numOfFrames = i;
-			return;
+			if (i == 0) return false;
+			GetAnim()->numOfFrames = i;
+			return true;
 		}
-		animation->textures.push_back(Images::LoadTexture(filePath));
+		GetAnim()->textures.push_back(Images::LoadTexture(filePath));
 		i++;
 	}
 }
