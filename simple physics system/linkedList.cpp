@@ -1,10 +1,10 @@
-#include "linkedList.hpp"
 #include "physics.hpp"
-void Main::AssignIfMore(FVector2& check, FVector2 &assignConditionally) {
+#include "linkedList.hpp"
+void Main::AssignIfMore(Vector2<float>& check, Vector2<float> &assignConditionally) {
 	AssignIfMore(check.x, assignConditionally.x);
 	AssignIfMore(check.y, assignConditionally.y);
 }
-void Main::AssignIfLess(FVector2& check, FVector2 &assignConditionally) {
+void Main::AssignIfLess(Vector2<float>& check, Vector2<float> &assignConditionally) {
 	AssignIfLess(check.x, assignConditionally.x);
 	AssignIfLess(check.y, assignConditionally.y);
 }

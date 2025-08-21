@@ -32,8 +32,11 @@ bool Main::fullScreen;
 FVector2 Main::fInputVec;
 FVector2 Main::fInputVec2;
 IntVec2 Main::iInputVec;
-bool Main::moveD, Main::moveL, Main::moveU, Main::moveR;
-bool Main::staticHorizon, Main::staticVert;
+bool Main::dirKeyPress[num_inp_dirs];
+bool Main::getDirKey[num_inp_dirs];
+bool Main::dirKeyUp[num_inp_dirs];
+bool Main::keyPersist[num_inp_dirs];
+bool Main::keyPressHorizon, Main::keyPressVert;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
@@ -63,21 +66,33 @@ void Main::RegisterInput() {
         }
     }
 }
+void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
+    assign[dir] = keyInfo(key1) || keyInfo(key2);
+}
+void Main::SetKeyPersist(int dir) {
+    bool dirIsHorizon = dir & 2;
+    //right-hand operand is opposite axis to direction inputted
+    keyPersist[dir] = (keyPersist[dir] || dirKeyPress[dir]) && !(keyPressHorizon * !dirIsHorizon + keyPressVert * dirIsHorizon) && !dirKeyUp[dir];
+}
+static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
 void Main::EarlyUpdate() {
     RegisterInput();
     SDL_RenderClear(renderer);
-    moveR = KeyPressed(SDL_SCANCODE_RIGHT) || KeyPressed(SDL_SCANCODE_D);
-    moveL = KeyPressed(SDL_SCANCODE_LEFT) || KeyPressed(SDL_SCANCODE_A);
-    moveD = KeyPressed(SDL_SCANCODE_DOWN) || KeyPressed(SDL_SCANCODE_S);
-    moveU = KeyPressed(SDL_SCANCODE_UP) || KeyPressed(SDL_SCANCODE_W);
-    staticVert = !moveU && !moveD;
-    staticHorizon = !moveR && !moveL;
+    AssignDirKey(input_right, SDL_SCANCODE_RIGHT, SDL_SCANCODE_D);
+    AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
+    AssignDirKey(input_left, SDL_SCANCODE_LEFT, SDL_SCANCODE_A);
+    AssignDirKey(input_down, SDL_SCANCODE_DOWN, SDL_SCANCODE_S);
+    keyPressVert = dirKeyPress[input_down] || dirKeyPress[input_up];
+    keyPressHorizon = dirKeyPress[input_right] || dirKeyPress[input_left];
+    for (currentDir = input_first; currentDir < input_last + 1; currentDir++) {
+        SetKeyPersist(currentDir);
+    }
     //inverted y
-    fInputVec = FVector2((moveR && staticVert) - (moveL && staticVert), (moveD && staticHorizon) - (moveU && staticHorizon));
+    iInputVec = IntVec2(keyPersist[input_right] - keyPersist[input_left], keyPersist[input_down] - keyPersist[input_up]);
     //uncomment if needed
     //fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
-    iInputVec = IntVec2(fInputVec);
+    fInputVec = FVector2(iInputVec);
 }
 bool Main::CheckPauseState() {
     if (!Main::KeyPressed(SDL_SCANCODE_ESCAPE)) return false;

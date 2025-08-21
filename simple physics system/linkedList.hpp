@@ -13,7 +13,6 @@
 #include <vector>
 #include <source_location>
 #include <unordered_map>
-#define NUM_BYTES_IN_64_BIT 8
 class Behaviour {
 protected:
 	static std::initializer_list<const char*> anims;
@@ -252,6 +251,10 @@ public:
 #define KeyBP GetKey(key)
 		return KeyBP && !PressedKeyLastFrm(key);
 	}
+	//whether the key was pressed last frame but not this frame
+	static inline bool KeyUp(int key) {
+		return pressedKey[key] && !pressingKey[key];
+	}
 	//whether the key was pressed last frame AND this frame
 	static inline bool KeyHeld(int key) {
 		return KeyBP && PressedKeyLastFrm(key);
@@ -352,9 +355,9 @@ public:
 		assignConditionally = check;
 	}
 	//it is NOT the case that both x and y have to be bigger for "assignConditionally" to be assigned. either-or per-component.
-	static void AssignIfMore(FVector2& check, FVector2& assignConditionally);
+	static void AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//it is NOT the case that both x and y have to be smaller for "assignConditionally" to be assigned. either-or per-component.
-	static void AssignIfLess(FVector2& check, FVector2& assignConditionally);
+	static void AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//inclusive max, min. WILL NOT swap args when they are the wrong way around in non-debug builds (i.e., when the DEBUG_BUILD macro isn't defined)
 	static inline int GetRandInt(int min, int max) {
 		if (max < min) {
@@ -385,8 +388,24 @@ public:
 		return Main::num_directions * animation;
 	}
 private:
-	static bool moveU, moveD, moveL, moveR;
-	static bool staticHorizon, staticVert;
+	//order important for bit-wise operations.
+	static enum inpDirection: int {
+		input_down = 0, //0000
+		input_first = input_down,
+		input_up = 1,   //0001
+		input_right = 2,//0010
+		input_left = 3, //0011
+		input_last = input_left,
+		num_inp_dirs = 4,
+	};
+	//whether the key in the direction is being pressed this frame but not last frame
+	static bool dirKeyPress[num_inp_dirs];
+	//whether the key in the direction is being pressed this frame
+	static bool getDirKey[num_inp_dirs];
+	static bool dirKeyUp[num_inp_dirs];
+	static bool keyPersist[num_inp_dirs];
+	//whether the key on the axis is being pressed this frame but not last frame
+	static bool keyPressHorizon, keyPressVert;
 	static Node<int>* setPressed;
 	static bool pressingKey[];//whether the key was pressed this frame
 	static bool pressedKey[];//^^ that of last frame
@@ -395,6 +414,22 @@ private:
 	static void SetPastKey(int);
 	inline static void AddKeyPress(int key) {
 		Node<int>::AddAtHead(key, &setPressed);
+	}
+	static void SetKeyPersist(int dir);
+	static void AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int));
+	static inline void AssignDirKeyPress(int dir, int key1, int key2) {
+		AssignDirKeyFromInfo(dirKeyPress, dir, key1, key2, KeyPressed);
+	}
+	static inline void AssignGetDirKey(int dir, int key1, int key2) {
+		AssignDirKeyFromInfo(getDirKey, dir, key1, key2, GetKey);
+	}
+	static inline void AssignDirKeyUp(int dir, int key1, int key2) {
+		AssignDirKeyFromInfo(dirKeyUp, dir, key1, key2, KeyUp);
+	}
+	static inline void AssignDirKey(int dir, int key1, int key2) {
+		AssignDirKeyPress(dir, key1, key2);
+		AssignGetDirKey(dir, key1, key2);
+		AssignDirKeyUp(dir, key1, key2);
 	}
 	static bool fullScreen;
 };

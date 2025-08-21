@@ -1,5 +1,5 @@
-#include "linkedList.hpp"
 #include "physics.hpp"
+#include "linkedList.hpp"
 #include "main.hpp"
 #include "math.hpp"
 #include <limits>
