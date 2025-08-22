@@ -37,6 +37,7 @@ bool Main::getDirKey[num_inp_dirs];
 bool Main::dirKeyUp[num_inp_dirs];
 bool Main::processedKey[num_inp_dirs];
 bool Main::keyPressHorizon, Main::keyPressVert;
+bool Main::hCancel, Main::vCancel;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
@@ -74,7 +75,7 @@ void Main::SetKeyPersist(int dir) {
     auto &procKeyDir = pricessedKey[dir];
     if (!getDirKey[dir]){
          procKeyDir = false;
-         
+         *(dirIsHorizon ? hCancel
 }
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
