@@ -1,4 +1,4 @@
-#pragma once
+#pragma once//TODO: rename this to main
 #include "usefulTypedefs.hpp"
 #include "multicast delegates.hpp"
 //define this for error checking and debug functions
