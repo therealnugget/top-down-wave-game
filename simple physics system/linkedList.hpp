@@ -404,7 +404,8 @@ private:
 	static bool getDirKey[num_inp_dirs];
 	static bool dirKeyUp[num_inp_dirs];
 	static bool processedKey[num_inp_dirs];
-static bool hCancelKey, vCancelKey;
+//whether the horizontal input is being cancelled by some vertical input, and whether the vertical input is being cancelled by some horizontal input, respectively
+static bool hCancel, vCancel;
 	//whether the key on the axis is being pressed this frame but not last frame
 	static bool keyPressHorizon, keyPressVert;
 	static Node<int>* setPressed;
