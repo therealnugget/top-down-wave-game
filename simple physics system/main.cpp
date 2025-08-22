@@ -71,8 +71,7 @@ void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool 
 }
 void Main::SetKeyPersist(int dir) {
     bool dirIsHorizon = dir & 2;
-    //right-hand operand is opposite axis to direction inputted
-    keyPersist[dir] = (keyPersist[dir] || dirKeyPress[dir]) && !(keyPressHorizon * !dirIsHorizon + keyPressVert * dirIsHorizon) && !dirKeyUp[dir];
+    
 }
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
