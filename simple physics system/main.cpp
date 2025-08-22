@@ -35,7 +35,7 @@ IntVec2 Main::iInputVec;
 bool Main::dirKeyPress[num_inp_dirs];
 bool Main::getDirKey[num_inp_dirs];
 bool Main::dirKeyUp[num_inp_dirs];
-bool Main::keyPersist[num_inp_dirs];
+bool Main::processedKey[num_inp_dirs];
 bool Main::keyPressHorizon, Main::keyPressVert;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
@@ -71,7 +71,10 @@ void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool 
 }
 void Main::SetKeyPersist(int dir) {
     bool dirIsHorizon = dir & 2;
-    
+    auto &procKeyDir = pricessedKey[dir];
+    if (!getDirKey[dir]){
+         procKeyDir = false;
+         
 }
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
@@ -88,7 +91,7 @@ void Main::EarlyUpdate() {
         SetKeyPersist(currentDir);
     }
     //inverted y
-    iInputVec = IntVec2(keyPersist[input_right] - keyPersist[input_left], keyPersist[input_down] - keyPersist[input_up]);
+    iInputVec = IntVec2processedKey[input_right] - processedKey[input_left], processedKey[input_down] - processedKey[input_up]);
     //uncomment if needed
     //fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
     fInputVec = FVector2(iInputVec);
