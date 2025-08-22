@@ -403,7 +403,8 @@ private:
 	//whether the key in the direction is being pressed this frame
 	static bool getDirKey[num_inp_dirs];
 	static bool dirKeyUp[num_inp_dirs];
-	static bool keyPersist[num_inp_dirs];
+	static bool processedKey[num_inp_dirs];
+static bool hCancelKey, vCancelKey;
 	//whether the key on the axis is being pressed this frame but not last frame
 	static bool keyPressHorizon, keyPressVert;
 	static Node<int>* setPressed;
