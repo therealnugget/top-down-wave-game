@@ -407,8 +407,6 @@ private:
 	static bool cancelKey[num_inp_dirs];
 	//the key that opposed "cancelKey" in a specific direction to make it cancel
 	static int cancelOpKey[num_inp_dirs];
-	//whether the key on the axis is being pressed this frame but not last frame
-	static bool keyPressHorizon, keyPressVert;
 	//whether the key on the axis is being pressed this frame
 	static bool keyDownHorizon, keyDownVert;
 	//whether the axis is cancelled (i.e. vertical axis is cancelled by any horizontal input, vertical axis is cancelled by any horizontal input.)

@@ -544,7 +544,7 @@ C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(16,14): warning C4091: 'static ': ignored on left of 'Player::PlrAnim' when no variable is declared
   (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(224,40): warning C4244: 'argument': conversion from 'Uint64' to 'unsigned int', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(202,40): warning C4244: 'argument': conversion from 'Uint64' to 'unsigned int', possible loss of data
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(100,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(100,13): warning C4244:         with
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(100,13): warning C4244:         [
@@ -579,7 +579,7 @@ C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp
       the template instantiation context (the oldest one first) is
           C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(28,2):
           while compiling class template member function 'Vector2<float>::Vector2(SDL_DisplayMode &)'
-              C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(185,17):
+              C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(163,17):
               see the first reference to 'Vector2<float>::Vector2' in 'Main::Start'
   
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(28,47): warning C4244: 'initializing': conversion from 'int' to 'T', possible loss of data

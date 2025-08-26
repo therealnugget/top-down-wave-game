@@ -38,7 +38,6 @@ bool Main::dirKeyUp[num_inp_dirs];
 bool Main::processedKey[num_inp_dirs];
 bool Main::cancelKey[num_inp_dirs];
 int Main::cancelOpKey[num_inp_dirs];
-bool Main::keyPressHorizon, Main::keyPressVert;
 bool Main::keyDownHorizon, Main::keyDownVert;
 bool Main::cancelH, Main::cancelV;
 void Main::RegisterInput() {
@@ -106,7 +105,6 @@ void Main::EarlyUpdate() {
     AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
     AssignDirKey(input_left, SDL_SCANCODE_LEFT, SDL_SCANCODE_A);
     AssignDirKey(input_down, SDL_SCANCODE_DOWN, SDL_SCANCODE_S);
-    SetAxisBool(keyPressHorizon, keyPressVert, dirKeyPress);
     SetAxisBool(keyDownHorizon, keyDownVert, getDirKey);
     for (currentDir = input_first; currentDir < input_last + 1; currentDir++) {
         SetCancelState(currentDir);
@@ -114,26 +112,6 @@ void Main::EarlyUpdate() {
     SetAxisBool(cancelH, cancelV, cancelKey);
     for (currentDir = input_first; currentDir < input_last + 1; currentDir++) {
         SetKeyState(currentDir);
-        const auto temp = [](int inp) {
-            switch (inp) {
-            case input_down:
-                return "down";
-            case input_up:
-                return "up";
-            case input_left:
-                return "left";
-            case input_right:
-                return "right";
-            }
-            return "undefined";
-        };
-        cout << "cancel key at " << temp(currentDir) << " is " << Main::BoolToStr(cancelKey[currentDir]) << ", and cancel op key here is " << temp(cancelOpKey[currentDir]) << '\n';
-        /*
-        cancel key at down is true, and cancel op key here is right
-        cancel key at up is false, and cancel op key here is right
-        cancel key at right is true, and cancel op key here is down
-        cancel key at left is false, and cancel op key here is up
-        */
     }
     //inverted y
     iInputVec = IntVec2(processedKey[input_right] - processedKey[input_left], processedKey[input_down] - processedKey[input_up]);
