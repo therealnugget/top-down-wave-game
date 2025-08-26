@@ -35,8 +35,12 @@ IntVec2 Main::iInputVec;
 bool Main::dirKeyPress[num_inp_dirs];
 bool Main::getDirKey[num_inp_dirs];
 bool Main::dirKeyUp[num_inp_dirs];
-bool Main::keyPersist[num_inp_dirs];
+bool Main::processedKey[num_inp_dirs];
+bool Main::cancelKey[num_inp_dirs];
+int Main::cancelOpKey[num_inp_dirs];
 bool Main::keyPressHorizon, Main::keyPressVert;
+bool Main::keyDownHorizon, Main::keyDownVert;
+bool Main::cancelH, Main::cancelV;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
@@ -69,10 +73,29 @@ void Main::RegisterInput() {
 void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
     assign[dir] = keyInfo(key1) || keyInfo(key2);
 }
-void Main::SetKeyPersist(int dir) {
-    bool dirIsHorizon = dir & 2;
-    //right-hand operand is opposite axis to direction inputted
-    keyPersist[dir] = (keyPersist[dir] || dirKeyPress[dir]) && !(keyPressHorizon * !dirIsHorizon + keyPressVert * dirIsHorizon) && !dirKeyUp[dir];
+bool Main::GetOpAxisVal(bool h, bool v, bool dirIsHorizon) {
+    //get value according to the opposing axis (i.e. if dir inputted is a horizontal dir, the output is the value of vertical, and vica versa.)
+    return h * !dirIsHorizon + v * dirIsHorizon;
+}
+void Main::SetKeyState(int dir) {
+    processedKey[dir] = getDirKey[dir] && !GetOpAxisVal(cancelH, cancelV, dir);
+}
+void Main::SetCancelState(int dir) {
+    const bool dirIsHorizon = dir & 2;
+    const bool opposingInput = GetOpAxisVal(keyDownHorizon, keyDownVert, dirIsHorizon) && dirKeyPress[dir];
+    cancelKey[dir] = (cancelKey[dir] || opposingInput) && !dirKeyUp[dir] && !dirKeyUp[cancelOpKey[dir]];
+    if (!opposingInput) return;
+    int opKeyOffset = !dirIsHorizon * 2;
+    int dir1 = input_down + opKeyOffset;
+    if (getDirKey[dir1]) {
+        cancelOpKey[dir] = dir1;
+        return;
+    }
+    cancelOpKey[dir] = input_up + opKeyOffset;
+}
+void Main::SetAxisBool(bool& horizonB, bool& vertB, bool dirBools[num_inp_dirs]) {
+    horizonB = dirBools[input_left] || dirBools[input_right];
+    vertB = dirBools[input_down] || dirBools[input_up];
 }
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
@@ -83,13 +106,37 @@ void Main::EarlyUpdate() {
     AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
     AssignDirKey(input_left, SDL_SCANCODE_LEFT, SDL_SCANCODE_A);
     AssignDirKey(input_down, SDL_SCANCODE_DOWN, SDL_SCANCODE_S);
-    keyPressVert = dirKeyPress[input_down] || dirKeyPress[input_up];
-    keyPressHorizon = dirKeyPress[input_right] || dirKeyPress[input_left];
+    SetAxisBool(keyPressHorizon, keyPressVert, dirKeyPress);
+    SetAxisBool(keyDownHorizon, keyDownVert, getDirKey);
     for (currentDir = input_first; currentDir < input_last + 1; currentDir++) {
-        SetKeyPersist(currentDir);
+        SetCancelState(currentDir);
+    }
+    SetAxisBool(cancelH, cancelV, cancelKey);
+    for (currentDir = input_first; currentDir < input_last + 1; currentDir++) {
+        SetKeyState(currentDir);
+        const auto temp = [](int inp) {
+            switch (inp) {
+            case input_down:
+                return "down";
+            case input_up:
+                return "up";
+            case input_left:
+                return "left";
+            case input_right:
+                return "right";
+            }
+            return "undefined";
+        };
+        cout << "cancel key at " << temp(currentDir) << " is " << Main::BoolToStr(cancelKey[currentDir]) << ", and cancel op key here is " << temp(cancelOpKey[currentDir]) << '\n';
+        /*
+        cancel key at down is true, and cancel op key here is right
+        cancel key at up is false, and cancel op key here is right
+        cancel key at right is true, and cancel op key here is down
+        cancel key at left is false, and cancel op key here is up
+        */
     }
     //inverted y
-    iInputVec = IntVec2(keyPersist[input_right] - keyPersist[input_left], keyPersist[input_down] - keyPersist[input_up]);
+    iInputVec = IntVec2(processedKey[input_right] - processedKey[input_left], processedKey[input_down] - processedKey[input_up]);
     //uncomment if needed
     //fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
     fInputVec = FVector2(iInputVec);

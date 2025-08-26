@@ -1,4 +1,4 @@
-#pragma once
+#pragma once//TODO: rename this to main
 #include "usefulTypedefs.hpp"
 #include "multicast delegates.hpp"
 //define this for error checking and debug functions
@@ -403,9 +403,16 @@ private:
 	//whether the key in the direction is being pressed this frame
 	static bool getDirKey[num_inp_dirs];
 	static bool dirKeyUp[num_inp_dirs];
-	static bool keyPersist[num_inp_dirs];
+	static bool processedKey[num_inp_dirs];
+	static bool cancelKey[num_inp_dirs];
+	//the key that opposed "cancelKey" in a specific direction to make it cancel
+	static int cancelOpKey[num_inp_dirs];
 	//whether the key on the axis is being pressed this frame but not last frame
 	static bool keyPressHorizon, keyPressVert;
+	//whether the key on the axis is being pressed this frame
+	static bool keyDownHorizon, keyDownVert;
+	//whether the axis is cancelled (i.e. vertical axis is cancelled by any horizontal input, vertical axis is cancelled by any horizontal input.)
+	static bool cancelH, cancelV;
 	static Node<int>* setPressed;
 	static bool pressingKey[];//whether the key was pressed this frame
 	static bool pressedKey[];//^^ that of last frame
@@ -415,8 +422,14 @@ private:
 	inline static void AddKeyPress(int key) {
 		Node<int>::AddAtHead(key, &setPressed);
 	}
-	static void SetKeyPersist(int dir);
+	static void SetCancelState(int dir);
+	static void SetKeyState(int dir);
+	static bool GetOpAxisVal(bool h, bool v, bool dirIsHorizon);
+	static inline bool GetOpAxisVal(bool h, bool v, int dir) {
+		return GetOpAxisVal(h, v, static_cast<bool>(dir & 2));
+	}
 	static void AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int));
+	static void SetAxisBool(bool& h, bool& v, bool dirBools[num_inp_dirs]);
 	static inline void AssignDirKeyPress(int dir, int key1, int key2) {
 		AssignDirKeyFromInfo(dirKeyPress, dir, key1, key2, KeyPressed);
 	}
