@@ -37,7 +37,6 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 	rbs[i]->value->SetPosition(rb->GetNarrowPhaseVertices()[j] + ((static_cast<FVector2>(FVector2::Left) + FVector2::Down) * 2.5f));
 }
 #endif
-constexpr static double rotationSpeed = 144.0 * 2.0;
 void Player::Init() {
 	Main::Updates += Player::Update;
 	FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
@@ -125,7 +124,6 @@ void Player::Update(void) {
 	if (currentVel.Magnitude() > speed) player->SetVelocity(currentVel.Normalized() * speed);
 	//currentVel = player2Rb->GetVelocity();
 	//if (currentVel.Magnitude() > speed) player2Rb->SetVelocity(currentVel.Normalized() * speed);
-	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + static_cast<double>(Main::DeltaTime()) * rotationSpeed);
 #ifdef SHOW_AABB
 	for (int i = 0; i < 2; i++) {
 		int j = i ? 2 : 0;
