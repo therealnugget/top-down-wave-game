@@ -24,7 +24,7 @@ void Entity::Finalize() {
 		}
 	}
 }
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::initializer_list<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, FVector2>* imageSizes, FVector2 initVel, float angle, float mass) {
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::initializer_list<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::tuple<std::variant<FVector2, FVector2[Main::num_directions]>, bool>>* imageSizes, FVector2 initVel, float angle, float mass) {
 	RigidBody *rb = new RigidBody(startPos, initVel, angle, basePath, animPaths, endPaths, size, mass, _narrowPhaseVertices, _centreOfRot, _centreOfRotNPVert, _renderOffset, imageSizes);
 	return SubscribeEntity(rb);
 }

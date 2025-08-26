@@ -95,7 +95,7 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	}
 	anims = Main::VecToInitList<const char*>(animStrs);
-	std::unordered_map<const char *, FVector2> imageSizes = { {"run", FVector2::One}, { "idle", FVector2::One }, {"attack", FVector2(3.f, 2.f) } };
+	std::unordered_map<const char *, std::variant<FVector2, float>> imageSizes = { {"run", FVector2::One}, { "idle", FVector2::One }, {"attack", FVector2(3.f, 2.f) } };
 	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, &imageSizes);
 	constexpr int numShapes = 0;
 	player = plrNode->value;
