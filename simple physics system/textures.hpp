@@ -34,7 +34,9 @@ private:
 };
 struct Animator {
 protected:
-	int currentAnimation = 0, animFrameIndex = -1;
+	//negatives are used for non-direction (single animation, i.e. not "____down", "____up", etc., but rather just "____") animation types
+	int currentAnimation = 0;
+	int animFrameIndex = -1;
 	int numAnims = 0;
 	float animTime = .0f;
 	std::vector<Animation> anims;

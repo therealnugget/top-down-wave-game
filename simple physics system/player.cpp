@@ -6,8 +6,8 @@
 #include "array.hpp"
 #include "linkedList.hpp"
 #include <algorithm>
-#define PLAYER_WIDTH 100
-#define PLAYER_HEIGHT 100
+#define PLAYER_WIDTH 50
+#define PLAYER_HEIGHT 50
 float Player::accel = 30000.f;
 float Player::speed = 1000.f;
 static RigidBody *player;
@@ -26,6 +26,7 @@ std::unordered_map<int, const char*> Player::dirNames = {
 std::unordered_map<int, const char*> Player::animNames = {
 	{Player::idle, "idle"},
 	{Player::run, "run"},
+	{Player::attack, "attack"},
 };
 static FVector2 currentVel;
 rbList** shapesTemp;
@@ -94,7 +95,8 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	}
 	anims = Main::VecToInitList<const char*>(animStrs);
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	std::unordered_map<const char *, FVector2> imageSizes = { {"run", FVector2::One}, { "idle", FVector2::One }, {"attack", FVector2(3.f, 2.f) } };
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, &imageSizes);
 	constexpr int numShapes = 0;
 	player = plrNode->value;
 	if (!numShapes) return;
@@ -135,6 +137,10 @@ void Player::Update(void) {
 	}
 #endif
 	if (Main::fInputVec == FVector2::Zero) {
+		if (Main::GetKey(SDL_SCANCODE_SPACE)) {
+			Player::PlayAnim(attack);
+			return;
+		}
 		Player::PlayAnim(idle);
 		return;
 	}

@@ -11,7 +11,7 @@
 #include <atomic>
 #include <functional>
 #include <condition_variable>
-#include <sstream>
+#include <unordered_map>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
@@ -23,7 +23,7 @@ template<typename T>
 struct Vector2 {
 public:
 	T x, y;
-	constexpr Vector2(T _x, T _y) : x(_x), y(_y) {}
+	constexpr Vector2(T _x, T _y) : x(static_cast<T>(_x)), y(static_cast<T>(_y)) {}
 	Vector2() : x(.0f), y(.0f) {}
 	Vector2(SDL_DisplayMode &mode) : x(mode.w), y(mode.h) {}
 #ifdef DEBUG_BUILD
@@ -294,7 +294,7 @@ private:
 	float angle;
 	friend class Physics;
 public:
-	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size) : position(_position), angle(_angle), pastPosition(_position) {
+	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size, std::unordered_map<const char *, FVector2> *_imageSizes) : position(_position), angle(_angle), pastPosition(_position) {
 		rect = new SDL_Rect;
 		position.IntoRectXY(rect);
 		size.IntoRectWH(rect);
@@ -303,10 +303,15 @@ public:
 			ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__).c_str(), " in ", __FILE__);
 		}
 #endif
+		int i = 0;
+		imageSizes = new IntVec2[animPaths.size()];
 		for (auto& animPath : animPaths) {
 			for (auto& path : dirPaths) {
 				Textures::InitAnim(*this, (basePath + animPath + '_' + path).c_str());
 			}
+			if (_imageSizes == nullptr) continue;
+			imageSizes[i] = static_cast<IntVec2>((*_imageSizes)[animPath] * static_cast<FVector2>(size));
+			i++;
 		}
 	}
 	void Finalize();
@@ -331,6 +336,8 @@ protected:
 	FVector2 position;
 	FVector2 pastPosition;
 	SDL_Rect* rect;
+	//per-direction.
+	IntVec2* imageSizes;
 };
 typedef struct AABB {
 public:
@@ -341,11 +348,11 @@ public:
 struct RigidBody : public Entity {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char *, FVector2> *imageSizes = nullptr) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
-		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePath, animPaths, endPaths, size) {
+		renderOffset(_renderOffset), centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), Entity(_position, _angle, basePath, animPaths, endPaths, size, imageSizes) {
 		SetInitCOR();
 		centreOfRotation = new SDL_Point;
 		if (_centreOfRotation.size()) {
@@ -508,7 +515,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, FVector2>* imageSizes = nullptr, FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void Finalize();
 	static void Update(float dt);

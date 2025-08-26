@@ -13,12 +13,15 @@
 #include <vector>
 #include <source_location>
 #include <unordered_map>
+template<typename T>
+struct Vector2;
+typedef Vector2<float> FVector2;
 class Behaviour {
 protected:
-	static std::initializer_list<const char*> anims;
-	static std::unordered_map<int, const char*> animNames;
+	std::initializer_list<const char*> anims;
+	std::unordered_map<int, const char*> animNames;
 	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
-	static std::unordered_map<int, const char*> dirNames;
+	std::unordered_map<int, const char*> dirNames;
 	//TODO: finish generic case of instantiation of behaviour.
 	Behaviour();
 public:
@@ -225,9 +228,6 @@ void Branch<T>::LevelOrderQueue(void (*traversalDel)(Branch<T>*), Branch<T>* roo
 		queue.Push(branch->right);
 	}
 }
-template<typename T>
-struct Vector2;
-typedef Vector2<float> FVector2;
 typedef Vector2<int> IntVec2;
 typedef struct AABB;
 template<typename T>
