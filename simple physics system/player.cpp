@@ -95,9 +95,11 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	}
 	anims = Main::VecToInitList<const char*>(animStrs);
-	std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = { {"run", std::variant<FVector2, FVector2*>(FVector2::One)}, { "idle", std::variant<FVector2, FVector2*>(FVector2::One) }, {"attack", std::variant<FVector2, FVector2*>(FVector2::GetRepeatingVec(FVector2(2.f, 3.f), FVector2(3.f, 2.f)))} };
-	std::unordered_map<const char*, bool> isGlobalSize = { true, true, false };
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, imageSizes);
+	const auto repVec = FVector2::GetRepeatingVec(FVector2(2.f, 3.f), FVector2(3.f, 2.f));
+	//std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = { {"run", std::variant<FVector2, FVector2*>(FVector2::One)}, { "idle", std::variant<FVector2, FVector2*>(FVector2::One) }, {"attack", std::variant<FVector2, FVector2*>(repVec)} };
+	_freea(repVec);
+	std::unordered_map<const char*, int> isGlobalSize = { true, true, false };
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, std::unordered_map<const char *, int>(), isGlobalSize);
 	constexpr int numShapes = 0;
 	player = plrNode->value;
 	if (!numShapes) return;

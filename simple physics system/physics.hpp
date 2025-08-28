@@ -12,7 +12,6 @@
 #include <functional>
 #include <condition_variable>
 #include <unordered_map>
-#include <variant>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
@@ -20,6 +19,7 @@
 #define IS_MULTI_THREADED
 using namespace std;
 struct RigidBody;
+//every instantiation of this *should* always be 8 bytes in total
 template<typename T>
 struct Vector2 {
 public:
@@ -161,15 +161,20 @@ public:
 	inline static Vector2 GetDirToVec(Main::direction dir) {
 		return const_cast<Vector2>(DirToVec(dir));
 	}
-	//MUST BE FREED AFTER USE. repeats horizontal across horizontal directions, vertical across vertical directions
-	static inline Vector2<T>* GetRepeatingVec(Vector2<T> h, Vector2<T> v) {
-		Vector2<T>* _this = new Vector2<T>[Main::num_directions];
+	//MUST BE STACK FREED AFTER USE. repeats horizontal across horizontal directions, vertical across vertical directions
+	inline static Vector2<T>* GetRepeatingVec(Vector2<T> h, Vector2<T> v) {
+		Vector2<T>* _this = static_cast<Vector2<T> *>(_malloca(sizeof(Vector2<T>) * Main::num_directions));
 		_this[Main::right] = h;
 		_this[Main::left] = h;
 		_this[Main::up] = v;
 		_this[Main::down] = v;
 		return _this;
 	}
+	//the decision between whether you want a per-direction vector size or the same size across all of the directions for that animation
+	union VecDirSize {
+		Vector2<T> globalSize;
+		Vector2<T>* dirSizes;
+	};
 private:
 	inline T Sqr(T n) {
 		return n * n;
@@ -306,7 +311,7 @@ private:
 public:
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> &_imageSizes, std::unordered_map<const char *, bool> &isGlobalSize) : position(_position), angle(_angle), pastPosition(_position) {
+	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size, std::unordered_map<const char *, int> _imageSizes, std::unordered_map<const char *, int> isGlobalSize) : position(_position), angle(_angle), pastPosition(_position) {
 		rect = new SDL_Rect;
 		position.IntoRectXY(rect);
 		size.IntoRectWH(rect);
@@ -315,7 +320,7 @@ public:
 			ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__).c_str(), " in ", __FILE__);
 		}
 #endif
-		int i = 0, j;
+		int i = 0, j;/*
 		imageSizes = new std::variant<IntVec2, IntVec2 *>[animPaths.size()];
 		const auto FVecSize = static_cast<FVector2>(size);
 		for (auto& animPath : animPaths) {
@@ -336,7 +341,7 @@ public:
 				j++;
 			}
 			i++;
-		}
+		}*/
 	}
 	void Finalize();
 	inline void SetTexture(SDL_Texture* tex) {
@@ -361,7 +366,7 @@ protected:
 	FVector2 pastPosition;
 	SDL_Rect* rect;
 	//per-direction.
-	std::variant<IntVec2, IntVec2*>* imageSizes;
+	//std::variant<IntVec2, IntVec2*>* imageSizes;
 };
 typedef struct AABB {
 public:
@@ -372,7 +377,7 @@ public:
 struct RigidBody : public Entity {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2 *>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::unordered_map<const char*, int> imageSizes = std::unordered_map<const char *, int>(), std::unordered_map<const char*, int> isGlobalSize = std::unordered_map<const char*, int>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
@@ -538,7 +543,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, int> imageSizes = std::unordered_map<const char *, int>(), std::unordered_map<const char*, int> isGlobalSize = std::unordered_map<const char *, int>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void Finalize();
 	static void Update(float dt);
