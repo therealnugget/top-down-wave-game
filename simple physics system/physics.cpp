@@ -24,8 +24,8 @@ void Entity::Finalize() {
 		}
 	}
 }
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::initializer_list<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::tuple<std::variant<FVector2, FVector2[Main::num_directions]>, bool>>* imageSizes, FVector2 initVel, float angle, float mass) {
-	RigidBody *rb = new RigidBody(startPos, initVel, angle, basePath, animPaths, endPaths, size, mass, _narrowPhaseVertices, _centreOfRot, _centreOfRotNPVert, _renderOffset, imageSizes);
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::initializer_list<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass) {
+	RigidBody *rb = new RigidBody(startPos, initVel, angle, basePath, animPaths, endPaths, size, mass, _narrowPhaseVertices, imageSizes, isGlobalSize, _centreOfRot, _centreOfRotNPVert, _renderOffset);
 	return SubscribeEntity(rb);
 }
 Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
@@ -451,9 +451,13 @@ void Physics::Update(float dt) {
 			animFramesPassed++;
 		}
 		if (animFramesPassed) currentRB->SetNextAnimTex(animFramesPassed);
-		static IntVec2* imageSizes = currentRB->imageSizes;
-		if (imageSizes && currentRB->currentAnimation >= 0) {
-			imageSizes[currentRB->currentAnimation / Main::num_directions].IntoRectWH(curRect);
+		static auto &imageSizes = currentRB->imageSizes;
+		if (imageSizes) {
+			if (currentRB->currentAnimation >= 0) {
+				static auto baseAnim = currentRB->currentAnimation / Main::num_directions;
+				std::get<IntVec2*>(imageSizes[baseAnim])[currentRB->currentAnimation - baseAnim * Main::num_directions].IntoRectWH(curRect);
+			}
+			else std::get<IntVec2>(imageSizes[currentRB->currentAnimation]).IntoRectWH(curRect);
 		}
 		SDL_RenderCopyEx(Main::renderer, currentRB->texture, nullptr, curRect, currentRB->rotation, currentRB->centreOfRotation, currentRB->flip);
 		currentRB->force = FVector2::Zero;
