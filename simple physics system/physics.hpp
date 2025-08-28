@@ -12,6 +12,7 @@
 #include <functional>
 #include <condition_variable>
 #include <unordered_map>
+#include <variant>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
@@ -311,7 +312,7 @@ private:
 public:
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size, std::unordered_map<const char *, int> _imageSizes, std::unordered_map<const char *, int> isGlobalSize) : position(_position), angle(_angle), pastPosition(_position) {
+	Entity(FVector2 _position, float _angle, const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &dirPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> _imageSizes, std::unordered_map<const char *, bool> _isGlobalSize) : position(_position), angle(_angle), pastPosition(_position) {
 		rect = new SDL_Rect;
 		position.IntoRectXY(rect);
 		size.IntoRectWH(rect);
@@ -320,28 +321,35 @@ public:
 			ThrowError(4, "\"end paths\"'s size is 0 at ", to_string(__LINE__).c_str(), " in ", __FILE__);
 		}
 #endif
-		int i = 0, j;/*
-		imageSizes = new std::variant<IntVec2, IntVec2 *>[animPaths.size()];
+		int i = 0, j;
+		const auto animPathsSize = animPaths.size();
+		imageSizes = new std::variant<IntVec2, IntVec2 *>[animPathsSize]();
+		isGlobalSize = new bool[animPathsSize];
 		const auto FVecSize = static_cast<FVector2>(size);
 		for (auto& animPath : animPaths) {
 			j = 0;
 			for (auto& path : dirPaths) {
 				Textures::InitAnim(*this, (basePath + animPath + '_' + path).c_str());
+				auto& curThisImgSize = imageSizes[i];
 				if (_imageSizes.size() == 0) {
-					imageSizes[i] = FVector2::One;
+					curThisImgSize = FVector2::One;
 					continue;
 				}
+				const auto& currentIsGlobalSize = _isGlobalSize[animPath];
+				isGlobalSize[i] = currentIsGlobalSize;
 				const auto& curImgSize = _imageSizes[animPath];
-				if (isGlobalSize[animPath]) {
+				if (currentIsGlobalSize) {
 					if (j > 0) continue;
-					imageSizes[i] = static_cast<IntVec2>(static_cast<FVector2>(std::get<FVector2>(curImgSize)) * FVecSize);
+					curThisImgSize = static_cast<IntVec2>(static_cast<FVector2>(std::get<FVector2>(curImgSize)) * FVecSize);
 					continue;
 				}
-				static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[i]))[j] = static_cast<FVector2>(std::get<FVector2*>(curImgSize)[j]) * FVecSize;
+				if (j == 0) curThisImgSize = std::variant<IntVec2, IntVec2*>(new IntVec2[Main::num_directions]);
+				//remember std::get<IntVec2 *> returns type "const IntVec2 *", not "IntVec2 *", thus we must cast before indexing
+				static_cast<IntVec2*>(std::get<IntVec2*>(curThisImgSize))[j] = static_cast<FVector2>(static_cast<FVector2*>(std::get<FVector2*>(curImgSize))[j]) * FVecSize;
 				j++;
 			}
 			i++;
-		}*/
+		}
 	}
 	void Finalize();
 	inline void SetTexture(SDL_Texture* tex) {
@@ -366,7 +374,8 @@ protected:
 	FVector2 pastPosition;
 	SDL_Rect* rect;
 	//per-direction.
-	//std::variant<IntVec2, IntVec2*>* imageSizes;
+	std::variant<IntVec2, IntVec2*>* imageSizes = nullptr;
+	bool* isGlobalSize;
 };
 typedef struct AABB {
 public:
@@ -377,7 +386,7 @@ public:
 struct RigidBody : public Entity {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::unordered_map<const char*, int> imageSizes = std::unordered_map<const char *, int>(), std::unordered_map<const char*, int> isGlobalSize = std::unordered_map<const char*, int>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::initializer_list<FVector2> _narrowPhaseVertices, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), flip(SDL_FLIP_NONE),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
@@ -543,7 +552,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, int> imageSizes = std::unordered_map<const char *, int>(), std::unordered_map<const char*, int> isGlobalSize = std::unordered_map<const char *, int>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::initializer_list<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void Finalize();
 	static void Update(float dt);
