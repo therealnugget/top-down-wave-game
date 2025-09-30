@@ -323,18 +323,19 @@ public:
 #endif
 		int i = 0, j;
 		const auto animPathsSize = animPaths.size();
-		imageSizes = new std::variant<IntVec2, IntVec2 *>[animPathsSize]();
-		isGlobalSize = new bool[animPathsSize];
 		const auto FVecSize = static_cast<FVector2>(size);
 		for (auto& animPath : animPaths) {
 			j = 0;
 			for (auto& path : dirPaths) {
 				Textures::InitAnim(*this, (basePath + animPath + '_' + path).c_str());
-				auto& curThisImgSize = imageSizes[i];
 				if (_imageSizes.size() == 0) {
-					curThisImgSize = FVector2::One;
 					continue;
 				}
+				if (i == 0 && j == 0) {
+					imageSizes = new std::variant<IntVec2, IntVec2*>[animPathsSize]();
+					isGlobalSize = new bool[animPathsSize];
+				}
+				auto& curThisImgSize = imageSizes[i];
 				const auto& currentIsGlobalSize = _isGlobalSize[animPath];
 				isGlobalSize[i] = currentIsGlobalSize;
 				const auto& curImgSize = _imageSizes[animPath];

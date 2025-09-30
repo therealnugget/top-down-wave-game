@@ -34,7 +34,8 @@ private:
 };
 struct Animator {
 protected:
-	int currentAnimation = 0;
+	int currentAnimation = 0, pastAnimation = 0;
+	bool bRecordAnim = false;
 	int animFrameIndex = -1;
 	int numAnims = 0;
 	float animTime = .0f;
@@ -50,6 +51,12 @@ public:
 	constexpr static float neg_anim_time = -default_anim_time;
 	inline void SetAnimation(int anim) {
 		currentAnimation = anim;
+		if (pastAnimation == anim) return;
+		animFrameIndex = -1;
+		animTime = .0f;
+	}
+	inline void SetRecordAnim(bool value) {
+		bRecordAnim = value;
 	}
 	const inline int GetNumAnims() const {
 		return numAnims;

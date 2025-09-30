@@ -357,6 +357,14 @@ void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
 		*curVertex += rb->GetPosition();
 	}
 }
+void Main::AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally) {
+	AssignIfMore(check.x, assignConditionally.x);
+	AssignIfMore(check.y, assignConditionally.y);
+}
+void Main::AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally) {
+	AssignIfLess(check.x, assignConditionally.x);
+	AssignIfLess(check.y, assignConditionally.y);
+}
 static int animFramesPassed;
 void Physics::Update(float dt) {
 	curNode = entityHead;
@@ -450,20 +458,27 @@ void Physics::Update(float dt) {
 			currentRB->animTime += Animator::default_anim_time;
 			animFramesPassed++;
 		}
-		if (animFramesPassed) currentRB->SetNextAnimTex(animFramesPassed);
-		static auto &imageSizes = currentRB->imageSizes;
-		if (imageSizes) {
-			static auto& currentAnim = currentRB->currentAnimation;
-			static auto baseAnim = currentAnim / Main::num_directions;
-			if (currentRB->isGlobalSize[baseAnim]) {
-				static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
+		if (animFramesPassed) {
+			currentRB->SetNextAnimTex(animFramesPassed);
+			static std::variant<IntVec2, IntVec2*>* imageSizes;
+			imageSizes = currentRB->imageSizes;
+			if (imageSizes) {
+				static int currentAnim;
+				currentAnim = currentRB->currentAnimation;
+				static int baseAnim;
+				baseAnim = currentAnim / static_cast<int>(Main::num_directions);
+				if (currentRB->isGlobalSize[baseAnim]) {
+					static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
+				}
+				else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
 			}
-			else static_cast<IntVec2>(std::get<IntVec2>(imageSizes[currentAnim])).IntoRectWH(curRect);
 		}
 		SDL_RenderCopyEx(Main::renderer, currentRB->texture, nullptr, curRect, currentRB->rotation, currentRB->centreOfRotation, currentRB->flip);
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
 		Node<RigidBody*>::Advance(&curNode);
+		if (!currentRB->bRecordAnim) continue;
+		currentRB->pastAnimation = currentRB->currentAnimation;
 	}
 #ifdef SHOW_QUAD_TREE
 	SDL_SetRenderDrawColor(Main::renderer, 255, 0, 0, 255);

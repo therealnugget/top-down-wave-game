@@ -144,7 +144,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="create shapes.cpp" />
-    <ClCompile Include="linkedList.cpp" />
     <ClCompile Include="linkedList.hpp" />
     <ClCompile Include="multicast delegates.cpp" />
     <ClCompile Include="player.cpp" />

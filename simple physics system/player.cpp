@@ -6,8 +6,8 @@
 #include "array.hpp"
 #include "linkedList.hpp"
 #include <algorithm>
-#define PLAYER_WIDTH 50
-#define PLAYER_HEIGHT 50
+#define PLAYER_WIDTH 100
+#define PLAYER_HEIGHT 100
 float Player::accel = 30000.f;
 float Player::speed = 1000.f;
 static RigidBody *player;
@@ -93,16 +93,18 @@ void Player::Init() {
 	for (i = 0; i < numAnims; i++) {
 		curName = animNames[i];
 		animStrs.push_back(curName);
-	}
+	} 
 	anims = Main::VecToInitList<const char*>(animStrs);
 	const auto repVec = FVector2::GetRepeatingVec(FVector2(2.f, 3.f), FVector2(3.f, 2.f));
-	constexpr auto const animRun = "run", animIdle = "idle", animAttk = "attack";
-	std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = { {animRun, std::variant<FVector2, FVector2*>(FVector2::One)}, { animIdle, std::variant<FVector2, FVector2*>(FVector2::One) }, {animAttk, std::variant<FVector2, FVector2*>(repVec)} };
+	constexpr auto const animRun = "run", animIdle = "idle", animAttk = "attack"; 
+	std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes  = { {animRun, std::variant<FVector2, FVector2*>(FVector2::One)}, { animIdle, std::variant<FVector2, FVector2*>(FVector2::One) }, {animAttk, std::variant<FVector2, FVector2*>(repVec)} };
 	std::unordered_map<const char*, bool> isGlobalSize = { {animAttk, false}, {animIdle, true}, {animRun, true}};
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, imageSizes, isGlobalSize);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	_freea(repVec);
 	constexpr int numShapes = 0;
 	player = plrNode->value;
+	player->SetRecordAnim(true);
+#if 0
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
@@ -115,6 +117,7 @@ void Player::Init() {
 	constexpr float invBorder = 1.f - border;
 	for (int i = 0; i < numShapes; i++) Shapes::CreateShape(shapeColVertices, Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
 	//player2Rb = player2->value;
+#endif
 }
 void Player::PlayAnim(int animation) {
 	player->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
@@ -140,14 +143,10 @@ void Player::Update(void) {
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
 #endif
-	if (Main::fInputVec == FVector2::Zero) {
-		if (Main::GetKey(SDL_SCANCODE_SPACE)) {
-			Player::PlayAnim(attack);
-			return;
-		}
-		Player::PlayAnim(idle);
+	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
+		Player::PlayAnim(attack);
+		Player::SetPastInp();
 		return;
 	}
-	Player::PlayAnim(run);
-	pastInp = Main::iInputVec;
+	Player::SetPastInp([]() -> void {Player::PlayAnim(run); }, []() -> void {Player::PlayAnim(idle); });
 }

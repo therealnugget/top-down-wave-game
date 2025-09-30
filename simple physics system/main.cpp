@@ -235,9 +235,9 @@ int main(int argc, char* args[])
         Main::dtUpdates(Main::DeltaTime());
 //#define SHOW_FPS
 #ifdef SHOW_FPS
-        cout << 1.f / Main::DeltaTime() << '\n';/*
+        cout << 1.f / Main::DeltaTime() << '\n';
         tempDTCumulative += static_cast<double>(Main::DeltaTime());
-        tempDTIndex++;*/
+        tempDTIndex++;
 #endif
         Main::LateUpdate();
         Main::StartDTCounter();

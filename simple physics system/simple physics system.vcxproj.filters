@@ -39,9 +39,6 @@
     <ClCompile Include="create shapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="linkedList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="multicast delegates.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
