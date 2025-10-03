@@ -99,7 +99,7 @@ void Player::Init() {
 	constexpr auto const animRun = "run", animIdle = "idle", animAttk = "attack"; 
 	std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes  = { {animRun, std::variant<FVector2, FVector2*>(FVector2::One)}, { animIdle, std::variant<FVector2, FVector2*>(FVector2::One) }, {animAttk, std::variant<FVector2, FVector2*>(repVec)} };
 	std::unordered_map<const char*, bool> isGlobalSize = { {animAttk, false}, {animIdle, true}, {animRun, true}};
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertList(), defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5);
 	_freea(repVec);
 	constexpr int numShapes = 10;
 	player = plrNode->value;

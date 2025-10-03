@@ -93,9 +93,10 @@ public:
 		return Vector2(x * b.x, y * b.y);
 	}
 	//NOT the cross product.
-	inline std::initializer_list<Vector2> operator *(const std::initializer_list<Vector2> &list) {
-		for (Vector2& vec : list) {
+	inline std::initializer_list<Vector2> operator *(std::initializer_list<Vector2> list) {
+		for (auto& elem : list) {
 			Vector2 thisVal = *this;
+			Vector2& vec = static_cast<Vector2&>(elem);
 			vec = static_cast<Vector2>(static_cast<Vector2>(vec) * thisVal);
 		}
 		return list;
@@ -602,6 +603,9 @@ public:
 		}
 	};
 	static const std::initializer_list<FVector2> DefaultSquareVerticesAsList;
+	static inline std::initializer_list<FVector2> GetDefaultSquareVertList() {
+		return DefaultSquareVerticesAsList;
+	}
 	static constexpr int numVerticesInSquare = 4;
 	static constexpr FVector2 DefaultSquareVertices[numVerticesInSquare] = {
 		DEFAULT_SQUARE_POINTS,
