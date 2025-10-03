@@ -387,6 +387,7 @@ public:
 	static inline int GetAnimOffset(int animation) {
 		return Main::num_directions * animation;
 	}
+	static const std::string empty_string;
 private:
 	//order important for bit-wise operations.
 	static enum inpDirection: int {

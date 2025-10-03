@@ -458,7 +458,7 @@ void Physics::Update(float dt) {
 			currentRB->animTime += Animator::default_anim_time;
 			animFramesPassed++;
 		}
-		if (animFramesPassed) {
+		if (animFramesPassed && currentRB->anims.size() > 0) {
 			currentRB->SetNextAnimTex(animFramesPassed);
 			static std::variant<IntVec2, IntVec2*>* imageSizes;
 			imageSizes = currentRB->imageSizes;

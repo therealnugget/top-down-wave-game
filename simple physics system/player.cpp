@@ -99,25 +99,19 @@ void Player::Init() {
 	constexpr auto const animRun = "run", animIdle = "idle", animAttk = "attack"; 
 	std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes  = { {animRun, std::variant<FVector2, FVector2*>(FVector2::One)}, { animIdle, std::variant<FVector2, FVector2*>(FVector2::One) }, {animAttk, std::variant<FVector2, FVector2*>(repVec)} };
 	std::unordered_map<const char*, bool> isGlobalSize = { {animAttk, false}, {animIdle, true}, {animRun, true}};
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::DefaultSquareVerticesAsList, defaultPlrPos + FVector2::GetRight() * playerSize, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5);
 	_freea(repVec);
-	constexpr int numShapes = 0;
+	constexpr int numShapes = 10;
 	player = plrNode->value;
 	player->SetRecordAnim(true);
-#if 0
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
 	FVector2 shapeSize = playerSize * scaleFact;
-	std::initializer_list<FVector2> shapeColVertices = Physics::DefaultSquareVerticesAsList;
-	for (auto& vec : shapeColVertices) {
-		static_cast<FVector2>(vec) *= scaleFact;
-	}
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (int i = 0; i < numShapes; i++) Shapes::CreateShape(shapeColVertices, Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(FVector2::GetOne() * scaleFact * Physics::DefaultSquareVerticesAsList, Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
 	//player2Rb = player2->value;
-#endif
 }
 void Player::PlayAnim(int animation) {
 	player->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));

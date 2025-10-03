@@ -92,6 +92,14 @@ public:
 	inline Vector2 operator *(Vector2 b) {
 		return Vector2(x * b.x, y * b.y);
 	}
+	//NOT the cross product.
+	inline std::initializer_list<Vector2> operator *(const std::initializer_list<Vector2> &list) {
+		for (Vector2& vec : list) {
+			Vector2 thisVal = *this;
+			vec = static_cast<Vector2>(static_cast<Vector2>(vec) * thisVal);
+		}
+		return list;
+	}
 	inline bool operator ==(Vector2 b) {
 		return x == b.x && y == b.y;
 	}
@@ -328,6 +336,7 @@ public:
 			j = 0;
 			for (auto& path : dirPaths) {
 				Textures::InitAnim(*this, (basePath + animPath + '_' + path).c_str());
+				if (i == 0 && j == 0) SetTexture(anims[0].textures[0]);
 				if (_imageSizes.size() == 0) {
 					continue;
 				}

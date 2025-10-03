@@ -12,6 +12,7 @@
 #define ALT_OFFSET NUM_SIG_SCANKEYS + ALT_INDEX
 #define CTRL_OFFSET NUM_SIG_SCANKEYS + CONTROL_INDEX
 static SDL_Event e;
+const std::string Main::empty_string = "";
 bool Main::pressingKey[NUM_SIG_SCANKEYS];
 bool Main::pressedKey[NUM_SIG_SCANKEYS];
 bool Main::pressingModKey[NUM_MOD_KEYS];
