@@ -95,7 +95,7 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	} 
 	anims = Main::VecToInitList<const char*>(animStrs);
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, /*-FVector2(22.f, 24.f)*/ -playerSize * .5);//TODO: is this right? random ass vector is equivalent to the pixels  from the top-left of the player sprite to the top left of the image.
 	player = plrNode->value;
 	player->SetRecordAnim(true);
 	constexpr int numShapes = 10;
