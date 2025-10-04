@@ -9,3 +9,4 @@ template<typename T>
 struct Node;
 typedef Node<Node<RigidBody*>*> rbListList;
 typedef Node<RigidBody*> rbList;
+typedef std::tuple<float, float, float> FVector3;

@@ -306,6 +306,7 @@ public:
 	static void LateUpdate();
 	static void Start();
 	static void Finalize();
+	static FVector3 renderDrawColor;
 	template<typename T>
 	static inline void Swap(T& a, T& b) {
 		T t = a;

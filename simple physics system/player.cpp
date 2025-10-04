@@ -6,8 +6,8 @@
 #include "array.hpp"
 #include "linkedList.hpp"
 #include <algorithm>
-#define PLAYER_WIDTH 100
-#define PLAYER_HEIGHT 100
+#define PLAYER_WIDTH 150
+#define PLAYER_HEIGHT 150
 float Player::accel = 30000.f;
 float Player::speed = 1000.f;
 static RigidBody *player;
@@ -95,7 +95,7 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	} 
 	anims = Main::VecToInitList<const char*>(animStrs);
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, /*-FVector2(22.f, 24.f)*/ -playerSize * .5);//TODO: is this right? random ass vector is equivalent to the pixels  from the top-left of the player sprite to the top left of the image.
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	player = plrNode->value;
 	player->SetRecordAnim(true);
 	constexpr int numShapes = 10;
@@ -105,7 +105,7 @@ void Player::Init() {
 	FVector2 shapeSize = playerSize * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (i = 0; i < numShapes; i++) Shapes::CreateShape(FVector2::GetOne() * scaleFact * Physics::GetDefaultSquareVertVec(), Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
 	//player2Rb = player2->value;
 }
 void Player::PlayAnim(int animation) {

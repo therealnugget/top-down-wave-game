@@ -34,6 +34,9 @@ Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 	rb->entityIndex = totalNumEntities++;
 	return Node<RigidBody*>::AddAtHead(rb, &entityHead);
 }
+Node<RigidBody*>* Physics::StandaloneRB(std::vector<FVector2> narrowPhaseVertices, FVector2 startPos, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, float mass) {
+	RigidBody *rb = new RigidBody(startPos, initVel, angle)
+}
 template <typename T>
 Vector2<T> Vector2<T>::FromTo(RigidBody* from, RigidBody* to) {
 	return FromTo(from->GetPosition(), to->GetPosition());
@@ -444,9 +447,9 @@ void Physics::Update(float dt) {
 	while (curNode) {
 		currentRB = curNode->value;
 		curRect = currentRB->rect;
+		currentRB->position.IntoRectXY(curRect);
 		curRect->x += currentRB->renderOffset.x;
 		curRect->y += currentRB->renderOffset.y;
-		currentRB->position.IntoRectXY(curRect);
 		//can only render single-threaded. T-T
 		animFramesPassed = 0;
 		if (currentRB->animTime <= Animator::neg_anim_time) {
@@ -481,13 +484,13 @@ void Physics::Update(float dt) {
 		currentRB->pastAnimation = currentRB->currentAnimation;
 	}
 #ifdef SHOW_QUAD_TREE
-	SDL_SetRenderDrawColor(Main::renderer, 255, 0, 0, 255);
-	for (auto& temp : boundsArr) {
-		FVector2& min = std::get<0>(temp), & max = std::get<1>(temp);
+	SDL_SetRenderDrawColor(Main::renderer, 0, 0, 0, 255);
+	for (auto& bound : boundsArr) {
+		FVector2& min = std::get<0>(bound), & max = std::get<1>(bound);
 		SDL_RenderDrawLineF(Main::renderer, min.x, min.y, max.x, max.y);
 	}
 	boundsArr.clear();
-	SDL_SetRenderDrawColor(Main::renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(Main::renderer, std::get<0>(Main::renderDrawColor), std::get<1>(Main::renderDrawColor), std::get<2>(Main::renderDrawColor), 255);
 #endif
 }
 void Physics::Finalize() {

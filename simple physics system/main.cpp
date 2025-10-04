@@ -159,6 +159,7 @@ SDL_Renderer* Main::renderer = nullptr;
 SDL_DisplayMode Main::DM;
 FVector2 Main::DisplaySize;
 FVector2 Main::halfDisplaySize;
+FVector3 Main::renderDrawColor = FVector3(163.f, 215.f, 245.f);
 void Main::Start() {
     SDL_GetCurrentDisplayMode(0, &DM);//if we start using multiple windows, this needs to be changed
     DisplaySize = FVector2(DM);
@@ -169,7 +170,8 @@ void Main::Start() {
         return;
     }
     renderer = SDL_CreateRenderer(WindowManager::window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    SDL_SetRenderDrawColor(renderer, 163, 215, 245, 255);
+    //auto GetCol = [](int ind) -> float {return std::get<ind>(static_cast<std::tuple<float, float, float>>(renderDrawColor)); };
+    SDL_SetRenderDrawColor(renderer, std::get<0>(renderDrawColor), std::get<1>(renderDrawColor), std::get<2>(renderDrawColor), 255);//above code doesn't work because compiler is stupid
     if (!renderer) {
         ThrowError("renderer couldn't be created");
     }
