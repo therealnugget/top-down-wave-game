@@ -98,6 +98,9 @@ void Player::Init() {
 	anims = Main::VecToInitList<const char*>(animStrs);
 	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	player = plrNode->value;
+	player->SetCollisionCallback([](auto &collision) -> void {
+		cout << "player collided with entity of entity index " << collision.GetCollider()->entityIndex << std::endl;
+		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
 	constexpr int numShapes = 10;
@@ -107,7 +110,7 @@ void Player::Init() {
 	FVector2 shapeSize = playerSize * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 300.f/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, true);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * (300.f + static_cast<float>(i) * shapeSize.x /** 5.f*/)/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, true);
 	//for (i = 0; i < numShapes; i++) Physics::StandaloneRB(shapeSize * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 300.f, 5.f, true);
 	//player2Rb = player2->value;
 }
@@ -135,6 +138,7 @@ void Player::Update(void) {
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
 #endif
+	std::cout << "------------------------------------------" << std::endl;
 	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
 		Player::PlayAnim(attack);
 		Player::SetPastInp();

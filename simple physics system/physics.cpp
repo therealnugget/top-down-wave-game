@@ -11,6 +11,7 @@ int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
 int Physics::numSections = 0;
 int Physics::excessEntityNo = 0;
+std::unordered_set<uint_fast64_t> Physics::entitiesCollided = std::unordered_set<uint_fast64_t>();
 const std::initializer_list<FVector2> Physics::DefaultSquareVerticesAsList = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
@@ -24,13 +25,13 @@ void Entity::Finalize() {
 		}
 	}
 }
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass) {
-	RigidBody *rb = new RigidBody(startPos, initVel, angle, basePath, animPaths, endPaths, size, mass, _narrowPhaseVertices, imageSizes, isGlobalSize, _centreOfRot, _centreOfRotNPVert, _renderOffset);
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger) {
+	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, size, basePath, animPaths, endPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset);
 	return SubscribeEntity(rb);
 }
 Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 	rb->verticesNarrowP = new FVector2[rb->numNarrowPhaseVertices];
-	static int totalNumEntities = 0;
+	static uint totalNumEntities = 0;
 	rb->entityIndex = totalNumEntities++;
 	return Node<RigidBody*>::AddAtHead(rb, &entityHead);
 }
@@ -95,6 +96,9 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	}*/
 	{
 		std::lock_guard<std::mutex> lockOuterMutex(outerMutex);
+		if (GetEntityCollided(a->entityIndex, b->entityIndex))
+			return;
+		SetEntitiesCollided(a->entityIndex, b->entityIndex);
 		for (auto& rb : rbs) {
 			rb->checkColliding.lock();
 		}
@@ -113,72 +117,79 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	for (auto& rb : rbs) {
 		waitTilNotCol(rb);
 	}*/
-	int i;
-	float minA, maxA;
-	float minB, maxB;
-	bool colliding = true;
-	FVector2 vec;
-	FVector2 vecB, edge, axis;
-	float axisDepth;
-	auto checkVertices = [&](RigidBody *rb) {
-		if (!rb->GetMadeAABBTrue()) {
-			Physics::AdjustColVertices(rb);
-			rb->madeAABBTrue = true;
-		}
-		FVector2* vertices = rb->GetNarrowPhaseVertices();
-		uint numVertices = rb->GetNumNarrowPhaseVertices();
-		for (i = 0; i < numVertices; i++) {
-			vecB = vertices[(i + 1) % numVertices];
-			edge = vecB - vertices[i];
-			axis = FVector2(-edge.y, edge.x).Normalized();
-			ProjectVertices(a->GetNarrowPhaseVertices(), a->GetNumNarrowPhaseVertices(), axis, minA, maxA);
-			ProjectVertices(b->GetNarrowPhaseVertices(), b->GetNumNarrowPhaseVertices(), axis, minB, maxB);
-			colliding &= minA < maxB && minB < maxA;
-			axisDepth = Math::Min(maxB - minA, maxA - minB);
-			if (axisDepth < depth) {
-				depth = axisDepth;
-				normal = axis;
+	{
+		int i;
+		float minA, maxA;
+		float minB, maxB;
+		bool colliding = true;
+		FVector2 vec;
+		FVector2 vecB, edge, axis;
+		float axisDepth;
+		auto checkVertices = [&](RigidBody* rb) {
+			if (!rb->GetMadeAABBTrue()) {
+				Physics::AdjustColVertices(rb);
+				rb->madeAABBTrue = true;
 			}
+			FVector2* vertices = rb->GetNarrowPhaseVertices();
+			uint numVertices = rb->GetNumNarrowPhaseVertices();
+			for (i = 0; i < numVertices; i++) {
+				vecB = vertices[(i + 1) % numVertices];
+				edge = vecB - vertices[i];
+				axis = FVector2(-edge.y, edge.x).Normalized();
+				ProjectVertices(a->GetNarrowPhaseVertices(), a->GetNumNarrowPhaseVertices(), axis, minA, maxA);
+				ProjectVertices(b->GetNarrowPhaseVertices(), b->GetNumNarrowPhaseVertices(), axis, minB, maxB);
+				colliding &= minA < maxB && minB < maxA;
+				axisDepth = Math::Min(maxB - minA, maxA - minB);
+				if (axisDepth < depth) {
+					depth = axisDepth;
+					normal = axis;
+				}
+			}
+			};
+		checkVertices(a);
+		checkVertices(b);
+		FVector2 aPos = a->GetPosition(), bPos = b->GetPosition();
+		if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
+		bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
+		float dot = .0f;
+		bool triggerCollision = a->bIsTrigger || b->bIsTrigger;
+		if (!colliding || triggerCollision)
+			goto ret;
+
+		{
+			FVector2 offset = normal * depth * .5f;
+			a->SetPosition(aPos - offset * aMoveable - offset * !bMoveable);
+			b->SetPosition(bPos + offset * bMoveable + offset * !aMoveable);
+			if (aMoveable) Physics::AdjustColVertices(a);
+			if (bMoveable) Physics::AdjustColVertices(b);
+			FVector2 relVel = b->GetVelocity() - a->GetVelocity();
+			dot = normal ^ relVel;
 		}
-		};
-	checkVertices(a);
-	checkVertices(b);
-	FVector2 aPos = a->GetPosition(), bPos = b->GetPosition();
-	if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
-	bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
-	float dot = .0f;
-	bool triggerCollision = a->bIsTrigger || b->bIsTrigger;
-	if (!colliding || triggerCollision)
-		goto ret;
-
-	{
-		FVector2 offset = normal * depth * .5f;
-		a->SetPosition(aPos - offset * aMoveable - offset * !bMoveable);
-		b->SetPosition(bPos + offset * bMoveable + offset * !aMoveable);
-		if (aMoveable) Physics::AdjustColVertices(a);
-		if (bMoveable) Physics::AdjustColVertices(b);
-		FVector2 relVel = b->GetVelocity() - a->GetVelocity();
-		dot = normal ^ relVel;
+		if (dot > .0f) {
+			goto ret;
+		}
+		{
+			float e = std::fminf(a->GetCOR(), b->GetCOR());
+			FVector2 jn = normal * dot * -(1.f + e) / ((a->GetInvMass() + b->GetInvMass()));
+			if (aMoveable) a->velocity -= jn * a->GetInvMass();
+			if (bMoveable) b->velocity += jn * b->GetInvMass();
+		}
+	ret:;
+		if (!colliding || moveItrIndex > 0) {
+			goto free_mutex;
+		}
+		{
+			Collision collisionData = Collision(b, dot, triggerCollision);
+			if (a->OnCollision) a->OnCollision(collisionData);
+			if (!b->OnCollision) goto free_mutex;
+			collisionData.SetCollider(a);
+			b->OnCollision(collisionData);
+		}
 	}
-	if (dot > .0f)
-		goto ret;
-
-	{
-		float e = std::fminf(a->GetCOR(), b->GetCOR());
-		FVector2 jn = normal * dot * -(1.f + e) / ((a->GetInvMass() + b->GetInvMass()));
-		if (aMoveable) a->velocity -= jn * a->GetInvMass();
-		if (bMoveable) b->velocity += jn * b->GetInvMass();
-	}
-ret:;
+	free_mutex:
 	for (auto& rb : rbs) {
 		rb->checkColliding.unlock();
 	}
-	if (!colliding) return;
-	Collision collisionData = Collision(b, dot, triggerCollision);
-	if (a->OnCollision) a->OnCollision(collisionData);
-	if (!a->OnCollision) return;
-	collisionData.SetCollider(a);
-	b->OnCollision(collisionData);
 	/*
 	auto SetNotCol = [&](RigidBody* rb) {
 		{
@@ -458,6 +469,7 @@ void Physics::Update(float dt) {
 			}
 		}
 #endif
+		ClearCollidedEntites();
 		DeleteQuadEntities(&quadRoot, true);
 		rbListList::RemoveAllNodes(&sortedEntityHeads);
 	}

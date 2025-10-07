@@ -13,7 +13,7 @@
 #include <condition_variable>
 #include <unordered_map>
 #include <variant>
-#include <functional>
+#include <unordered_set>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
@@ -417,7 +417,7 @@ public:
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, const std::string& basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*>& endPaths, IntVec2 size, float _mass, std::vector<FVector2> _narrowPhaseVertices, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, bool _moveable = true, bool _isTrigger = false) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::initializer_list<const char*>& animPaths = std::initializer_list<const char *>(), const std::initializer_list<const char*>& endPaths = std::initializer_list<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false), 
 #endif
@@ -440,22 +440,7 @@ public:
 		}
 #endif
 	}
-//	//vertices of collider are at entity pos at origin.
-//	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, IntVec2 size = IntVec2::One) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), bMoveable(_moveable), bIsTrigger(_isTrigger),
-//#ifdef DEBUG_BUILD
-//		isDebugSquare(false), 
-//#endif
-//		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), entity(nullptr) {
-//		SetInitCOR();
-//		std::copy(_narrowPhaseVertices.begin(), _narrowPhaseVertices.end(), origNarrowPVertices);
-//#ifdef DEBUG_BUILD
-//		constexpr int numVertInBox = 4;
-//		if (numNarrowPhaseVertices < numVertInBox) {
-//			ThrowError((string("rigidbody was submitted which has less than ") + Main::IntToStr(numVertInBox) + " vertices on line " + Main::IntToStr(__LINE__) + " in file " + __FILE__ + ". size is " + Main::IntToStr(numNarrowPhaseVertices) + '.').c_str());
-//		}
-//#endif
-//	}
-	int entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
+	uint entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
 #ifdef DEBUG_BUILD
 	bool isDebugSquare;
 #endif
@@ -505,8 +490,8 @@ public:
 	inline void SetPosition(FVector2 &pos) {
 		SetPosition(pos.x, pos.y);
 	}
-	std::function<void(Collision&)> OnCollision;
 private:
+	std::function<void(Collision&)> OnCollision;
 	bool bMoveable;
 	bool bIsTrigger;
 	FVector2 difPositionSection;
@@ -559,6 +544,9 @@ public:
 	inline bool GetMadeAABBTrue() {
 		return madeAABBTrue;
 	}
+	inline void SetCollisionCallback(std::function<void(Collision&)> callback) {
+		OnCollision = callback;
+	}
 	FVector2 position;
 	FVector2 pastPosition;
 	friend class Physics;
@@ -595,11 +583,28 @@ private:
 	static inline FVector2 GetInitCellSize() {
 		return initCellSize;
 	}
+	static std::unordered_set<uint_fast64_t> entitiesCollided;
+	static inline int GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
+		return aIndex | (bIndex << 32);
+	}
 public:
+	static inline void SetEntitiesCollided(int aIndex, int bIndex) {
+		entitiesCollided.emplace(GetDoubleEntColIndex(static_cast<uint_fast64_t>(aIndex), static_cast<uint_fast64_t>(bIndex)));
+	}
+	static inline bool GetEntityCollided(int aIndex, int bIndex) {
+		auto GetEntCollided = [](int a, int b) -> bool {
+			return entitiesCollided.contains(GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b)));
+			};
+		return GetEntCollided(aIndex, bIndex) || GetEntCollided(bIndex, aIndex);
+	}
+	static inline void ClearCollidedEntites() {
+		//if (entitiesCollided.size() == 0) return;
+		entitiesCollided.clear();
+	}
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static Node<RigidBody*>* StandaloneRB(std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, float mass = 1.f, bool isTrigger = false, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f);
 	static void Finalize();
@@ -633,7 +638,6 @@ public:
 	static std::mutex mainWaitMutexes[Physics::thread_count];
 	static std::thread workers[Physics::thread_count];
 	//collision events are thread-safe
-	std::vector<std::function<void(RigidBody*, RigidBody*)>> collisionEvent;
 	/*
 	from 3 iterations of tests i ran for respectively dict sizes of 10, 1000000, and 10000000, the time taken increased exponentially, and the practical scenarios were also worse for trying to use a key to fnid a value that we knew didn't exist in the dictionary. the results are shown below.
 	* "find()" function for all values known:
@@ -688,7 +692,7 @@ public:
 	static constexpr FVector2 DefaultSquareVertices[numVerticesInSquare] = {
 		DEFAULT_SQUARE_POINTS,
 	};
-	static constexpr int max_quadtree_depth = 10;
+	static constexpr int max_quadtree_depth = 8;
 	static constexpr int max_ent_per_cell = 5;
 	static constexpr float deg2rad = 3.1415926535897932384626433832795028841971693993751058209749445923 / 180.0;
 	static constexpr float defaultCOR = .4f;

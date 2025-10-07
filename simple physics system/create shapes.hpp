@@ -40,7 +40,7 @@ public:
 		}
 	}
 	static inline Node<RigidBody*>* CreateShape(std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 position = Main::halfDisplaySize, IntVec2 size = IntVec2::One, float _mass = 1.f, TypeOfShape typeOfShape = TypeOfShape::square, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNarrowPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, bool isTrigger = false, bool moveable = true) {
-		RigidBody* _this = new RigidBody(position, FVector2::Zero, .0f, Main::empty_string, {"debug",}, {GetTexture(typeOfShape)}, size, _mass, narrowPhaseVertices, std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool>(), _centreOfRot, _centreOfRotNarrowPVert, _renderOffset, moveable, isTrigger);
+		RigidBody* _this = new RigidBody(position, FVector2::Zero, .0f, _mass, narrowPhaseVertices, _centreOfRotNarrowPVert, moveable, isTrigger, size, Main::empty_string, {"debug",}, {GetTexture(typeOfShape)}, std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool>(), _centreOfRot, _renderOffset);
 		return Physics::SubscribeEntity(_this);
 	}
 	static inline Node<RigidBody*>** CreateShapes(const uint numShapes, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 position = Main::halfDisplaySize, IntVec2 size = IntVec2::One, float _mass = 1.f, TypeOfShape typeOfShape = TypeOfShape::square, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNarrowPVert = FVector2::Zero) {
