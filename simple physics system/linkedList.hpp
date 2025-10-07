@@ -55,6 +55,14 @@ public:
 	static inline void Disadvance(Node<T>** node) {
 		*node = (*node)->prev;
 	}
+	template<typename ArgT>
+	inline void Iterate(void (*del(ArgT))) {
+		Node* head = this;
+		while (head) {
+			del(head);
+			Node::Advance(&head);
+		}
+	}
 	//O(n). a wrapper for a linked list from an initializer list.
 	static inline Node*& FromInitializer(std::initializer_list<T> vec) {
 		Node* _this = nullptr;

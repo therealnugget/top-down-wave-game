@@ -34,8 +34,9 @@ Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 	rb->entityIndex = totalNumEntities++;
 	return Node<RigidBody*>::AddAtHead(rb, &entityHead);
 }
-Node<RigidBody*>* Physics::StandaloneRB(std::vector<FVector2> narrowPhaseVertices, FVector2 startPos, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, float mass) {
-	RigidBody *rb = new RigidBody(startPos, initVel, angle)
+Node<RigidBody*>* Physics::StandaloneRB(std::vector<FVector2> narrowPhaseVertices, FVector2 startPos, float mass, bool isTrigger, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {
+	RigidBody* rb = new RigidBody(startPos, initVel, angle, mass, narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger);
+	return SubscribeEntity(rb);
 }
 template <typename T>
 Vector2<T> Vector2<T>::FromTo(RigidBody* from, RigidBody* to) {
@@ -112,7 +113,6 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	for (auto& rb : rbs) {
 		waitTilNotCol(rb);
 	}*/
-	FVector2 *verticesA = a->GetNarrowPhaseVertices(), *verticesB = b->GetNarrowPhaseVertices();
 	int i;
 	float minA, maxA;
 	float minB, maxB;
@@ -145,24 +145,40 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	checkVertices(b);
 	FVector2 aPos = a->GetPosition(), bPos = b->GetPosition();
 	if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
-	if (colliding) {
+	bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
+	float dot = .0f;
+	bool triggerCollision = a->bIsTrigger || b->bIsTrigger;
+	if (!colliding || triggerCollision)
+		goto ret;
+
+	{
 		FVector2 offset = normal * depth * .5f;
-		a->SetPosition(aPos - offset);
-		b->SetPosition(bPos + offset);
-		Physics::AdjustColVertices(a);
-		Physics::AdjustColVertices(b);
+		a->SetPosition(aPos - offset * aMoveable - offset * !bMoveable);
+		b->SetPosition(bPos + offset * bMoveable + offset * !aMoveable);
+		if (aMoveable) Physics::AdjustColVertices(a);
+		if (bMoveable) Physics::AdjustColVertices(b);
 		FVector2 relVel = b->GetVelocity() - a->GetVelocity();
-		float dot = normal ^ relVel;
-		if (dot > .0f) goto ret;
+		dot = normal ^ relVel;
+	}
+	if (dot > .0f)
+		goto ret;
+
+	{
 		float e = std::fminf(a->GetCOR(), b->GetCOR());
 		FVector2 jn = normal * dot * -(1.f + e) / ((a->GetInvMass() + b->GetInvMass()));
-		a->velocity -= jn * a->GetInvMass();
-		b->velocity += jn * b->GetInvMass();
+		if (aMoveable) a->velocity -= jn * a->GetInvMass();
+		if (bMoveable) b->velocity += jn * b->GetInvMass();
 	}
 ret:;
 	for (auto& rb : rbs) {
 		rb->checkColliding.unlock();
 	}
+	if (!colliding) return;
+	Collision collisionData = Collision(b, dot, triggerCollision);
+	if (a->OnCollision) a->OnCollision(collisionData);
+	if (!a->OnCollision) return;
+	collisionData.SetCollider(a);
+	b->OnCollision(collisionData);
 	/*
 	auto SetNotCol = [&](RigidBody* rb) {
 		{
@@ -268,6 +284,7 @@ std::thread Physics::workers[thread_count];
 int Physics::threadIndex;
 static FVector2 currentRBPos, currentRBVel;
 static RigidBody *currentRB;
+static Entity *currentEntity;
 static FVector2 maxNarrowPhase, minNarrowPhase;
 static FVector2 *curNarrowPVert;
 static uint curVertIndex;
@@ -342,7 +359,8 @@ void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
 	for (uint i = 0; i < rb->GetNumNarrowPhaseVertices(); i++) {
 		FVector2& rotNarrowPVert = rb->verticesNarrowP[i];
 		curVertex = rb->NarrowPAtI(i);
-		currentVertexWithoutPos = rb->GetOrigNarrowPVertices()[i] * rb->GetSize();
+		currentVertexWithoutPos = rb->GetOrigNarrowPVertices()[i];
+		if (rb->entity) currentVertexWithoutPos *= rb->entity->GetSize();
 		currentRotation = rb->GetRotation() * Physics::deg2rad;
 		sinB = std::sin(currentRotation);
 		cosB = std::cos(currentRotation);
@@ -380,7 +398,7 @@ void Physics::Update(float dt) {
 		//at=v-u
 		//a=(v-u)/t
 		//s = int(v)dt
-		//=vt + c (where c is the position last frame)
+		//=vt + f (where c is the position last frame)
 		//let t be the time since the last frame, a_net is the acceleration calculated from the mass and the net force applied since the first frame
 		//then
 		//v=velocity from last frame + net force applied from last frame / mass of entity * delta time
@@ -446,42 +464,45 @@ void Physics::Update(float dt) {
 	curNode = entityHead;
 	while (curNode) {
 		currentRB = curNode->value;
-		curRect = currentRB->rect;
-		currentRB->position.IntoRectXY(curRect);
-		curRect->x += currentRB->renderOffset.x;
-		curRect->y += currentRB->renderOffset.y;
-		//can only render single-threaded. T-T
-		animFramesPassed = 0;
-		if (currentRB->animTime <= Animator::neg_anim_time) {
-			animFramesPassed -= static_cast<int>(currentRB->animTime / Animator::default_anim_time);
-			currentRB->animTime += animFramesPassed * Animator::default_anim_time;
-		}
-		currentRB->animTime -= Main::DeltaTime();
-		if (currentRB->animTime <= .0f) {
-			currentRB->animTime += Animator::default_anim_time;
-			animFramesPassed++;
-		}
-		if (animFramesPassed && currentRB->anims.size() > 0) {
-			currentRB->SetNextAnimTex(animFramesPassed);
-			static std::variant<IntVec2, IntVec2*>* imageSizes;
-			imageSizes = currentRB->imageSizes;
-			if (imageSizes) {
-				static int currentAnim;
-				currentAnim = currentRB->currentAnimation;
-				static int baseAnim;
-				baseAnim = currentAnim / static_cast<int>(Main::num_directions);
-				if (currentRB->isGlobalSize[baseAnim]) {
-					static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
-				}
-				else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
+		currentEntity = currentRB->entity;
+		if (currentEntity){
+			curRect = currentEntity->rect;
+			currentRB->position.IntoRectXY(curRect);
+			curRect->x += currentEntity->renderOffset.x;
+			curRect->y += currentEntity->renderOffset.y;
+			//can only render single-threaded. T-T
+			animFramesPassed = 0;
+			if (currentEntity->animTime <= Animator::neg_anim_time) {
+				animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
+				currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
 			}
+			currentEntity->animTime -= Main::DeltaTime();
+			if (currentEntity->animTime <= .0f) {
+				currentEntity->animTime += Animator::default_anim_time;
+				animFramesPassed++;
+			}
+			if (animFramesPassed && currentEntity->anims.size() > 0) {
+				currentEntity->SetNextAnimTex(animFramesPassed);
+				static std::variant<IntVec2, IntVec2*>* imageSizes;
+				imageSizes = currentEntity->imageSizes;
+				if (imageSizes) {
+					static int currentAnim;
+					currentAnim = currentEntity->currentAnimation;
+					static int baseAnim;
+					baseAnim = currentAnim / static_cast<int>(Main::num_directions);
+					if (currentEntity->isGlobalSize[baseAnim]) {
+						static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
+					}
+					else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
+				}
+			}
+			SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB->rotation, currentEntity->centreOfRotation, currentEntity->flip);
 		}
-		SDL_RenderCopyEx(Main::renderer, currentRB->texture, nullptr, curRect, currentRB->rotation, currentRB->centreOfRotation, currentRB->flip);
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
 		Node<RigidBody*>::Advance(&curNode);
-		if (!currentRB->bRecordAnim) continue;
-		currentRB->pastAnimation = currentRB->currentAnimation;
+		if (!currentEntity || !currentEntity->bRecordAnim) continue;
+		currentEntity->pastAnimation = currentEntity->currentAnimation;
 	}
 #ifdef SHOW_QUAD_TREE
 	SDL_SetRenderDrawColor(Main::renderer, 0, 0, 0, 255);
@@ -496,9 +517,11 @@ void Physics::Update(float dt) {
 void Physics::Finalize() {
 	curNode = entityHead;
 	threadIndex = 0;
+	Entity* curEntity;
 	while (curNode) {
 		//TODO: change this to finalizer function with deletion of node value
-		curNode->value->Finalize();
+		curEntity = curNode->value->entity;
+		if (curEntity) curEntity->Finalize();
 		Node<RigidBody*>::Advance(&curNode);
 	}
 #ifdef IS_MULTI_THREADED

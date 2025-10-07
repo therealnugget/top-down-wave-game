@@ -11,6 +11,7 @@
 float Player::accel = 30000.f;
 float Player::speed = 1000.f;
 static RigidBody *player;
+static Entity* playerEnt;
 static rbList *plrNode;
 static rbList* player2;
 static RigidBody* player2Rb;
@@ -97,7 +98,8 @@ void Player::Init() {
 	anims = Main::VecToInitList<const char*>(animStrs);
 	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	player = plrNode->value;
-	player->SetRecordAnim(true);
+	playerEnt = player->GetEntity();
+	playerEnt->SetRecordAnim(true);
 	constexpr int numShapes = 10;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
@@ -105,11 +107,12 @@ void Player::Init() {
 	FVector2 shapeSize = playerSize * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 300.f/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, true);
+	//for (i = 0; i < numShapes; i++) Physics::StandaloneRB(shapeSize * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 300.f, 5.f, true);
 	//player2Rb = player2->value;
 }
 void Player::PlayAnim(int animation) {
-	player->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
+	playerEnt->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
 }
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
