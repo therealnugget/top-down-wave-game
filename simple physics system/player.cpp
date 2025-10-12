@@ -4,7 +4,7 @@
 #include <tuple>
 #include "create shapes.hpp"
 #include "array.hpp"
-#include "linkedList.hpp"
+#include "main.hpp"
 #include <algorithm>
 #define PLAYER_WIDTH 150
 #define PLAYER_HEIGHT 150
@@ -96,10 +96,10 @@ void Player::Init() {
 		animStrs.push_back(curName);
 	} 
 	anims = Main::VecToInitList<const char*>(animStrs);
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
 	player = plrNode->value;
 	player->SetCollisionCallback([](auto &collision) -> void {
-		cout << "player collided with entity of entity index " << collision.GetCollider()->entityIndex << std::endl;
+		//std::cout << "colliding!!!\n";
 		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
@@ -110,13 +110,13 @@ void Player::Init() {
 	FVector2 shapeSize = playerSize * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * (300.f + static_cast<float>(i) * shapeSize.x /** 5.f*/)/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, true);
-	//for (i = 0; i < numShapes; i++) Physics::StandaloneRB(shapeSize * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 300.f, 5.f, true);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * (300.f + static_cast<float>(i) * shapeSize.x * std::powf(-1.f, static_cast<float>(i)))/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);
 	//player2Rb = player2->value;
 }
 void Player::PlayAnim(int animation) {
 	playerEnt->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
 }
+rbList* Player::temp = nullptr;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -137,8 +137,9 @@ void Player::Update(void) {
 		/*cout << "vertex at " << std::to_string(j) << " is ";
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
-#endif
-	std::cout << "------------------------------------------" << std::endl;
+#endif/*
+	if (temp) Physics::DeleteRB(temp);
+	temp = Physics::StandaloneRB(FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)), Main::halfDisplaySize + FVector2::GetRight() * 300.f);*/
 	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
 		Player::PlayAnim(attack);
 		Player::SetPastInp();

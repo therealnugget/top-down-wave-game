@@ -1,11 +1,11 @@
 #include "physics.hpp"
-#include "linkedList.hpp"
 #include "main.hpp"
+#include "debug.hpp"
 #include "math.hpp"
 #include <limits>
 rbList *Physics::entityHead = nullptr;
-rbListList *Physics::sortedEntityHeads = nullptr;//a list of ptrs to lists of ptrs. this is a memory leak waiting to happen XD
-rbListList *Physics::curSortedEntHeadList = nullptr;
+rbListList *Physics::sortedEntityHeads = nullptr;
+rbListList *Physics::unsortedEntityHeads = nullptr;
 //TODO (minor): rename the following 4 variables
 int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
@@ -15,28 +15,28 @@ std::unordered_set<uint_fast64_t> Physics::entitiesCollided = std::unordered_set
 const std::initializer_list<FVector2> Physics::DefaultSquareVerticesAsList = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
-void Entity::Finalize() {
-	int j;
-	Animation &curAnim = anims[0];
-	for (int i = 0; i < numAnims; i++) {
-		curAnim = anims[i];
-		for (j = 0; j < curAnim.numOfFrames; j++) {
-			SDL_DestroyTexture(curAnim.textures[j]);
-		}
-	}
-}
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger) {
-	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, size, basePath, animPaths, endPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset);
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger) {
+	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, true, size, basePath, animPaths, endPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset, tag);
 	return SubscribeEntity(rb);
 }
 Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
-	rb->verticesNarrowP = new FVector2[rb->numNarrowPhaseVertices];
 	static uint totalNumEntities = 0;
 	rb->entityIndex = totalNumEntities++;
 	return Node<RigidBody*>::AddAtHead(rb, &entityHead);
 }
-Node<RigidBody*>* Physics::StandaloneRB(std::vector<FVector2> narrowPhaseVertices, FVector2 startPos, float mass, bool isTrigger, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {
-	RigidBody* rb = new RigidBody(startPos, initVel, angle, mass, narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger);
+void Physics::UnSubscribeEntity(rbList* node) {
+	rbList::Remove(&entityHead, node);
+}
+void Physics::DeleteRB(rbList* node) {
+	RigidBody* rb = node->value;
+	Entity* ent = rb->GetEntity();
+	if (ent) delete ent;
+	delete rb;
+	UnSubscribeEntity(node);
+}
+Node<RigidBody*>* Physics::StandaloneRB(FVector2 size, FVector2 startPos, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, int tag) {
+	RigidBody* rb = new RigidBody(startPos, initVel, angle, mass, size * Physics::GetDefaultSquareVertVec(), _centreOfRotNPVert, moveable, isTrigger, false);
+	rb->tag = tag;
 	return SubscribeEntity(rb);
 }
 template <typename T>
@@ -89,19 +89,17 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		std::numeric_limits<float>::max()
 #endif
 		;
-	const std::vector rbs = { a, b };
 	/*
 	for (auto& rb : rbs) {
 		printf("%d\n", rb->entityIndex);
 	}*/
 	{
 		std::lock_guard<std::mutex> lockOuterMutex(outerMutex);
-		if (GetEntityCollided(a->entityIndex, b->entityIndex))
-			return;
-		SetEntitiesCollided(a->entityIndex, b->entityIndex);
-		for (auto& rb : rbs) {
-			rb->checkColliding.lock();
-		}
+		uint_fast64_t collisionIndex;
+		if (GetEntityCollided(a->entityIndex, b->entityIndex, &collisionIndex)) return;
+		SetEntitiesCollided(collisionIndex);
+		a->checkColliding.lock();
+		b->checkColliding.lock();
 	}
 	/*
 	auto waitTilNotCol = [&](RigidBody* rb) {
@@ -175,7 +173,7 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 			if (bMoveable) b->velocity += jn * b->GetInvMass();
 		}
 	ret:;
-		if (!colliding || moveItrIndex > 0) {
+		if (!colliding || moveItrIndex != 0) {
 			goto free_mutex;
 		}
 		{
@@ -187,9 +185,8 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		}
 	}
 	free_mutex:
-	for (auto& rb : rbs) {
-		rb->checkColliding.unlock();
-	}
+	a->checkColliding.unlock();
+	b->checkColliding.unlock();
 	/*
 	auto SetNotCol = [&](RigidBody* rb) {
 		{
@@ -214,7 +211,15 @@ void Physics::ProjectVertices(FVector2 *vertices, uint numVertices, FVector2 axi
 		}
 	}
 }
-//TODO (minor): rename
+void Physics::OuterBroadPhase(bool searchSortedList) {
+#ifndef IS_MULTI_THREADED
+	auto curEntHeadList = searchSortedList ? sortedEntityHeads : unsortedEntityHeads;
+	while (curEntHeadList) {
+		BroadPhase(curEntHeadList->value);
+		rbListList::Advance(&curEntHeadList);
+	}
+#endif
+}
 void Physics::BroadPhase(Node<RigidBody *> *rbNode
 #ifdef IS_MULTI_THREADED
 	, int index
@@ -236,7 +241,6 @@ void Physics::BroadPhase(Node<RigidBody *> *rbNode
 	}
 }
 void Physics::ThreadFunc(int index) {
-	rbListList *curMTSortedList;
 	int i;
 #ifdef DEBUG_BUILD
 	if (index >= thread_count) {
@@ -250,25 +254,35 @@ void Physics::ThreadFunc(int index) {
 			while (!canRunThread[index] && !stopThread[index]) threadFuncConds[index].wait(lock);
 			if (stopThread[index]) return;
 		}
-		curMTSortedList = sortedEntityHeads;
+		rbListList *curMtList = sortedEntityHeads;
 		for (i = 0; i < sectionSize * index; i++) {
 			//"go to after."
 			//"after what?"
 			//"after after."
-			if (!curMTSortedList) goto after;
-			rbListList::Advance(&curMTSortedList);
+			if (!curMtList) return;
+			rbListList::Advance(&curMtList);
 		}
 		for (i = 0; i < sectionSize + excessEntityNo * (index == (numSections - 1)); i++) {
-			if (!curMTSortedList) goto after;
-			BroadPhase(curMTSortedList->value
+			if (!curMtList) return;
+			BroadPhase(curMtList->value
 #ifdef IS_MULTI_THREADED
 				, index
 #endif
 			);
-			rbListList::Advance(&curMTSortedList);
+			rbListList::Advance(&curMtList);
+		}
+		if (index == 0) {
+			curMtList = unsortedEntityHeads;
+			while (curMtList) {
+				BroadPhase(curMtList->value
+#ifdef IS_MULTI_THREADED
+					, index
+#endif
+				);
+				rbListList::Advance(&curMtList);
+			}
 		}
 		//printf("index is %d, number of sections is %d, section size is %d\n", index, numSections, sectionSize);
-	after:
 		{
 			std::unique_lock<std::mutex> lock(mainWaitMutexes[index]);
 			canRunThread[index] = false;
@@ -310,43 +324,45 @@ void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
 		goto ret;
 	}
 	{
-		for (auto &node : tree->GetNodes()) {
-			DeleteQuadEntities(*node);
-			*node = nullptr;
-		}
+		DeleteQuadEntities(tree->GetBottomLeft());
+		DeleteQuadEntities(tree->GetBottomRight());
+		DeleteQuadEntities(tree->GetTopLeft());
+		DeleteQuadEntities(tree->GetTopRight());
 	}
 ret:
 	if (isRoot) {
 		return;
 	}
-	tree->CleanUpNodes();
 	delete tree;
 }
 void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *entities, int currentDepth) {
 	int noEntInCurCell = 0;
 	RigidBody* curRB;
+	rbList* unsortedRbs = nullptr;
+	auto AddRbsToNPList = [unsortedRbs](rbList* vals, rbListList *head) -> void {
+		rbListList::AddAtHead(vals, &head);
+		if (vals == unsortedRbs) return;
+		numEntities += vals->Length();
+		sectionSize = numEntities / thread_count;
+		excessEntityNo = numEntities % thread_count;
+		numSections = std::min(thread_count, numEntities);
+		};
 	while (entities) {
 		curRB = entities->value;
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
-			Node<RigidBody*>::AddAtHead(curRB, &quadNode->values);
+			rbList::AddAtHead(curRB, &quadNode->values);
 			noEntInCurCell++;
 		}
+		else if (currentDepth == 0) rbList::AddAtHead(curRB, &unsortedRbs);
 		Node<RigidBody*>::Advance(&entities);
 	}
+	if (unsortedRbs) AddRbsToNPList(unsortedRbs, unsortedEntityHeads);
 	if (noEntInCurCell < Physics::max_ent_per_cell || currentDepth > Physics::max_quadtree_depth) {
 		rbList* vals = quadNode->values;
 		if (!vals) {
 			return;
 		}
-		rbListList::AddAtHead(vals, &sortedEntityHeads);
-		numEntities += vals->Length();
-		sectionSize = numEntities / thread_count;
-		excessEntityNo = numEntities % thread_count;//numEntities - threadcount * sectionSize
-		numSections =
-#ifndef DEBUG_BUILD
-			std::
-#endif
-			min(thread_count, numEntities);
+		AddRbsToNPList(vals, sortedEntityHeads);
 		return;
 	}
 	quadNode->CreateChildNodes();
@@ -355,9 +371,11 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	boundsArr.push_back({ { mid.x, min.y }, { mid.x, max.y } });
 	boundsArr.push_back({ { min.x, mid.y }, { max.x, mid.y } });
 #endif
-	for (uint i = 0; i < QuadNode<RigidBody*>::numNodes; i++) {
-		SortEntity(*quadNode->GetNodes()[i], quadNode->values, currentDepth + 1);
-	}
+	auto sort = [quadNode, currentDepth](QuadNode<RigidBody*>* curQuadNode) -> void {SortEntity(curQuadNode, quadNode->values, currentDepth + 1); };
+	sort(quadNode->GetBottomLeft());
+	sort(quadNode->GetBottomRight());
+	sort(quadNode->GetTopRight());
+	sort(quadNode->GetTopLeft());
 }
 //slow af. matrix rotation multiplication, then adds the position to the vertices and it's O(n) where n is num vertices for the rb. default is pos and rot, otherwise specified just rot.
 void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
@@ -368,7 +386,6 @@ void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
 	FVector2 vertexBeforeRotCalc;
 	double currentRotation;
 	for (uint i = 0; i < rb->GetNumNarrowPhaseVertices(); i++) {
-		FVector2& rotNarrowPVert = rb->verticesNarrowP[i];
 		curVertex = rb->NarrowPAtI(i);
 		currentVertexWithoutPos = rb->GetOrigNarrowPVertices()[i];
 		if (rb->entity) currentVertexWithoutPos *= rb->entity->GetSize();
@@ -448,13 +465,7 @@ void Physics::Update(float dt) {
 		numSections = 0;
 		excessEntityNo = 0;
 		SortEntity(&quadRoot, entityHead);
-#ifndef IS_MULTI_THREADED
-		curSortedEntHeadList = sortedEntityHeads;
-		while (curSortedEntHeadList) {
-			BroadPhase(curSortedEntHeadList->value);
-			rbListList::Advance(&curSortedEntHeadList);
-		}
-#else
+#ifdef IS_MULTI_THREADED
 		for (threadIndex = 0; threadIndex < thread_count; threadIndex++) {
 			{
 				std::unique_lock<std::mutex> threadFuncLG(threadFuncMutexes[threadIndex]);
@@ -468,6 +479,9 @@ void Physics::Update(float dt) {
 				mainWaitConds[threadIndex].wait(lock);
 			}
 		}
+#else
+		OuterBroadPhase();
+		OuterBroadPhase(true);
 #endif
 		ClearCollidedEntites();
 		DeleteQuadEntities(&quadRoot, true);
@@ -529,12 +543,11 @@ void Physics::Update(float dt) {
 void Physics::Finalize() {
 	curNode = entityHead;
 	threadIndex = 0;
-	Entity* curEntity;
+	rbList* nextNode;
 	while (curNode) {
-		//TODO: change this to finalizer function with deletion of node value
-		curEntity = curNode->value->entity;
-		if (curEntity) curEntity->Finalize();
-		Node<RigidBody*>::Advance(&curNode);
+		nextNode = curNode->GetNext();
+		Physics::DeleteRB(curNode);
+		curNode = nextNode;
 	}
 #ifdef IS_MULTI_THREADED
 	for (int i = 0; i < thread_count; i++) {

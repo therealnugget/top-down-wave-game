@@ -1,10 +1,11 @@
 #pragma once
-#include "main.hpp"
+#include "debug.hpp"
 #include "physics.hpp"
 #include <SDL.h>
 //static, therefore can't inherit from behaviour.
 class Player {
 private:
+	static rbList* temp;
 	static float accel, speed;
 	static IntVec2 pastInp;
 	static void PlayAnim(int);

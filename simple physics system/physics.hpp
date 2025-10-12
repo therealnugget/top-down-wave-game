@@ -3,8 +3,8 @@
 #include <tuple>
 #include "textures.hpp"
 #include <SDL.h>
-#include "linkedList.hpp"
 #include "main.hpp"
+#include "debug.hpp"
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -361,7 +361,22 @@ public:
 			i++;
 		}
 	}
-	void Finalize();
+	~Entity() {
+		int j;
+		Animation& curAnim = anims[0];
+		bool imageSizesEmpty = !imageSizes;
+		for (int i = 0; i < numAnims; i++) {
+			curAnim = anims[i];
+			for (j = 0; j < curAnim.numOfFrames; j++) {
+				SDL_DestroyTexture(curAnim.textures[j]);
+			}
+			if (imageSizesEmpty) continue;
+			delete std::get<IntVec2*>(imageSizes[i]);
+		}
+		delete imageSizes;
+		delete centreOfRotation;
+		delete rect;
+	}
 	inline void SetTexture(SDL_Texture* tex) {
 		texture = tex;
 	}
@@ -394,7 +409,13 @@ private:
 typedef struct AABB {
 public:
 	constexpr AABB(FVector2 _min, FVector2 _max): minimum(_min), maximum(_max) {}
-	AABB(): minimum(FVector2::Zero), maximum(FVector2::Zero) {}
+	AABB(float minX, float minY, float maxX, float maxY) {
+		minimum.x = minX;
+		minimum.y = minY;
+		maximum.x = maxX;
+		maximum.y = maxY;
+	}
+	constexpr AABB() : minimum(FVector2::Zero), maximum(FVector2::Zero) {}
 	Vector2<float> minimum, maximum;
 };
 class Collision {
@@ -417,21 +438,24 @@ public:
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::initializer_list<const char*>& animPaths = std::initializer_list<const char *>(), const std::initializer_list<const char*>& endPaths = std::initializer_list<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, bool createEntity = true, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::initializer_list<const char*>& animPaths = std::initializer_list<const char *>(), const std::initializer_list<const char*>& endPaths = std::initializer_list<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]), 
 #ifdef DEBUG_BUILD
-		isDebugSquare(false), 
+		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr) {
-		entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
-		position.IntoRectXY(entity->rect);
+		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag) {
+		if (createEntity) {
+			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
+			position.IntoRectXY(entity->rect);
+			if (_centreOfRotation.size()) {
+				memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
+			}
+			else {
+				entity->centreOfRotation->x = size.x / 2;
+				entity->centreOfRotation->y = size.y / 2;
+			}
+		}
+		else entity = nullptr;
 		SetInitCOR();
-		if (_centreOfRotation.size()) {
-			memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
-		}
-		else {
-			entity->centreOfRotation->x = size.x / 2;
-			entity->centreOfRotation->y = size.y / 2;
-		}
 		std::copy(_narrowPhaseVertices.begin(), _narrowPhaseVertices.end(), origNarrowPVertices);
 #ifdef DEBUG_BUILD
 		constexpr int numVertInBox = 4;
@@ -440,7 +464,12 @@ public:
 		}
 #endif
 	}
+	~RigidBody() {
+		delete origNarrowPVertices;
+		delete verticesNarrowP;
+	}
 	uint entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
+	int tag;
 #ifdef DEBUG_BUILD
 	bool isDebugSquare;
 #endif
@@ -516,7 +545,6 @@ private:
 	FVector2 *verticesNarrowP;
 	float mass, invMass;
 	FVector2 force;
-	Node<IntVec2>* cellHead;
 	Entity *entity;
 public:
 	inline void SetSize(IntVec2 size) {
@@ -568,7 +596,7 @@ private:
 	static int threadIndex;
 	static rbList *entityHead;
 	static rbListList *sortedEntityHeads;
-	static rbListList* curSortedEntHeadList;
+	static rbListList *unsortedEntityHeads;
 	static QuadNode<RigidBody*> quadRoot;
 	static int numEntities;
 	static int numSections;
@@ -584,16 +612,18 @@ private:
 		return initCellSize;
 	}
 	static std::unordered_set<uint_fast64_t> entitiesCollided;
-	static inline int GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
+	static inline uint_fast64_t GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
 		return aIndex | (bIndex << 32);
 	}
+	static void UnSubscribeEntity(rbList*);
 public:
-	static inline void SetEntitiesCollided(int aIndex, int bIndex) {
-		entitiesCollided.emplace(GetDoubleEntColIndex(static_cast<uint_fast64_t>(aIndex), static_cast<uint_fast64_t>(bIndex)));
+	static inline void SetEntitiesCollided(uint_fast64_t collisionIndex) {
+		entitiesCollided.emplace(collisionIndex);
 	}
-	static inline bool GetEntityCollided(int aIndex, int bIndex) {
-		auto GetEntCollided = [](int a, int b) -> bool {
-			return entitiesCollided.contains(GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b)));
+	static inline bool GetEntityCollided(uint aIndex, uint bIndex, uint_fast64_t * collisionIndex) {
+		auto GetEntCollided = [collisionIndex](uint a, uint b) -> bool {
+			*collisionIndex = GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b));
+			return entitiesCollided.contains(*collisionIndex);
 			};
 		return GetEntCollided(aIndex, bIndex) || GetEntCollided(bIndex, aIndex);
 	}
@@ -604,11 +634,13 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false);
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &texturePath, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
-	static Node<RigidBody*>* StandaloneRB(std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, float mass = 1.f, bool isTrigger = false, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f);
+	static void DeleteRB(rbList*);
+	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1);
 	static void Finalize();
 	static void Update(float dt);
+	static void OuterBroadPhase(bool searchSorted = false);
 	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0);
 	static void DeleteQuadEntities(QuadNode<RigidBody*>*, bool isRoot = false);
 	static void BroadPhase(Node<RigidBody *> *rb
@@ -704,7 +736,7 @@ static std::vector<std::tuple<FVector2, FVector2>> boundsArr;
 template<typename T>
 struct QuadNode {
 private:
-	QuadNode* topLeft, *topRight, *bottomLeft, *bottomRight;
+	QuadNode* topLeft, * topRight, * bottomLeft, * bottomRight;
 	AABB aabb;
 public:
 	typedef enum TypeOfNode {
@@ -715,33 +747,38 @@ public:
 		numOfNodes,
 		all,
 	};
-	static constexpr int numNodes = numOfNodes;
-	inline QuadNode(FVector2 AABBMin, FVector2 AABBMax): topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(AABBMin, AABBMax), values(nullptr) {
-		_nodes = new std::vector<QuadNode**>({ &topLeft, &topRight, &bottomLeft, &bottomRight });
+	static constexpr uint numNodes = numOfNodes;
+	inline QuadNode(FVector2 &AABBMin, FVector2 &AABBMax) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(AABBMin, AABBMax), values(nullptr) {
 	}
-	inline QuadNode(const AABB &_aabb): topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(_aabb), values(nullptr) {
-		_nodes = new std::vector<QuadNode**>({ &topLeft, &topRight, &bottomLeft, &bottomRight });
+	inline QuadNode(float minX, float minY, float maxX, float maxY) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(minX, minY, maxX, maxY), values(nullptr) {
+	}
+	inline QuadNode(const AABB& _aabb) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(_aabb), values(nullptr) {
 	}
 	inline AABB GetAABB() {
 		return aabb;
 	}
-	Node<T> *values;
-private:
-	std::vector<QuadNode**> *_nodes;
+	Node<T>* values;
 public:
-	inline void CleanUpNodes() {
-		delete _nodes;
+	inline QuadNode* GetBottomLeft() {
+		return bottomLeft;
 	}
-	//top-left, top-right, bottom-left, bottom-right
-	inline std::vector<QuadNode **> GetNodes() {
-		return *_nodes;
+	inline QuadNode* GetBottomRight() {
+		return bottomRight;
+	}
+	inline QuadNode* GetTopLeft() {
+		return topLeft;
+	}
+	inline QuadNode** GetTopLeftAddr() {
+		return &topLeft;
+	}
+	inline QuadNode* GetTopRight() {
+		return topRight;
 	}
 	inline bool IsLeafNode() {
 		return topLeft == nullptr;
 	};
-	inline void Enact(std::function<void(Node<T> *, QuadNode<T> *)> del, TypeOfNode typeOfNode) {
+	inline void Enact(std::function<void(Node<T>*, QuadNode<T>*)> del, TypeOfNode typeOfNode) {
 		QuadNode* node = nullptr;
-		Node<RigidBody*> curNode;
 		if (IsLeafNode()) CreateChildNodes();
 		switch (typeOfNode) {
 		case TypeOfNode::tTopLeft:
@@ -757,44 +794,39 @@ public:
 			node = bottomRight;
 			break;
 		case TypeOfNode::all:
-			for (uint i = 0; i < numNodes; i++) {
-				curNode = GetNodes()[i]->values;
-				while (curNode) {
-					del(curNode, GetNodes[i]);
-					Node<T>::Advance(&curNode);
-				}
-			}
+			Enact(del, TypeOfNode::tBottomLeft);
+			Enact(del, TypeOfNode::tBottomRight);
+			Enact(del, TypeOfNode::tTopLeft);
+			Enact(del, TypeOfNode::tTopRight);
 			return;
 			//this redundant label does not hurt performance, since the other labels in the switch statement actually do something, thus the switch statement is not useless, and this label will never be jumped to so it won't detriment performance.
 		default:
 			ThrowError("case not defined");
 			break;
 		}
-		curNode = node->values;
-		while (curNode) {
-			del(curNode);
-			Node<T>::Advance(&curNode);
-		}
+		del(values, node);
 	}
 	inline void CreateChildNodes() {
-		AABB curAABB = AABB();
-		bool isLeftNode, isBottomNode;
-		bool isBottomLeft;
+		FVector2 min, max;
 		FVector2 halfAABB = (aabb.minimum + aabb.maximum) * .5f;
-		FVector2 &minAABB = aabb.minimum, &maxAABB = aabb.maximum;
-		for (uint i = 0; i < numNodes; i++) {
-			/*
-			top-left, top-right, bottom-left, bottom-right
-			*/
-			//there is a much more character-efficient way of doing the nex few lines of code, i could just replace it with a modulo, but in a project filled with those sorts of solutions, it becomes very very difficult to debug.
-			isBottomLeft = i == TypeOfNode::tBottomLeft;
-			isLeftNode = isBottomLeft || i == TypeOfNode::tTopLeft;
-			isBottomNode = isBottomLeft || i == TypeOfNode::tBottomRight;
-			curAABB.minimum.x = isLeftNode ? minAABB.x : halfAABB.x;
-			curAABB.minimum.y = isBottomNode ? minAABB.y : halfAABB.y;
-			curAABB.maximum.x = isLeftNode ? halfAABB.x : maxAABB.x;
-			curAABB.maximum.y = isBottomNode ? halfAABB.y : maxAABB.y;
-			**(_nodes->begin() + i) = new QuadNode(curAABB);
+		FVector2& minAABB = aabb.minimum, & maxAABB = aabb.maximum;
+		for (unsigned int i = 0; i < numNodes; i++) {
+			switch (i) {
+			case TypeOfNode::tBottomLeft:
+				bottomLeft = new QuadNode(minAABB, halfAABB);
+				continue;
+			case TypeOfNode::tBottomRight:
+				bottomRight = new QuadNode(halfAABB.x, minAABB.y, maxAABB.x, halfAABB.y);
+				continue;
+			case TypeOfNode::tTopLeft:
+				topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
+				continue;
+			case TypeOfNode::tTopRight:
+				topRight = new QuadNode(halfAABB, maxAABB);
+				continue;
+			default:
+				throw new std::exception("'i' is not implemented for this value\n");
+			}
 		}
-	}
+		}
 };

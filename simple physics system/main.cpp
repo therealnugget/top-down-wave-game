@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "debug.hpp"
 #include "winMgr.hpp"
 #include "textures.hpp"
 #include "player.hpp"
@@ -198,7 +198,7 @@ float Main::timeScale = 1.f;
 MultiDelegate<float> Main::dtUpdates;
 //regular (no argument) updates are called after dt updates
 MultiDelegate<void> Main::Updates;
-constexpr static DWORD afk_sleep_time = 16;
+constexpr static int afk_sleep_time = 16;
 int main(int argc, char* args[])
 {
     {
@@ -228,7 +228,7 @@ int main(int argc, char* args[])
             Main::CheckPauseState();
         pause_screen:
             Main::ClearInput();
-            Sleep(afk_sleep_time);
+            SDL_Delay(afk_sleep_time);
             continue;
         }
         //all normal behaviours after early update and before physics::update().
@@ -236,7 +236,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-//#define SHOW_FPS
+#define SHOW_FPS
 #ifdef SHOW_FPS
         cout << 1.f / Main::DeltaTime() << '\n';
         tempDTCumulative += static_cast<double>(Main::DeltaTime());

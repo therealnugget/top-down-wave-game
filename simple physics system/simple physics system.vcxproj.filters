@@ -33,7 +33,7 @@
     <ClCompile Include="physics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="linkedList.hpp">
+    <ClCompile Include="main.hpp">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="create shapes.cpp">
@@ -42,12 +42,15 @@
     <ClCompile Include="multicast delegates.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="enemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="physics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="main.hpp">
+    <ClInclude Include="debug.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="player.hpp">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="multicast delegates.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enemy.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
