@@ -1,8 +1,9 @@
 #include "physics.hpp"
+#include "linkedList.hpp"
 #include "main.hpp"
-#include "debug.hpp"
 #include "math.hpp"
 #include <limits>
+#include <intrin.h>
 rbList *Physics::entityHead = nullptr;
 rbListList *Physics::sortedEntityHeads = nullptr;
 rbListList *Physics::unsortedEntityHeads = nullptr;
@@ -11,6 +12,10 @@ int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
 int Physics::numSections = 0;
 int Physics::excessEntityNo = 0;
+int Physics::numUnsortedEntities = 0;
+int Physics::numUnsortedSections = 0;
+int Physics::unsortedSectionSize = 0;
+int Physics::unsortedExcessEntityNo = 0;
 std::unordered_set<uint_fast64_t> Physics::entitiesCollided = std::unordered_set<uint_fast64_t>();
 const std::initializer_list<FVector2> Physics::DefaultSquareVerticesAsList = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
@@ -200,7 +205,8 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	}*/
 }
 void Physics::ProjectVertices(FVector2 *vertices, uint numVertices, FVector2 axis, float &min, float &max) {
-	float projection;
+	ASMSetProjection(vertices, &axis, numVertices, &min, &max);
+	/*
 	for (uint i = 0; i < numVertices; i++) {
 		projection = vertices[i] ^ axis;
 		if (projection < min || i == 0) {
@@ -209,11 +215,11 @@ void Physics::ProjectVertices(FVector2 *vertices, uint numVertices, FVector2 axi
 		if (projection > max || i == 0) {
 			max = projection;
 		}
-	}
+	*/
 }
 void Physics::OuterBroadPhase(bool searchSortedList) {
 #ifndef IS_MULTI_THREADED
-	auto curEntHeadList = searchSortedList ? sortedEntityHeads : unsortedEntityHeads;
+	rbListList *curEntHeadList = searchSortedList ? sortedEntityHeads : unsortedEntityHeads;
 	while (curEntHeadList) {
 		BroadPhase(curEntHeadList->value);
 		rbListList::Advance(&curEntHeadList);
@@ -241,7 +247,6 @@ void Physics::BroadPhase(Node<RigidBody *> *rbNode
 	}
 }
 void Physics::ThreadFunc(int index) {
-	int i;
 #ifdef DEBUG_BUILD
 	if (index >= thread_count) {
 		ThrowError("index cannot be greater than or equal to thread count.");
@@ -254,26 +259,17 @@ void Physics::ThreadFunc(int index) {
 			while (!canRunThread[index] && !stopThread[index]) threadFuncConds[index].wait(lock);
 			if (stopThread[index]) return;
 		}
-		rbListList *curMtList = sortedEntityHeads;
-		for (i = 0; i < sectionSize * index; i++) {
-			//"go to after."
-			//"after what?"
-			//"after after."
-			if (!curMtList) return;
-			rbListList::Advance(&curMtList);
-		}
-		for (i = 0; i < sectionSize + excessEntityNo * (index == (numSections - 1)); i++) {
-			if (!curMtList) return;
-			BroadPhase(curMtList->value
-#ifdef IS_MULTI_THREADED
-				, index
-#endif
-			);
-			rbListList::Advance(&curMtList);
-		}
-		if (index == 0) {
-			curMtList = unsortedEntityHeads;
-			while (curMtList) {
+		auto DoBP = [index](rbListList* curMtList, int secSize, int excessEntNo, int numSecs) -> void {
+			int i;
+			for (i = 0; i < secSize * index; i++) {
+				//"go to after."
+				//"after what?"
+				//"after after."
+				if (!curMtList) return;
+				rbListList::Advance(&curMtList);
+			}
+			for (i = 0; i < secSize + excessEntNo * (index == (numSecs - 1)); i++) {
+				if (!curMtList) return;
 				BroadPhase(curMtList->value
 #ifdef IS_MULTI_THREADED
 					, index
@@ -281,7 +277,9 @@ void Physics::ThreadFunc(int index) {
 				);
 				rbListList::Advance(&curMtList);
 			}
-		}
+			};
+		DoBP(sortedEntityHeads, sectionSize, excessEntityNo, numSections);
+		DoBP(unsortedEntityHeads, unsortedSectionSize, unsortedExcessEntityNo, numUnsortedSections);
 		//printf("index is %d, number of sections is %d, section size is %d\n", index, numSections, sectionSize);
 		{
 			std::unique_lock<std::mutex> lock(mainWaitMutexes[index]);
@@ -339,14 +337,6 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	int noEntInCurCell = 0;
 	RigidBody* curRB;
 	rbList* unsortedRbs = nullptr;
-	auto AddRbsToNPList = [unsortedRbs](rbList* vals, rbListList *head) -> void {
-		rbListList::AddAtHead(vals, &head);
-		if (vals == unsortedRbs) return;
-		numEntities += vals->Length();
-		sectionSize = numEntities / thread_count;
-		excessEntityNo = numEntities % thread_count;
-		numSections = std::min(thread_count, numEntities);
-		};
 	while (entities) {
 		curRB = entities->value;
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
@@ -356,13 +346,20 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 		else if (currentDepth == 0) rbList::AddAtHead(curRB, &unsortedRbs);
 		Node<RigidBody*>::Advance(&entities);
 	}
-	if (unsortedRbs) AddRbsToNPList(unsortedRbs, unsortedEntityHeads);
+	auto AddRbsToNPList = [unsortedRbs, noEntInCurCell](rbList* vals, rbListList** head, int &numEnts, int &secSize, int &excessEntNo, int &numSecs) -> void {
+		rbListList::AddAtHead(vals, head);
+		numEnts += noEntInCurCell;
+		secSize = numEnts / thread_count;
+		excessEntNo = numEnts % thread_count;
+		numSecs = Math::Min<int>(thread_count, numEnts);
+		};
+	if (unsortedRbs) AddRbsToNPList(unsortedRbs, &unsortedEntityHeads, numUnsortedEntities, unsortedSectionSize, unsortedExcessEntityNo, numUnsortedSections);
 	if (noEntInCurCell < Physics::max_ent_per_cell || currentDepth > Physics::max_quadtree_depth) {
 		rbList* vals = quadNode->values;
-		if (!vals) {
+		if (!vals || noEntInCurCell == 1) {
 			return;
 		}
-		AddRbsToNPList(vals, sortedEntityHeads);
+		AddRbsToNPList(vals, &sortedEntityHeads, numEntities, sectionSize, excessEntityNo, numSections);
 		return;
 	}
 	quadNode->CreateChildNodes();
@@ -464,6 +461,10 @@ void Physics::Update(float dt) {
 		sectionSize = 0;
 		numSections = 0;
 		excessEntityNo = 0;
+		numUnsortedEntities = 0;
+		unsortedSectionSize = 0;
+		numUnsortedSections = 0;
+		unsortedExcessEntityNo = 0;
 		SortEntity(&quadRoot, entityHead);
 #ifdef IS_MULTI_THREADED
 		for (threadIndex = 0; threadIndex < thread_count; threadIndex++) {
@@ -486,6 +487,9 @@ void Physics::Update(float dt) {
 		ClearCollidedEntites();
 		DeleteQuadEntities(&quadRoot, true);
 		rbListList::RemoveAllNodes(&sortedEntityHeads);
+		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList* list) {
+			rbList::RemoveAllNodes(&list);
+			});
 	}
 	curNode = entityHead;
 	while (curNode) {

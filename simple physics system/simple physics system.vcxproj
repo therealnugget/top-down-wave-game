@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -145,7 +146,7 @@
   <ItemGroup>
     <ClCompile Include="create shapes.cpp" />
     <ClCompile Include="enemy.cpp" />
-    <ClCompile Include="main.hpp" />
+    <ClCompile Include="linkedList.hpp" />
     <ClCompile Include="multicast delegates.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="physics.cpp" />
@@ -162,14 +163,18 @@
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="player.hpp" />
     <ClInclude Include="textures.hpp" />
-    <ClInclude Include="debug.hpp" />
+    <ClInclude Include="main.hpp" />
     <ClInclude Include="usefulTypedefs.hpp" />
     <ClInclude Include="winMgr.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="images\debug square.png" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="math.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

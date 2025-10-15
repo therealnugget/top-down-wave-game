@@ -4,7 +4,7 @@
 #include <tuple>
 #include "create shapes.hpp"
 #include "array.hpp"
-#include "main.hpp"
+#include "linkedList.hpp"
 #include <algorithm>
 #define PLAYER_WIDTH 150
 #define PLAYER_HEIGHT 150
@@ -110,7 +110,7 @@ void Player::Init() {
 	FVector2 shapeSize = playerSize * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
-	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * (300.f + static_cast<float>(i) * shapeSize.x * std::powf(-1.f, static_cast<float>(i)))/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);
+	for (i = 0; i < numShapes; i++) Shapes::CreateShape(Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * (300.f + static_cast<float>(i) * 10.f/* * std::powf(-1.f, static_cast<float>(i))*/)/*Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder)*/, shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);
 	//player2Rb = player2->value;
 }
 void Player::PlayAnim(int animation) {

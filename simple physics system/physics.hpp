@@ -3,8 +3,8 @@
 #include <tuple>
 #include "textures.hpp"
 #include <SDL.h>
+#include "linkedList.hpp"
 #include "main.hpp"
-#include "debug.hpp"
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -18,9 +18,10 @@
 { -.5f, .5f },\
 { .5f, .5f },\
 { .5f, -.5f }
-#define IS_MULTI_THREADED
+//#define IS_MULTI_THREADED
 using namespace std;
 struct RigidBody;
+extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
 //every instantiation of this *should* always be 8 bytes in total
 template<typename T>
 struct Vector2 {
@@ -116,7 +117,7 @@ public:
 	}
 	//dot product (carret is more readable)
 	inline float operator ^(Vector2 &b) {
-		return x * b.x + y * b.y;
+		return this->x * b.x + this->y * b.y;
 	}
 	inline Vector2 Normalized() {
 		T r = Magnitude();
@@ -602,6 +603,10 @@ private:
 	static int numSections;
 	static int sectionSize;
 	static int excessEntityNo;
+	static int numUnsortedEntities;
+	static int numUnsortedSections;
+	static int unsortedSectionSize;
+	static int unsortedExcessEntityNo;
 	static int moveItrIndex;
 	static const FVector2 frictionVec;
 	//a non-constant alternative to frictionVec. don't calculate this magnitude, a compile-time constant already contains it.

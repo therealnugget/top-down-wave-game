@@ -1,4 +1,4 @@
-#include "debug.hpp"
+#include "main.hpp"
 #include "winMgr.hpp"
 #include "textures.hpp"
 #include "player.hpp"
@@ -138,6 +138,7 @@ void Main::Finalize() {
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;
 }
+//per-component randomness.
 FVector2 Main::GetRandFVec(FVector2 min, FVector2 max) {
     return { GetRandFloat(min.x, max.x), GetRandFloat(min.y, max.y) };
 }

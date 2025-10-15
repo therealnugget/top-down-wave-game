@@ -33,7 +33,7 @@
     <ClCompile Include="physics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.hpp">
+    <ClCompile Include="linkedList.hpp">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="create shapes.cpp">
@@ -50,7 +50,7 @@
     <ClInclude Include="physics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debug.hpp">
+    <ClInclude Include="main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="player.hpp">
@@ -85,5 +85,10 @@
     <Image Include="images\debug square.png">
       <Filter>Resource Files\images</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="math.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

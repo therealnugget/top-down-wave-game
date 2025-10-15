@@ -1,5 +1,5 @@
 #include "textures.hpp"
-#include "debug.hpp"
+#include "main.hpp"
 #include "winMgr.hpp"
 #include <sys/stat.h>
 #include "player.hpp"

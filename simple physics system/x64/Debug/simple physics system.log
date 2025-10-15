@@ -1,14 +1,2 @@
-﻿x64\Debug\main.obj : warning LNK4042: object specified more than once; extras ignored
-player.obj : error LNK2001: unresolved external symbol "public: static struct Vector2<float> Main::fInputVec" (?fInputVec@Main@@2U?$Vector2@M@@A)
-player.obj : error LNK2001: unresolved external symbol "public: static struct Vector2<int> Main::iInputVec" (?iInputVec@Main@@2U?$Vector2@H@@A)
-player.obj : error LNK2001: unresolved external symbol "public: static struct Vector2<float> Main::halfDisplaySize" (?halfDisplaySize@Main@@2U?$Vector2@M@@A)
-player.obj : error LNK2001: unresolved external symbol "public: static class MultiDelegate<void> Main::Updates" (?Updates@Main@@2V?$MultiDelegate@X@@A)
-player.obj : error LNK2001: unresolved external symbol "public: static class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const Main::empty_string" (?empty_string@Main@@2V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@B)
-physics.obj : error LNK2001: unresolved external symbol "public: static class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const Main::empty_string" (?empty_string@Main@@2V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@B)
-player.obj : error LNK2001: unresolved external symbol "private: static bool * Main::pressingKey" (?pressingKey@Main@@0PA_NA)
-physics.obj : error LNK2019: unresolved external symbol "public: static float __cdecl Main::DeltaTime(void)" (?DeltaTime@Main@@SAMXZ) referenced in function "public: static void __cdecl Physics::Update(float)" (?Update@Physics@@SAXM@Z)
-physics.obj : error LNK2001: unresolved external symbol "public: static struct SDL_Renderer * Main::renderer" (?renderer@Main@@2PEAUSDL_Renderer@@EA)
-textures.obj : error LNK2001: unresolved external symbol "public: static struct SDL_Renderer * Main::renderer" (?renderer@Main@@2PEAUSDL_Renderer@@EA)
-physics.obj : error LNK2001: unresolved external symbol "public: static class MultiDelegate<float> Main::dtUpdates" (?dtUpdates@Main@@2V?$MultiDelegate@M@@A)
-SDL2main.lib(SDL_windows_main.obj) : error LNK2019: unresolved external symbol SDL_main referenced in function main_getcmdline
-C:\Users\drago\source\repos\top-down-wave-game\x64\Debug\simple physics system.exe : fatal error LNK1120: 10 unresolved externals
+﻿  Assembling math.asm...
+  simple physics system.vcxproj -> C:\Users\drago\source\repos\top-down-wave-game\x64\Debug\simple physics system.exe
