@@ -14,11 +14,12 @@
 #include <unordered_map>
 #include <variant>
 #include <unordered_set>
+#include <stack>
 #define DEFAULT_SQUARE_POINTS {-.5f, -.5f},\
 { -.5f, .5f },\
 { .5f, .5f },\
 { .5f, -.5f }
-//#define IS_MULTI_THREADED
+#define IS_MULTI_THREADED
 using namespace std;
 struct RigidBody;
 extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
@@ -436,6 +437,112 @@ public:
 		return dot;
 	}
 };
+template<typename T>
+struct QuadNode {
+private:
+	QuadNode* topLeft, * topRight, * bottomLeft, * bottomRight;
+	AABB aabb;
+public:
+	typedef enum TypeOfNode {
+		tTopLeft,
+		tTopRight,
+		tBottomLeft,
+		tBottomRight,
+		numOfNodes,
+		all,
+	};
+	typedef enum TypeOfSortNode {
+		sortTopLeft = 0,
+		sortTopRight = 1,
+		sortBottomLeft = 2,
+		sortBottomRight = 3,
+		sortNumOfNodes = 4,
+		sortAll = 4,
+	};
+	static constexpr uint numNodes = numOfNodes;
+	inline QuadNode(FVector2& AABBMin, FVector2& AABBMax) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(AABBMin, AABBMax), values(nullptr) {
+	}
+	inline QuadNode(float minX, float minY, float maxX, float maxY) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(minX, minY, maxX, maxY), values(nullptr) {
+	}
+	inline QuadNode(const AABB& _aabb) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(_aabb), values(nullptr) {
+	}
+	inline AABB GetAABB() {
+		return aabb;
+	}
+	Node<T>* values;
+public:
+	inline QuadNode* GetBottomLeft() {
+		return bottomLeft;
+	}
+	inline QuadNode* GetBottomRight() {
+		return bottomRight;
+	}
+	inline QuadNode* GetTopLeft() {
+		return topLeft;
+	}
+	inline QuadNode** GetTopLeftAddr() {
+		return &topLeft;
+	}
+	inline QuadNode* GetTopRight() {
+		return topRight;
+	}
+	inline bool IsLeafNode() {
+		return topLeft == nullptr;
+	};
+	inline void Enact(std::function<void(Node<T>*, QuadNode<T>*)> del, TypeOfNode typeOfNode) {
+		QuadNode* node = nullptr;
+		if (IsLeafNode()) CreateChildNodes();
+		switch (typeOfNode) {
+		case TypeOfNode::tTopLeft:
+			node = topLeft;
+			break;
+		case TypeOfNode::tTopRight:
+			node = topRight;
+			break;
+		case TypeOfNode::tBottomLeft:
+			node = bottomLeft;
+			break;
+		case TypeOfNode::tBottomRight:
+			node = bottomRight;
+			break;
+		case TypeOfNode::all:
+			Enact(del, TypeOfNode::tBottomLeft);
+			Enact(del, TypeOfNode::tBottomRight);
+			Enact(del, TypeOfNode::tTopLeft);
+			Enact(del, TypeOfNode::tTopRight);
+			return;
+			//this redundant label does not hurt performance, since the other labels in the switch statement actually do something, thus the switch statement is not useless, and this label will never be jumped to so it won't detriment performance.
+		default:
+			ThrowError("case not defined");
+			break;
+		}
+		del(values, node);
+	}
+	inline void CreateChildNodes() {
+		FVector2 min, max;
+		FVector2 halfAABB = (aabb.minimum + aabb.maximum) * .5f;
+		FVector2& minAABB = aabb.minimum, & maxAABB = aabb.maximum;
+		for (unsigned int i = 0; i < numNodes; i++) {
+			switch (i) {
+			case TypeOfNode::tBottomLeft:
+				bottomLeft = new QuadNode(minAABB, halfAABB);
+				continue;
+			case TypeOfNode::tBottomRight:
+				bottomRight = new QuadNode(halfAABB.x, minAABB.y, maxAABB.x, halfAABB.y);
+				continue;
+			case TypeOfNode::tTopLeft:
+				topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
+				continue;
+			case TypeOfNode::tTopRight:
+				topRight = new QuadNode(halfAABB, maxAABB);
+				continue;
+			default:
+				throw new std::exception("'i' is not implemented for this value\n");
+			}
+		}
+	}
+};
+static constexpr int const_max_quadtree_depth = 10;
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
@@ -443,7 +550,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag) {
+		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[const_max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1)]) {//have to add one to number of nodes for type: "all" nodes
 		if (createEntity) {
 			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
 			position.IntoRectXY(entity->rect);
@@ -468,6 +575,7 @@ public:
 	~RigidBody() {
 		delete origNarrowPVertices;
 		delete verticesNarrowP;
+		delete nodes;
 	}
 	uint entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
 	int tag;
@@ -528,6 +636,7 @@ private:
 	std::atomic<bool> isColliding;
 	std::condition_variable collidingCond;
 	std::mutex checkColliding;
+	std::unordered_set<uint_fast64_t> collisionsOccured;
 	const uint numNarrowPhaseVertices;
 	FVector2* origNarrowPVertices;
 	void SetInitCOR();
@@ -538,6 +647,9 @@ private:
 	inline FVector2* GetOrigNarrowPVertices() {
 		return origNarrowPVertices;
 	}
+	static inline uint_fast64_t GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
+		return aIndex | (bIndex << 32);
+	}
 	FVector2 velocity;
 	bool madeAABBTrue;
 	//broad-phase
@@ -547,6 +659,7 @@ private:
 	float mass, invMass;
 	FVector2 force;
 	Entity *entity;
+	Node<RigidBody*> *nodes;
 public:
 	inline void SetSize(IntVec2 size) {
 		madeAABBTrue &= (FVector2(entity->rect->w, entity->rect->h) == size);
@@ -576,13 +689,24 @@ public:
 	inline void SetCollisionCallback(std::function<void(Collision&)> callback) {
 		OnCollision = callback;
 	}
+	inline void SetEntitiesCollided(uint_fast64_t collisionIndex) {
+		collisionsOccured.emplace(collisionIndex);
+	}
+	inline bool GetEntityCollided(uint aIndex, uint bIndex, uint_fast64_t* collisionIndex) {
+		auto GetEntCollided = [collisionIndex, this](uint a, uint b) -> bool {
+			*collisionIndex = GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b));
+			return collisionsOccured.contains(*collisionIndex);
+			};
+		return GetEntCollided(aIndex, bIndex) || GetEntCollided(bIndex, aIndex);
+	}
+	inline void ClearCollidedEntites() {
+		collisionsOccured.clear();
+	}
 	FVector2 position;
 	FVector2 pastPosition;
 	friend class Physics;
 };
 //static
-template<typename T>
-struct QuadNode;
 class Physics {
 private:
 	//decreasing the number of movement iterations increases fps at the expense of physical accuracy
@@ -616,26 +740,8 @@ private:
 	static inline FVector2 GetInitCellSize() {
 		return initCellSize;
 	}
-	static std::unordered_set<uint_fast64_t> entitiesCollided;
-	static inline uint_fast64_t GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
-		return aIndex | (bIndex << 32);
-	}
 	static void UnSubscribeEntity(rbList*);
 public:
-	static inline void SetEntitiesCollided(uint_fast64_t collisionIndex) {
-		entitiesCollided.emplace(collisionIndex);
-	}
-	static inline bool GetEntityCollided(uint aIndex, uint bIndex, uint_fast64_t * collisionIndex) {
-		auto GetEntCollided = [collisionIndex](uint a, uint b) -> bool {
-			*collisionIndex = GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b));
-			return entitiesCollided.contains(*collisionIndex);
-			};
-		return GetEntCollided(aIndex, bIndex) || GetEntCollided(bIndex, aIndex);
-	}
-	static inline void ClearCollidedEntites() {
-		//if (entitiesCollided.size() == 0) return;
-		entitiesCollided.clear();
-	}
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
@@ -646,7 +752,7 @@ public:
 	static void Finalize();
 	static void Update(float dt);
 	static void OuterBroadPhase(bool searchSorted = false);
-	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0);
+	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0, int typeOfNode = QuadNode<RigidBody*>::TypeOfSortNode::sortAll);
 	static void DeleteQuadEntities(QuadNode<RigidBody*>*, bool isRoot = false);
 	static void BroadPhase(Node<RigidBody *> *rb
 #ifdef IS_MULTI_THREADED
@@ -729,7 +835,7 @@ public:
 	static constexpr FVector2 DefaultSquareVertices[numVerticesInSquare] = {
 		DEFAULT_SQUARE_POINTS,
 	};
-	static constexpr int max_quadtree_depth = 8;
+	static constexpr int max_quadtree_depth = const_max_quadtree_depth;
 	static constexpr int max_ent_per_cell = 5;
 	static constexpr float deg2rad = 3.1415926535897932384626433832795028841971693993751058209749445923 / 180.0;
 	static constexpr float defaultCOR = .4f;
@@ -738,100 +844,3 @@ public:
 #ifdef SHOW_QUAD_TREE
 static std::vector<std::tuple<FVector2, FVector2>> boundsArr;
 #endif
-template<typename T>
-struct QuadNode {
-private:
-	QuadNode* topLeft, * topRight, * bottomLeft, * bottomRight;
-	AABB aabb;
-public:
-	typedef enum TypeOfNode {
-		tTopLeft,
-		tTopRight,
-		tBottomLeft,
-		tBottomRight,
-		numOfNodes,
-		all,
-	};
-	static constexpr uint numNodes = numOfNodes;
-	inline QuadNode(FVector2 &AABBMin, FVector2 &AABBMax) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(AABBMin, AABBMax), values(nullptr) {
-	}
-	inline QuadNode(float minX, float minY, float maxX, float maxY) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(minX, minY, maxX, maxY), values(nullptr) {
-	}
-	inline QuadNode(const AABB& _aabb) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(_aabb), values(nullptr) {
-	}
-	inline AABB GetAABB() {
-		return aabb;
-	}
-	Node<T>* values;
-public:
-	inline QuadNode* GetBottomLeft() {
-		return bottomLeft;
-	}
-	inline QuadNode* GetBottomRight() {
-		return bottomRight;
-	}
-	inline QuadNode* GetTopLeft() {
-		return topLeft;
-	}
-	inline QuadNode** GetTopLeftAddr() {
-		return &topLeft;
-	}
-	inline QuadNode* GetTopRight() {
-		return topRight;
-	}
-	inline bool IsLeafNode() {
-		return topLeft == nullptr;
-	};
-	inline void Enact(std::function<void(Node<T>*, QuadNode<T>*)> del, TypeOfNode typeOfNode) {
-		QuadNode* node = nullptr;
-		if (IsLeafNode()) CreateChildNodes();
-		switch (typeOfNode) {
-		case TypeOfNode::tTopLeft:
-			node = topLeft;
-			break;
-		case TypeOfNode::tTopRight:
-			node = topRight;
-			break;
-		case TypeOfNode::tBottomLeft:
-			node = bottomLeft;
-			break;
-		case TypeOfNode::tBottomRight:
-			node = bottomRight;
-			break;
-		case TypeOfNode::all:
-			Enact(del, TypeOfNode::tBottomLeft);
-			Enact(del, TypeOfNode::tBottomRight);
-			Enact(del, TypeOfNode::tTopLeft);
-			Enact(del, TypeOfNode::tTopRight);
-			return;
-			//this redundant label does not hurt performance, since the other labels in the switch statement actually do something, thus the switch statement is not useless, and this label will never be jumped to so it won't detriment performance.
-		default:
-			ThrowError("case not defined");
-			break;
-		}
-		del(values, node);
-	}
-	inline void CreateChildNodes() {
-		FVector2 min, max;
-		FVector2 halfAABB = (aabb.minimum + aabb.maximum) * .5f;
-		FVector2& minAABB = aabb.minimum, & maxAABB = aabb.maximum;
-		for (unsigned int i = 0; i < numNodes; i++) {
-			switch (i) {
-			case TypeOfNode::tBottomLeft:
-				bottomLeft = new QuadNode(minAABB, halfAABB);
-				continue;
-			case TypeOfNode::tBottomRight:
-				bottomRight = new QuadNode(halfAABB.x, minAABB.y, maxAABB.x, halfAABB.y);
-				continue;
-			case TypeOfNode::tTopLeft:
-				topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
-				continue;
-			case TypeOfNode::tTopRight:
-				topRight = new QuadNode(halfAABB, maxAABB);
-				continue;
-			default:
-				throw new std::exception("'i' is not implemented for this value\n");
-			}
-		}
-		}
-};

@@ -32,6 +32,7 @@ private:
 	Node* next, * prev;
 public:
 	Node(T& val) : value(val), next(nullptr), prev(nullptr) {}
+	Node() {}
 	inline Node* GetNext() {
 		return next;
 	}
@@ -39,9 +40,10 @@ public:
 		return prev;
 	}
 	T value;
-	static void RemoveAllNodes(Node** head, void (*)(T));
+	static void RemoveAllNodes(Node** head, void (*)(T), bool freeNodes = true);
 	static void RemoveAllNodes(Node** head, bool freeNodes = true);
 	static Node* &AddAtHead(T&, Node** head);
+	static Node* &AddAtHead(T&, Node** head, Node *preConstructed);
 	//the ptr returned is only useful if you don't delete the node. 
 	static Node *Remove(Node** head, Node* remove, bool freeNode = true);
 	static void Reverse(Node** head);
@@ -81,12 +83,17 @@ public:
 };
 template <typename T>
 Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head) {
-	Node<T>* _this = new Node<T>(val);
-	_this->next = *head;
-	if (*head) (*head)->prev = _this;
-	//_this->prev = nullptr;//not needed because it is defaulted to nullptr in the constructor.
-	*head = _this;
-	return _this;
+	Node<T>* _this = new Node<T>();
+	return AddAtHead(val, head, _this);
+}
+template <typename T>
+Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head, Node<T> *preConstructedNode) {
+	preConstructedNode->value = val;
+	preConstructedNode->prev = nullptr;
+	preConstructedNode->next = *head;
+	if (*head) (*head)->prev = preConstructedNode;
+	*head = preConstructedNode;
+	return preConstructedNode;
 }
 template<typename T>
 class QueueNode {
@@ -490,14 +497,14 @@ void Node<T>::Reverse(Node<T>** head) {
 	}
 }
 template <typename T>
-void Node<T>::RemoveAllNodes(Node<T>** head, void (*removeDel)(T)) {
+void Node<T>::RemoveAllNodes(Node<T>** head, void (*removeDel)(T), bool freeNodes) {
 	Node<T>* curNode = *head;
 	Node<T>* pastNode;
 	while (curNode) {
 		removeDel(curNode->value);
 		pastNode = curNode;
 		Node::Advance(&curNode);
-		Node::Remove(head, pastNode);
+		Node::Remove(head, pastNode, freeNodes);
 	}
 }
 template <typename T>
