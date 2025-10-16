@@ -306,7 +306,14 @@ static SDL_Rect* curRect;
 static bool lastMovementItr;
 QuadNode<RigidBody*> Physics::quadRoot = QuadNode<RigidBody *>(Physics::initCellAABB);
 void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
-	Node<RigidBody*>::RemoveAllNodes(&tree->values, false);
+	Node<RigidBody*>::RemoveAllNodes(&tree->values,
+#define TEMP
+#ifdef TEMP
+		false
+#else 
+		true
+#endif
+	);
 	if (tree->IsLeafNode()) {
 		goto ret;
 	}
@@ -324,25 +331,36 @@ ret:
 }
 void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *entities, int currentDepth, int typeOfNode) {
 #ifdef DEBUG_BUILD
-	Assert(typeOfNode <= QuadNode<RigidBody*>::TypeOfSortNode::sortAll, "AAAAAAAAAAAA!!!");
+	Assert(typeOfNode <= QuadNode<RigidBody*>::numNodes, "AAAAAAAAAAAA!!!");
 #endif
 	int noEntInCurCell = 0;
 	RigidBody* curRB;
 	rbList* unsortedRbs = nullptr;
 	while (entities) {
 		curRB = entities->value;
+		auto GetNodeInd = [currentDepth, typeOfNode]()-> int {
+			return Math::Max<int>((currentDepth - 1) * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode + 1, 0);
+			};
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
 #ifdef DEBUG_BUILD
 			Assert(currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode < Physics::max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1), "broke just like me");
 #endif
-			rbList::AddAtHead(curRB, &quadNode->values, &curRB->nodes[currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode]);
+			rbList::AddAtHead(curRB, &quadNode->values
+#ifdef TEMP
+				, & curRB->nodes[GetNodeInd()]
+#endif
+			);
 			noEntInCurCell++;
 		}
 		else if (currentDepth == 0) {
 #ifdef DEBUG_BUILD
 			Assert(currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode < Physics::max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1), "broke just like me");
 #endif
-			rbList::AddAtHead(curRB, &unsortedRbs, &curRB->nodes[currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode]);
+			rbList::AddAtHead(curRB, &unsortedRbs
+#ifdef TEMP
+				, &curRB->nodes[GetNodeInd()]
+#endif
+			);
 		}
 		Node<RigidBody*>::Advance(&entities);
 	}
@@ -369,10 +387,10 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	boundsArr.push_back({ { min.x, mid.y }, { max.x, mid.y } });
 #endif
 	auto sort = [quadNode, currentDepth](QuadNode<RigidBody*>* curQuadNode, int typeNode) -> void {SortEntity(curQuadNode, quadNode->values, currentDepth + 1, typeNode); };
-	sort(quadNode->GetBottomLeft(), QuadNode<RigidBody*>::TypeOfSortNode::sortBottomLeft);
-	sort(quadNode->GetBottomRight(), QuadNode<RigidBody*>::TypeOfSortNode::sortBottomRight);
-	sort(quadNode->GetTopRight(), QuadNode<RigidBody*>::TypeOfSortNode::sortTopRight);
-	sort(quadNode->GetTopLeft(), QuadNode<RigidBody*>::TypeOfSortNode::sortTopLeft);
+	sort(quadNode->GetBottomLeft(), static_cast<int>(QuadNode<RigidBody*>::TypeOfNode::tBottomLeft));
+	sort(quadNode->GetBottomRight(), static_cast<int>(QuadNode<RigidBody*>::TypeOfNode::tBottomRight));
+	sort(quadNode->GetTopRight(), static_cast<int>(QuadNode<RigidBody*>::TypeOfNode::tTopRight));
+	sort(quadNode->GetTopLeft(), static_cast<int>(QuadNode<RigidBody*>::TypeOfNode::tTopLeft));
 }
 //slow af. matrix rotation multiplication, then adds the position to the vertices and it's O(n) where n is num vertices for the rb. default is pos and rot, otherwise specified just rot.
 void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
@@ -486,10 +504,22 @@ void Physics::Update(float dt) {
 		OuterBroadPhase(true);
 #endif
 		DeleteQuadEntities(&quadRoot, true);
-		rbListList::RemoveAllNodes(&sortedEntityHeads, true);
+		rbListList::RemoveAllNodes(&sortedEntityHeads,
+#ifdef TEMP
+			true
+#else
+		false
+#endif
+		);
 		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList* list) {
 			rbList::RemoveAllNodes(&list, false);
-			}, true);
+			}, 
+			#ifdef TEMP
+			true
+#else
+		false
+#endif
+		);
 	}
 	curNode = entityHead;
 	while (curNode) {

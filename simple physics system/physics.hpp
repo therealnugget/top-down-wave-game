@@ -19,7 +19,7 @@
 { -.5f, .5f },\
 { .5f, .5f },\
 { .5f, -.5f }
-#define IS_MULTI_THREADED
+//#define IS_MULTI_THREADED
 using namespace std;
 struct RigidBody;
 extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
@@ -451,14 +451,6 @@ public:
 		numOfNodes,
 		all,
 	};
-	typedef enum TypeOfSortNode {
-		sortTopLeft = 0,
-		sortTopRight = 1,
-		sortBottomLeft = 2,
-		sortBottomRight = 3,
-		sortNumOfNodes = 4,
-		sortAll = 4,
-	};
 	static constexpr uint numNodes = numOfNodes;
 	inline QuadNode(FVector2& AABBMin, FVector2& AABBMax) : topLeft(nullptr), topRight(nullptr), bottomLeft(nullptr), bottomRight(nullptr), aabb(AABBMin, AABBMax), values(nullptr) {
 	}
@@ -550,7 +542,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[const_max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1)]) {//have to add one to number of nodes for type: "all" nodes
+		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[(const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1]) {
 		if (createEntity) {
 			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
 			position.IntoRectXY(entity->rect);
@@ -752,7 +744,7 @@ public:
 	static void Finalize();
 	static void Update(float dt);
 	static void OuterBroadPhase(bool searchSorted = false);
-	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0, int typeOfNode = QuadNode<RigidBody*>::TypeOfSortNode::sortAll);
+	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0, int typeOfNode = 0);
 	static void DeleteQuadEntities(QuadNode<RigidBody*>*, bool isRoot = false);
 	static void BroadPhase(Node<RigidBody *> *rb
 #ifdef IS_MULTI_THREADED

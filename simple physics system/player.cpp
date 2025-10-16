@@ -103,7 +103,7 @@ void Player::Init() {
 		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
-	constexpr int numShapes = 1000;
+	constexpr int numShapes = 500;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
