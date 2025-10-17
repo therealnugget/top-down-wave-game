@@ -343,7 +343,7 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 			};
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
 #ifdef DEBUG_BUILD
-			Assert(currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode < Physics::max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1), "broke just like me");
+			Assert(GetNodeInd() < (Physics::max_quadtree_depth - 1) * QuadNode<RigidBody *>::numNodes + 1, "broke just like me");
 #endif
 			rbList::AddAtHead(curRB, &quadNode->values
 #ifdef TEMP
@@ -354,7 +354,7 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 		}
 		else if (currentDepth == 0) {
 #ifdef DEBUG_BUILD
-			Assert(currentDepth * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode < Physics::max_quadtree_depth * (QuadNode<RigidBody*>::numNodes + 1), "broke just like me");
+			Assert(GetNodeInd() < (Physics::max_quadtree_depth - 1) * QuadNode<RigidBody *>::numNodes + 1, "broke just like me");
 #endif
 			rbList::AddAtHead(curRB, &unsortedRbs
 #ifdef TEMP
