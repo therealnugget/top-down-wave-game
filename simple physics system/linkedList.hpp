@@ -40,7 +40,7 @@ public:
 		return prev;
 	}
 	T value;
-	static void RemoveAllNodes(Node** head, void (*)(T), bool freeNodes = true);
+	static void RemoveAllNodes(Node** head, void (*)(T*), bool freeNodes = true);
 	static void RemoveAllNodes(Node** head, bool freeNodes = true);
 	static Node* &AddAtHead(T&, Node** head);
 	static Node* &AddAtHead(T&, Node** head, Node *preConstructed);
@@ -497,11 +497,11 @@ void Node<T>::Reverse(Node<T>** head) {
 	}
 }
 template <typename T>
-void Node<T>::RemoveAllNodes(Node<T>** head, void (*removeDel)(T), bool freeNodes) {
+void Node<T>::RemoveAllNodes(Node<T>** head, void (*removeDel)(T*), bool freeNodes) {
 	Node<T>* curNode = *head;
 	Node<T>* pastNode;
 	while (curNode) {
-		removeDel(curNode->value);
+		removeDel(&curNode->value);
 		pastNode = curNode;
 		Node::Advance(&curNode);
 		Node::Remove(head, pastNode, freeNodes);
