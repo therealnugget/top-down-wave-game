@@ -543,6 +543,7 @@ public:
 		isDebugSquare(false),
 #endif
 		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[(const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1]) {
+    std::cout << "size of nodes is " << (const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1] << '\n';
 		if (createEntity) {
 			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
 			position.IntoRectXY(entity->rect);
