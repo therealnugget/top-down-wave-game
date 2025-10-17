@@ -504,21 +504,17 @@ void Physics::Update(float dt) {
 		OuterBroadPhase(true);
 #endif
 		DeleteQuadEntities(&quadRoot, true);
-		rbListList::RemoveAllNodes(&sortedEntityHeads,
-#ifdef TEMP
-			true
-#else
-		false
-#endif
+		rbListList::RemoveAllNodes(&sortedEntityHeads, true
 		);
 		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList* list) {
-			rbList::RemoveAllNodes(&list, false);
-			}, 
-			#ifdef TEMP
-			true
+			rbList::RemoveAllNodes(&list,
+#ifdef TEMP
+false
 #else
-		false
+true
 #endif
+);
+			}, true
 		);
 	}
 	curNode = entityHead;
