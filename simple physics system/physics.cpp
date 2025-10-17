@@ -506,8 +506,8 @@ void Physics::Update(float dt) {
 		DeleteQuadEntities(&quadRoot, true);
 		rbListList::RemoveAllNodes(&sortedEntityHeads, true
 		);
-		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList* list) {
-			rbList::RemoveAllNodes(&list,
+		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList** list) {
+			rbList::RemoveAllNodes(list,
 #ifdef TEMP
 false
 #else
