@@ -339,7 +339,7 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	while (entities) {
 		curRB = entities->value;
 		auto GetNodeInd = [currentDepth, typeOfNode]()-> int {
-			return Math::Max<int>((currentDepth - 1) * (QuadNode<RigidBody*>::numNodes + 1) + typeOfNode + 1, 0);
+			return Math::Max<int>((currentDepth - 1) * (QuadNode<RigidBody*>::numNodes) + typeOfNode + 1, 0);
 			};
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
 #ifdef DEBUG_BUILD
