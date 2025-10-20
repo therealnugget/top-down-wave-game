@@ -43,7 +43,7 @@ inline void ThrowError(const char *initErrMessage) {
 	throw new exception();
 	#endif
 }
-inline void ThrowError() {
+inline void CheckSDLError() {
 	const char* temp;
 	if (!*(temp = SDL_GetError())) return;
 	ThrowError(temp);

@@ -434,7 +434,7 @@ private:
 	static bool pressedKey[];//^^ that of last frame
 	static bool pressingModKey[];
 	static bool pressedModKey[];
-	static void SetPastKey(int);
+	static void SetPastKey(int*);
 	inline static void AddKeyPress(int key) {
 		Node<int>::AddAtHead(key, &setPressed);
 	}
@@ -482,7 +482,7 @@ Node<T>* Node<T>::Remove(Node<T>** head, Node<T>* remove, bool freeNode) {
 	}
 	if (!freeNode) return remove;
 	delete remove;
-	//i'm pretty sure it returns nullptr anyway, but it's better practice this way.
+	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr
 	return nullptr;
 }
 template <typename T>

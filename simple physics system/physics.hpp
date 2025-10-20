@@ -19,7 +19,7 @@
 { -.5f, .5f },\
 { .5f, .5f },\
 { .5f, -.5f }
-//#define IS_MULTI_THREADED
+//#define IS_MULTI_THREADED	
 using namespace std;
 struct RigidBody;
 extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
@@ -514,24 +514,10 @@ public:
 		FVector2 min, max;
 		FVector2 halfAABB = (aabb.minimum + aabb.maximum) * .5f;
 		FVector2& minAABB = aabb.minimum, & maxAABB = aabb.maximum;
-		for (unsigned int i = 0; i < numNodes; i++) {
-			switch (i) {
-			case TypeOfNode::tBottomLeft:
-				bottomLeft = new QuadNode(minAABB, halfAABB);
-				continue;
-			case TypeOfNode::tBottomRight:
-				bottomRight = new QuadNode(halfAABB.x, minAABB.y, maxAABB.x, halfAABB.y);
-				continue;
-			case TypeOfNode::tTopLeft:
-				topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
-				continue;
-			case TypeOfNode::tTopRight:
-				topRight = new QuadNode(halfAABB, maxAABB);
-				continue;
-			default:
-				throw new std::exception("'i' is not implemented for this value\n");
-			}
-		}
+		bottomLeft = new QuadNode(minAABB, halfAABB);
+		bottomRight = new QuadNode(halfAABB.x, minAABB.y, maxAABB.x, halfAABB.y);
+		topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
+		topRight = new QuadNode(halfAABB, maxAABB);
 	}
 };
 static constexpr int const_max_quadtree_depth = 10;
@@ -543,7 +529,7 @@ public:
 		isDebugSquare(false),
 #endif
 		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[(const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1]) {
-    std::cout << "size of nodes is " << (const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1] << '\n';
+    std::cout << "size of nodes is " << (const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1 << '\n';
 		if (createEntity) {
 			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
 			position.IntoRectXY(entity->rect);
@@ -833,7 +819,7 @@ public:
 	static constexpr float deg2rad = 3.1415926535897932384626433832795028841971693993751058209749445923 / 180.0;
 	static constexpr float defaultCOR = .4f;
 };
-//#define SHOW_QUAD_TREE
+#define SHOW_QUAD_TREE
 #ifdef SHOW_QUAD_TREE
 static std::vector<std::tuple<FVector2, FVector2>> boundsArr;
 #endif

@@ -329,6 +329,7 @@ ret:
 	}
 	delete tree;
 }
+static std::unordered_map<uint_fast64_t, uint_fast64_t> temp;
 void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *entities, int currentDepth, int typeOfNode) {
 #ifdef DEBUG_BUILD
 	Assert(typeOfNode <= QuadNode<RigidBody*>::numNodes, "AAAAAAAAAAAA!!!");
@@ -339,12 +340,18 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	while (entities) {
 		curRB = entities->value;
 		auto GetNodeInd = [currentDepth, typeOfNode]()-> int {
-			return Math::Max<int>((currentDepth - 1) * (QuadNode<RigidBody*>::numNodes) + typeOfNode + 1, 0);
+			return Math::Max<int>((currentDepth - 1) * QuadNode<RigidBody*>::numNodes + typeOfNode + 1, 0);
 			};
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
 #ifdef DEBUG_BUILD
 			Assert(GetNodeInd() < (Physics::max_quadtree_depth - 1) * QuadNode<RigidBody *>::numNodes + 1, "broke just like me");
 #endif
+			uint_fast64_t temp2 = (static_cast<uint_fast64_t>(GetNodeInd()) << 32) | static_cast<uint_fast64_t>(curRB->entityIndex);
+			if (temp.contains(temp2)) {
+				std::cout << temp[temp2] << '\n';
+				throw new std::exception();
+			}
+			temp.emplace(temp2, (static_cast<uint_fast64_t>(curRB->entityIndex) << 32) | static_cast<uint_fast64_t>(curRB->entityIndex));
 			rbList::AddAtHead(curRB, &quadNode->values
 #ifdef TEMP
 				, & curRB->nodes[GetNodeInd()]
@@ -485,6 +492,7 @@ void Physics::Update(float dt) {
 		numUnsortedSections = 0;
 		unsortedExcessEntityNo = 0;
 		SortEntity(&quadRoot, entityHead);
+		temp.clear();
 #ifdef IS_MULTI_THREADED
 		for (threadIndex = 0; threadIndex < thread_count; threadIndex++) {
 			{
@@ -507,13 +515,7 @@ void Physics::Update(float dt) {
 		rbListList::RemoveAllNodes(&sortedEntityHeads, true
 		);
 		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList** list) {
-			rbList::RemoveAllNodes(list,
-#ifdef TEMP
-false
-#else
-true
-#endif
-);
+			rbList::RemoveAllNodes(list, false);
 			}, true
 		);
 	}
