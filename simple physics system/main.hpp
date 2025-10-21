@@ -31,14 +31,14 @@ inline void ThrowError(int num_args, ...) {
 	#endif
 }
 inline void ThrowError(const char *initErrMessage, const char *append) {
-	cout << "error! fucked: " << initErrMessage;
+	cout << "error! broken: " << initErrMessage;
 	cout << append << '\n';
 	#ifdef DEBUG_BUILD
 	throw new exception();
 	#endif
 }
 inline void ThrowError(const char *initErrMessage) {
-	cout << "error! fucked: " << initErrMessage << '\n';
+	cout << "error! broken: " << initErrMessage << '\n';
 	#ifdef DEBUG_BUILD
 	throw new exception();
 	#endif
