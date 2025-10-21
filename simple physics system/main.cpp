@@ -245,7 +245,7 @@ int main(int argc, char* args[])
 #endif
         Main::LateUpdate();
         Main::StartDTCounter();
-        SDL_Delay(4);
+        SDL_Delay(1);
     } while (!quit);
 #ifdef SHOW_FPS
     float averageDT = tempDTCumulative / static_cast<double>(tempDTIndex);

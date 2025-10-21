@@ -43,9 +43,12 @@ public:
 	static void RemoveAllNodes(Node** head, void (*)(T*), bool freeNodes = true);
 	static void RemoveAllNodes(Node** head, bool freeNodes = true);
 	static Node* &AddAtHead(T&, Node** head);
+	static Node* &AddAtHeadEmpty(Node** head, Node*);
 	static Node* &AddAtHead(T&, Node** head, Node *preConstructed);
 	//the ptr returned is only useful if you don't delete the node. 
 	static Node *Remove(Node** head, Node* remove, bool freeNode = true);
+	static Node *RemoveHead(Node* head, bool freeNode = true);
+	static Node *RemoveTail(Node** tail, Node* remove, bool freeNode = true);
 	static void Reverse(Node** head);
 	//needs to be static because we can't assign the instance of the class containing the current function to a value, so either way we have to pass in a ptr to the ptr to the node.
 	static inline void Advance(Node<T>** node) {
@@ -54,8 +57,7 @@ public:
 	static inline void Disadvance(Node<T>** node) {
 		*node = (*node)->prev;
 	}
-	template<typename ArgT>
-	inline void Iterate(void (*del(ArgT))) {
+	inline void Iterate(std::function<void(Node<T>*)> del) {
 		Node* head = this;
 		while (head) {
 			del(head);
@@ -81,6 +83,14 @@ public:
 		return _this;
 	}
 };
+template<typename T>
+Node<T>*& Node<T>::AddAtHeadEmpty(Node<T>** head, Node<T> *preconstructedNode) {
+	preconstructedNode->prev = nullptr;
+	preconstructedNode->next = *head;
+	if (*head) (*head)->prev = preconstructedNode;
+	*head = preconstructedNode;
+	return preconstructedNode;
+}
 template <typename T>
 Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head) {
 	Node<T>* _this = new Node<T>();
@@ -96,6 +106,72 @@ Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head, Node<T> *preConstructedNode
 	return preConstructedNode;
 }
 template<typename T>
+class EmptyStack {
+private:
+	Node<T>* head;
+public:
+	EmptyStack(): head(nullptr) {}
+	inline Node<T>* GetHead() {
+		return head;
+	}
+	Node<T> *PushNode(Node<T> *);
+	Node<T> *PopNode();
+	void Flush(bool freeNodes = true);
+	inline bool const IsEmpty() {
+		return head == nullptr;
+	}
+};
+template<typename T>
+void EmptyStack<T>::Flush(bool freeNodes) {
+	Node<T>::RemoveAllNodes(&head, freeNodes);
+}
+template<typename T>
+Node<T>* EmptyStack<T>::PushNode(Node<T>* preconstructedNode) {
+	return Node<T>::AddAtHeadEmpty(&head, preconstructedNode);
+}
+template <typename T>
+Node<T> *EmptyStack<T>::PopNode() {
+	auto oldHead = head;
+	Node<T>::Advance(&head);
+	return Node<T>::RemoveHead(oldHead, false);
+}
+template<typename T>
+class Stack {
+private:
+	Node<T>* head;
+public:
+	Stack(): head(nullptr) {}
+	inline Node<T>* GetHead() {
+		return head;
+	}
+	Node<T>* Push(T val);
+	Node<T>* Push(T val, Node<T> *);
+	T &Pop();
+	Node<T> *PopNode();
+	void Flush(bool freeNodes = true);
+	inline bool const IsEmpty() {
+		return head == nullptr;
+	}
+};
+template<typename T>
+void Stack<T>::Flush(bool freeNodes) {
+	Node<T>::RemoveAllNodes(&head, freeNodes);
+}
+template<typename T>
+Node<T>* Stack<T>::Push(T val) {
+	return Node<T>::AddAtHead(val, &head);
+}
+template<typename T>
+Node<T>* Stack<T>::Push(T val, Node<T> *preconstructedNode) {
+	return Node<T>::AddAtHead(val, &head, preconstructedNode);
+}
+template <typename T>
+T &Stack<T>::Pop() {
+	auto oldHead = head;
+	Node<T>::Advance(&head);
+	return Node<T>::RemoveHead(oldHead, false)->value;
+}
+template<typename T>
 class QueueNode {
 private:
 	Node<T> *head;
@@ -104,12 +180,12 @@ public:
 	QueueNode(): head(nullptr), tail(nullptr) {}
 	//push to head
 	Node<T> *Push(T);
-	//remove front node in list (i.e. head)
-	void Pop();
+	//remove from tail
+	Node<T> *PopTail();
 	inline T Front() {
 		return head->value;
 	}
-	inline bool Empty() {
+	inline bool IsEmpty() {
 		return !static_cast<bool>(head);
 	}
 	void Iterate(void (*)(Node<T> *));
@@ -124,12 +200,13 @@ void QueueNode<T>::Iterate(void (*del)(Node<T>*)) {
 }
 template<typename T>
 Node<T> *QueueNode<T>::Push(T val) {
-	return tail = Node<T>::AddAtHead(val, &head);
+	Node<T>::AddAtHead(val, &head);
+	if (!head->GetPrev()) tail = head;
+	return head;
 }
-//might want to change the functionality of this function in the future
 template<typename T>
-void QueueNode<T>::Pop() {
-	Node<T>::Remove(&head, head);
+Node<T> *QueueNode<T>::PopTail() {
+	return Node<T>::RemoveTail(&tail, tail);
 }
 template<typename T>
 struct Branch {
@@ -480,6 +557,29 @@ Node<T>* Node<T>::Remove(Node<T>** head, Node<T>* remove, bool freeNode) {
 	else {
 		*head = next;
 	}
+	if (!freeNode) return remove;
+	delete remove;
+	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr
+	return nullptr;
+}
+template <typename T>
+Node<T>* Node<T>::RemoveHead(Node<T>* head, bool freeNode) {
+	Node<T>* next = head->next, * prev = head->prev;
+	if (next) next->prev = prev;
+	if (prev) prev->next = next;
+	if (!freeNode) return head;
+	delete head;
+	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr
+	return nullptr;
+}
+template <typename T>
+Node<T>* Node<T>::RemoveTail(Node<T>** tail, Node<T>* remove, bool freeNode) {
+	Node<T>* next = remove->next, * prev = remove->prev;
+	if (next) next->prev = prev;
+	else {
+		*tail = next;
+	}
+	if (prev) prev->next = next;
 	if (!freeNode) return remove;
 	delete remove;
 	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr

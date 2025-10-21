@@ -19,11 +19,11 @@
 { -.5f, .5f },\
 { .5f, .5f },\
 { .5f, -.5f }
-//#define IS_MULTI_THREADED	
+#define IS_MULTI_THREADED
 using namespace std;
 struct RigidBody;
 extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
-//every instantiation of this *should* always be 8 bytes in total
+//every instantiation of this should always be 8 bytes in total - i.e. don't add any more members to this struct
 template<typename T>
 struct Vector2 {
 public:
@@ -528,8 +528,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag), nodes(new Node<RigidBody*>[(const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1]) {
-    std::cout << "size of nodes is " << (const_max_quadtree_depth - 1) * QuadNode<RigidBody*>::numNodes + 1 << '\n';
+		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag) {
 		if (createEntity) {
 			entity = new Entity(_angle, basePath, animPaths, endPaths, size, imageSizes, isGlobalSize, _renderOffset);
 			position.IntoRectXY(entity->rect);
@@ -554,7 +553,6 @@ public:
 	~RigidBody() {
 		delete origNarrowPVertices;
 		delete verticesNarrowP;
-		delete nodes;
 	}
 	uint entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
 	int tag;
@@ -638,7 +636,6 @@ private:
 	float mass, invMass;
 	FVector2 force;
 	Entity *entity;
-	Node<RigidBody*> *nodes;
 public:
 	inline void SetSize(IntVec2 size) {
 		madeAABBTrue &= (FVector2(entity->rect->w, entity->rect->h) == size);
@@ -695,6 +692,8 @@ private:
 	static constexpr AABB initCellAABB = { FVector2::ConstNeg(FVector2::ConstMult(initCellSize, .5f)), FVector2::ConstMult(initCellSize, .5f) };
 	static constexpr int thread_count = 10;
 	static constexpr float thread_count_f = static_cast<float>(thread_count);
+	//relatively arbitrary what this value is, i'm just making it 144 for debugging purposes in case in the future i wonder "why is it that almost about every second on the second i'm getting a frame drop" i can refer to this. it's the number of frames that have to pass before the node cache is flushed.
+	static constexpr ushort cace_flush_interval = 144;
 	static const float frictionMagnitude;
 	static const float fricCoef;
 	static int threadIndex;
@@ -702,6 +701,7 @@ private:
 	static rbListList *sortedEntityHeads;
 	static rbListList *unsortedEntityHeads;
 	static QuadNode<RigidBody*> quadRoot;
+	static EmptyStack<RigidBody *> sortedCacheNodes;
 	static int numEntities;
 	static int numSections;
 	static int sectionSize;
@@ -711,6 +711,7 @@ private:
 	static int unsortedSectionSize;
 	static int unsortedExcessEntityNo;
 	static int moveItrIndex;
+	static ushort frameInd;
 	static const FVector2 frictionVec;
 	//a non-constant alternative to frictionVec. don't calculate this magnitude, a compile-time constant already contains it.
 	static FVector2 GetFrictionVec() {

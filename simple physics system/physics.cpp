@@ -7,6 +7,7 @@
 rbList *Physics::entityHead = nullptr;
 rbListList *Physics::sortedEntityHeads = nullptr;
 rbListList *Physics::unsortedEntityHeads = nullptr;
+EmptyStack<RigidBody*> Physics::sortedCacheNodes = EmptyStack<RigidBody *>();
 //TODO (minor): rename the following 4 variables
 int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
@@ -16,6 +17,7 @@ int Physics::numUnsortedEntities = 0;
 int Physics::numUnsortedSections = 0;
 int Physics::unsortedSectionSize = 0;
 int Physics::unsortedExcessEntityNo = 0;
+ushort Physics::frameInd = 0;
 const std::initializer_list<FVector2> Physics::DefaultSquareVerticesAsList = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
@@ -306,14 +308,15 @@ static SDL_Rect* curRect;
 static bool lastMovementItr;
 QuadNode<RigidBody*> Physics::quadRoot = QuadNode<RigidBody *>(Physics::initCellAABB);
 void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
-	Node<RigidBody*>::RemoveAllNodes(&tree->values,
-#define TEMP
-#ifdef TEMP
-		false
-#else 
-		true
-#endif
-	);
+	rbList* treeValHead = tree->values;
+	rbList* next;
+	while (treeValHead) {
+		next = treeValHead->GetNext();
+		rbList::Remove(&tree->values, treeValHead, false);
+		sortedCacheNodes.PushNode(treeValHead);
+		treeValHead = next;
+	}
+	rbList::RemoveAllNodes(&tree->values, false);
 	if (tree->IsLeafNode()) {
 		goto ret;
 	}
@@ -329,46 +332,18 @@ ret:
 	}
 	delete tree;
 }
-static std::unordered_map<uint_fast64_t, uint_fast64_t> temp;
 void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *entities, int currentDepth, int typeOfNode) {
-#ifdef DEBUG_BUILD
-	Assert(typeOfNode <= QuadNode<RigidBody*>::numNodes, "AAAAAAAAAAAA!!!");
-#endif
 	int noEntInCurCell = 0;
 	RigidBody* curRB;
 	rbList* unsortedRbs = nullptr;
 	while (entities) {
 		curRB = entities->value;
-		auto GetNodeInd = [currentDepth, typeOfNode]()-> int {
-			return Math::Max<int>((currentDepth - 1) * QuadNode<RigidBody*>::numNodes + typeOfNode + 1, 0);
-			};
 		if (Physics::EntityInBoxBroadPhase(quadNode->GetAABB(), curRB)) {
-#ifdef DEBUG_BUILD
-			Assert(GetNodeInd() < (Physics::max_quadtree_depth - 1) * QuadNode<RigidBody *>::numNodes + 1, "broke just like me");
-#endif
-			uint_fast64_t temp2 = (static_cast<uint_fast64_t>(GetNodeInd()) << 32) | static_cast<uint_fast64_t>(curRB->entityIndex);
-			if (temp.contains(temp2)) {
-				std::cout << temp[temp2] << '\n';
-				throw new std::exception();
-			}
-			temp.emplace(temp2, (static_cast<uint_fast64_t>(curRB->entityIndex) << 32) | static_cast<uint_fast64_t>(curRB->entityIndex));
-			rbList::AddAtHead(curRB, &quadNode->values
-#ifdef TEMP
-				, & curRB->nodes[GetNodeInd()]
-#endif
-			);
+			if (sortedCacheNodes.IsEmpty()) rbList::AddAtHead(curRB, &quadNode->values);
+			else rbList::AddAtHead(curRB, &quadNode->values, sortedCacheNodes.PopNode());
 			noEntInCurCell++;
 		}
-		else if (currentDepth == 0) {
-#ifdef DEBUG_BUILD
-			Assert(GetNodeInd() < (Physics::max_quadtree_depth - 1) * QuadNode<RigidBody *>::numNodes + 1, "broke just like me");
-#endif
-			rbList::AddAtHead(curRB, &unsortedRbs
-#ifdef TEMP
-				, &curRB->nodes[GetNodeInd()]
-#endif
-			);
-		}
+		else if (currentDepth == 0) rbList::AddAtHead(curRB, &unsortedRbs);
 		Node<RigidBody*>::Advance(&entities);
 	}
 	auto AddRbsToNPList = [unsortedRbs, noEntInCurCell](rbList* vals, rbListList** head, int &numEnts, int &secSize, int &excessEntNo, int &numSecs) -> void {
@@ -492,7 +467,6 @@ void Physics::Update(float dt) {
 		numUnsortedSections = 0;
 		unsortedExcessEntityNo = 0;
 		SortEntity(&quadRoot, entityHead);
-		temp.clear();
 #ifdef IS_MULTI_THREADED
 		for (threadIndex = 0; threadIndex < thread_count; threadIndex++) {
 			{
@@ -512,12 +486,14 @@ void Physics::Update(float dt) {
 		OuterBroadPhase(true);
 #endif
 		DeleteQuadEntities(&quadRoot, true);
-		rbListList::RemoveAllNodes(&sortedEntityHeads, true
-		);
+		rbListList::RemoveAllNodes(&sortedEntityHeads, true);
 		rbListList::RemoveAllNodes(&unsortedEntityHeads, [](rbList** list) {
-			rbList::RemoveAllNodes(list, false);
-			}, true
-		);
+			rbList::RemoveAllNodes(list, true);
+			}, true);
+	}
+	if (frameInd++ == cace_flush_interval) {
+		sortedCacheNodes.Flush();
+		frameInd = 0;
 	}
 	curNode = entityHead;
 	while (curNode) {
