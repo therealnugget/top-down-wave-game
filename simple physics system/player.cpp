@@ -17,18 +17,6 @@ static rbList* player2;
 static RigidBody* player2Rb;
 std::unordered_map<const char*, SDL_Texture*> Images::loadedTexs;
 std::unordered_map<const char*, SDL_Surface*> Images::loadedSurfaces;
-std::initializer_list<const char *> Player::anims;
-std::unordered_map<int, const char*> Player::dirNames = {
-	{Main::down, "down"},
-	{Main::left, "left"},
-	{Main::up, "up"},
-	{Main::right, "right"},
-};
-std::unordered_map<int, const char*> Player::animNames = {
-	{Player::idle, "idle"},
-	{Player::run, "run"},
-	{Player::attack, "attack"},
-};
 static FVector2 currentVel;
 rbList** shapesTemp;
 rbList** shapesTemp2;
@@ -82,21 +70,28 @@ void Player::Init() {
 		FVector2::Zero
 #endif
 		;
-	auto endPaths = std::vector<const char*>();
-	endPaths.reserve(Main::num_directions);
-	for (i = 0; i < Main::num_directions; i++) {
-		endPaths.push_back(dirNames[i]);
-	}
-	const auto endPathsList = Main::VecToInitList<const char*>(endPaths);
-	std::vector<const char *> animStrs = std::vector<const char*>();
-	animStrs.reserve(numAnims);
-	const char* curName;
-	for (i = 0; i < numAnims; i++) {
-		curName = animNames[i];
-		animStrs.push_back(curName);
-	} 
-	anims = Main::VecToInitList<const char*>(animStrs);
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites/", anims, endPathsList, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	std::vector<const char *> animStrs = std::vector<const char*>(numAnims);
+	animStrs[idle] = "idle";
+	animStrs[run] = "run";
+	animStrs[attack] = "attack";//this is a trade-off against character-efficiency in favour of performance (no need to actually include a dictionary for this.)
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", animStrs, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	enum orcTemp {
+		attack,
+		death,
+		hurt,
+		idle,
+		run,
+		walk,
+		numOrcAnims,
+	};
+	animStrs.resize(numOrcAnims);
+	animStrs[attack] = "attack";
+	animStrs[death] = "death";
+	animStrs[hurt] = "hurt";
+	animStrs[idle] = "idle";
+	animStrs[run] = "run";
+	animStrs[walk] = "walk";
+	auto temp = Physics::SubscribeEntity("orc", animStrs, Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 400.f, FVector2::GetOne() * 100.f, std::initializer_list<FVector2>(), FVector2::Zero, FVector2::GetOne() * -50.f);
 	player = plrNode->value;
 	player->SetCollisionCallback([](auto &collision) -> void {
 		//std::cout << "colliding!!!\n";

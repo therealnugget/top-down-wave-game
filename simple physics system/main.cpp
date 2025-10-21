@@ -161,6 +161,7 @@ SDL_DisplayMode Main::DM;
 FVector2 Main::DisplaySize;
 FVector2 Main::halfDisplaySize;
 FVector3 Main::renderDrawColor = FVector3(163.f, 215.f, 245.f);
+std::vector<const char*> Main::dirPaths;
 void Main::Start() {
     SDL_GetCurrentDisplayMode(0, &DM);//if we start using multiple windows, this needs to be changed
     DisplaySize = FVector2(DM);
@@ -176,6 +177,11 @@ void Main::Start() {
     if (!renderer) {
         ThrowError("renderer couldn't be created");
     }
+    dirPaths.resize(static_cast<const size_t>(num_directions));
+    dirPaths[left] = "left";
+    dirPaths[up] = "up";
+    dirPaths[down] = "down";
+    dirPaths[right] = "right";
 }
 #ifndef NULL_PTR_REMOVE_FUNC
 #define NULL_PTR_REMOVE_FUNC

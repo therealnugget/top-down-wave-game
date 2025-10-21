@@ -21,8 +21,8 @@ ushort Physics::frameInd = 0;
 const std::initializer_list<FVector2> Physics::DefaultSquareVerticesAsList = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::initializer_list<const char*> &animPaths, const std::initializer_list<const char*> &endPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger) {
-	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, true, size, basePath, animPaths, endPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset, tag);
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
+	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, true, size, basePath, animPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset, endPaths, tag);
 	return SubscribeEntity(rb);
 }
 Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){

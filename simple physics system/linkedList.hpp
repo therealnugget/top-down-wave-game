@@ -356,6 +356,7 @@ public:
 		up = 3,
 		num_directions = 4,
 	};
+	static std::vector<const char *> dirPaths;
 	static enum Tag {
 		player = 0,
 		debug = 1,

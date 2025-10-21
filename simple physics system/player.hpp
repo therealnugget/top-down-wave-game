@@ -9,10 +9,8 @@ private:
 	static float accel, speed;
 	static IntVec2 pastInp;
 	static void PlayAnim(int);
-	static std::initializer_list<const char*> anims;
 	static std::unordered_map<int, const char*> animNames;
 	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
-	static std::unordered_map<int, const char*> dirNames;
 	static inline void SetPastInp(void (*delMov)() = nullptr, void (*delIdle)() = nullptr) {
 		if (Main::fInputVec == FVector2::Zero) {
 			if (!delIdle) return;
