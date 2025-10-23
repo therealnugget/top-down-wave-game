@@ -4,10 +4,13 @@
 #include <sys/stat.h>
 #include "player.hpp"
 #include "physics.hpp"
+#include <SDL_image.h>
 static const std::string imagesPath = "images/";
-static const char *bmp = ".bmp";
+static const char *bmp = "bmp";
+static const char *png = "png";
 rbList *Textures::curAnimNode = nullptr;
 RigidBody *Textures::curAnimRB = nullptr;
+std::unordered_map<const char*, Images::ImageData*> Images::loadedImages;
 bool Textures::InitAnim(Animator& anim, const char* basePath) {
 	struct stat buffer;
 	char *filePath;
@@ -21,11 +24,14 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 		if (nextAnim != nullptr) return nextAnim;
 		return nextAnim = anim.LoadNextAnim();
 		};
+	auto FileExists = [&](const char* fileType) -> bool {
+		strcpy(filePath, (imagesPath + basePath + '_' + iStr + '.' + fileType).c_str());
+		return !stat(filePath, &buffer);
+		};
 	for(;;) {
 		iStr = to_string(i);
 		filePath = new char[strlen(iStr.c_str()) + pathLen];
-		strcpy(filePath, (imagesPath + basePath + '_' + iStr + bmp).c_str());
-		if (stat(filePath, &buffer)) {
+		if (!FileExists(bmp) && !FileExists(png)) {
 			if (i == 0) return false;
 			GetAnim()->numOfFrames = i;
 			return true;
@@ -38,33 +44,42 @@ SDL_Texture *Images::LoadTexture(std::string path) {
 	return LoadTexture(path.c_str());
 }
 SDL_Texture *Images::LoadTexture(const char* path) {
-	auto throwImgErr = [&](const char* problem) {
-		ThrowError(5, "couldn't load ", problem, " with path \"", path, "\". Error: ", SDL_GetError());
-	};
+	const char* errorType;
 	SDL_Surface* loadedSurface;
-	std::unordered_map<const char*, SDL_Surface *>::const_iterator iter = loadedSurfaces.find(path);
-	if (iter == loadedSurfaces.end()) {
-		loadedSurface = SDL_LoadBMP(path);
-		loadedSurfaces.emplace(path, loadedSurface);
-		if (!loadedSurface) {
-		err:
-			throwImgErr("surface");
-			return nullptr;
-		}
-	}
-	else loadedSurface = iter->second;
+	auto iter = loadedImages.find(path);
 	SDL_Texture* newTexture;
-	std::unordered_map<const char*, SDL_Texture*>::const_iterator texIter = loadedTexs.find(path);
-	if (texIter == loadedTexs.end()) {
+	if (iter == loadedImages.end()) {
+		loadedSurface = SDL_LoadBMP(path);
+		if (!loadedSurface) {
+			loadedSurface = IMG_Load(path);
+			if (!loadedSurface) {
+				errorType = "image load";
+				goto err;
+			}
+			loadedSurface = SDL_ConvertSurfaceFormat(loadedSurface, SDL_PIXELFORMAT_RGBA8888, 0);
+			if (!loadedSurface) {
+				errorType = "convert surface";
+				goto err;
+			}
+			goto loadTex;
+		}
+		goto loadTex;
+	err:
+		ThrowError(5, "couldn't load ", errorType, " with path \"", path, "\". Error: ", SDL_GetError());
+		return nullptr;
+	loadTex:
 		newTexture = SDL_CreateTextureFromSurface(Main::renderer, loadedSurface);
-		loadedTexs.emplace(path, newTexture);
+		SDL_SetTextureBlendMode(newTexture, SDL_BLENDMODE_BLEND);
+		loadedImages.emplace(path, new ImageData(loadedSurface, newTexture));
 		if (!newTexture) {
-			throwImgErr("texture");
-			return nullptr;
+			errorType = "texture";
+			goto err;
 		}
 	}
 	else {
-		newTexture = texIter->second;
+		auto loadedVal = iter->second;
+		loadedSurface = loadedVal->surface;
+		newTexture = loadedVal->texture;
 	}
 	//SDL_FreeSurface(loadedSurface);
 	return newTexture;

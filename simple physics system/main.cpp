@@ -5,6 +5,7 @@
 #include "math.hpp"
 #include <sstream>
 #include <iomanip>
+#include <SDL_image.h>
 #define SHIFT_INDEX 0
 #define ALT_INDEX 1
 #define CONTROL_INDEX 2
@@ -172,10 +173,14 @@ void Main::Start() {
         return;
     }
     renderer = SDL_CreateRenderer(WindowManager::window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    //SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     //auto GetCol = [](int ind) -> float {return std::get<ind>(static_cast<std::tuple<float, float, float>>(renderDrawColor)); };
     SDL_SetRenderDrawColor(renderer, std::get<0>(renderDrawColor), std::get<1>(renderDrawColor), std::get<2>(renderDrawColor), 255);//above code doesn't work because compiler is stupid
     if (!renderer) {
         ThrowError("renderer couldn't be created");
+    }
+    if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG) {
+        ThrowError("couldn't init img: ", IMG_GetError());
     }
     dirPaths.resize(static_cast<const size_t>(num_directions));
     dirPaths[left] = "left";
@@ -220,8 +225,8 @@ int main(int argc, char* args[])
     Main::Start();
     WindowManager::screenSurface = SDL_GetWindowSurface(WindowManager::window);
     {
-        constexpr uint8_t maxRGBVal = 255;
-        SDL_FillRect(WindowManager::screenSurface, NULL, SDL_MapRGB(WindowManager::screenSurface->format, maxRGBVal, maxRGBVal, maxRGBVal));
+        constexpr uint8_t maxRGBAVal = 255;
+        SDL_FillRect(WindowManager::screenSurface, NULL, SDL_MapRGBA(WindowManager::screenSurface->format, maxRGBAVal, maxRGBAVal, maxRGBAVal, 0));
         frequency = static_cast<float>(SDL_GetPerformanceFrequency());
     }
     Player::Init();
@@ -245,7 +250,7 @@ int main(int argc, char* args[])
         Main::dtUpdates(Main::DeltaTime());
 #define SHOW_FPS
 #ifdef SHOW_FPS
-        cout << 1.f / Main::DeltaTime() << '\n';
+        //cout << 1.f / Main::DeltaTime() << '\n';
         tempDTCumulative += static_cast<double>(Main::DeltaTime());
         tempDTIndex++;
 #endif

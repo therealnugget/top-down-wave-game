@@ -5,22 +5,34 @@
 #include <iterator>
 #include <algorithm>
 #include "usefulTypedefs.hpp"
+#include <tuple>
 class Images {
 private:
-	static std::unordered_map<const char*, SDL_Texture*> loadedTexs;
-	static std::unordered_map<const char*, SDL_Surface*> loadedSurfaces;
-	template<typename ValueType = SDL_Texture *>
-	static inline void FinalizeMap(std::unordered_map<const char *, ValueType> map) {
-		std::for_each(map.begin(), map.end(), [](std::pair<const char *, ValueType> pair) {
-			free(pair.second);
+	struct ImageData {
+	private:
+		SDL_Surface *surface;
+		SDL_Texture *texture;
+		friend class Images;
+	public:
+		ImageData(SDL_Surface *_surface, SDL_Texture *_texture): surface(_surface), texture(_texture) {}
+	};
+	static std::unordered_map<const char*, ImageData*> loadedImages;
+	template<typename first, typename second>
+	static inline void FinalizeMap(std::unordered_map<const char *, std::tuple<first, second>> map) {
+		std::for_each(map.begin(), map.end(), [](std::pair<const char *, std::tuple<first, second>> pair) {
+			free(std::get<first>(pair.second));
+			free(std::get<second>(pair.second));
 			});
 	}
 public:
 	static SDL_Texture* LoadTexture(std::string path);
 	static SDL_Texture* LoadTexture(const char* path);
 	static inline void Finalize() {
-		FinalizeMap<SDL_Texture*>(loadedTexs);
-		FinalizeMap<SDL_Surface*>(loadedSurfaces);
+		for (auto &keyVal: loadedImages){
+			auto& val = keyVal.second;
+			free(val->surface);
+			free(val->texture);
+			};
 	}
 };
 class Textures;

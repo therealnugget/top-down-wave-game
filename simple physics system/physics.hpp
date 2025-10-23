@@ -91,14 +91,28 @@ public:
 	inline Vector2 operator *=(float b) {
 		return *this = *this * b;
 	}
+	//these ones are backwards (i.e. they return lists and do arithmetic on the list) because i was feelin a bit quirky when i wrote them
+	inline std::vector<Vector2> operator *=(std::vector<Vector2> &list) {
+		return list = *this * list;
+	}
+	inline std::vector<Vector2> operator /=(std::vector<Vector2> &list) {
+		return list = *this / list;
+	}
 	//NOT the cross product.
 	inline Vector2 operator *(Vector2 b) {
 		return Vector2(x * b.x, y * b.y);
 	}
-	//NOT the cross product.
+	//NOT the cross product. coudln't make this argument a reference or ptr so this is very slow. only use at initialization.
 	inline std::vector<Vector2> operator *(std::vector<Vector2> list) {
 		for (auto& vec : list) {
 			vec *= *this;
+		}
+		return list;
+	}
+	//coudln't make this argument a reference or ptr so this is very slow. only use at initialization.
+	inline std::vector<Vector2> operator /(std::vector<Vector2> list) {
+		for (auto& vec : list) {
+			vec /= *this;
 		}
 		return list;
 	}
@@ -720,6 +734,7 @@ public:
 		return entityHead;
 	}
 	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>(), int tag = -1, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void DeleteRB(rbList*);
 	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1);
@@ -799,11 +814,12 @@ public:
 		}
 	};*/
 	static const std::initializer_list<FVector2> DefaultSquareVerticesAsList;
+	static const std::vector<FVector2> DefaultSquareVerticesVec;
 	static inline std::initializer_list<FVector2> GetDefaultSquareVertList() {
 		return DefaultSquareVerticesAsList;
 	}
 	static inline std::vector<FVector2> GetDefaultSquareVertVec() {
-		return std::vector<FVector2>(DefaultSquareVerticesAsList);
+		return DefaultSquareVerticesVec;
 	}
 	static constexpr int numVerticesInSquare = 4;
 	static constexpr FVector2 DefaultSquareVertices[numVerticesInSquare] = {

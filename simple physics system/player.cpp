@@ -15,8 +15,6 @@ static Entity* playerEnt;
 static rbList *plrNode;
 static rbList* player2;
 static RigidBody* player2Rb;
-std::unordered_map<const char*, SDL_Texture*> Images::loadedTexs;
-std::unordered_map<const char*, SDL_Surface*> Images::loadedSurfaces;
 static FVector2 currentVel;
 rbList** shapesTemp;
 rbList** shapesTemp2;
@@ -74,31 +72,37 @@ void Player::Init() {
 	animStrs[idle] = "idle";
 	animStrs[run] = "run";
 	animStrs[attack] = "attack";//this is a trade-off against character-efficiency in favour of performance (no need to actually include a dictionary for this.)
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", animStrs, FVector2(.375f, .5f) * Physics::GetDefaultSquareVertVec(), defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", animStrs, FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
 	enum orcTemp {
-		attack,
-		death,
-		hurt,
 		idle,
+		overhead,
+		swing,
+		death,
+		dash,
+		hurt,
 		run,
 		walk,
+		jump,
 		numOrcAnims,
 	};
 	animStrs.resize(numOrcAnims);
-	animStrs[attack] = "attack";
+	animStrs[overhead] = "overhead";
+	animStrs[swing] = "swing";
 	animStrs[death] = "death";
+	animStrs[dash] = "dash";
 	animStrs[hurt] = "hurt";
 	animStrs[idle] = "idle";
 	animStrs[run] = "run";
 	animStrs[walk] = "walk";
-	auto temp = Physics::SubscribeEntity("orc", animStrs, Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 400.f, FVector2::GetOne() * 100.f, std::initializer_list<FVector2>(), FVector2::Zero, FVector2::GetOne() * -50.f);
+	animStrs[jump] = "jump";
+	auto temp = Physics::SubscribeEntity("sword guy", animStrs, FVector2(17.f / 64.f, 24.f / 64.f) * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 350.f, FVector2::GetOne() * 300.f, std::initializer_list<FVector2>(), FVector2::Zero, FVector2(-150.f, -300.f * 39.f / 64.f), { "right" });
 	player = plrNode->value;
 	player->SetCollisionCallback([](auto &collision) -> void {
 		//std::cout << "colliding!!!\n";
 		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
-	constexpr int numShapes = 500;
+	constexpr int numShapes = 0;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
