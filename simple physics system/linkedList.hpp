@@ -483,6 +483,7 @@ public:
 		return Main::num_directions * animation;
 	}
 	static const std::string empty_string;
+	static const char * const empty_cc;
 private:
 	//order important for bit-wise operations.
 	static enum inpDirection: int {

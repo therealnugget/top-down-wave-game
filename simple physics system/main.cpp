@@ -14,6 +14,7 @@
 #define CTRL_OFFSET NUM_SIG_SCANKEYS + CONTROL_INDEX
 static SDL_Event e;
 const std::string Main::empty_string = "";
+const char* const Main::empty_cc = empty_string.c_str();
 bool Main::pressingKey[NUM_SIG_SCANKEYS];
 bool Main::pressedKey[NUM_SIG_SCANKEYS];
 bool Main::pressingModKey[NUM_MOD_KEYS];

@@ -5,7 +5,7 @@
 #include <tuple>
 #define NUM_SIG_SCANKEYS SDL_SCANCODE_RALT
 #define NUM_MOD_KEYS 3
-#define LogErrArgs cout << "fucked: ";\
+#define LogErrArgs cout << "broken: ";\
 va_list ap;\
 va_start(ap, num_args);\
 for (int i = 0; i < num_args; i++) {\
