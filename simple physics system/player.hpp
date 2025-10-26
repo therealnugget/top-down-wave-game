@@ -5,11 +5,10 @@
 //static, therefore can't inherit from behaviour.
 class Player {
 private:
-	static rbList* temp;
+	static constexpr float rotationSpd = 500.f;
 	static float accel, speed;
 	static IntVec2 pastInp;
 	static void PlayAnim(int);
-	static std::unordered_map<int, const char*> animNames;
 	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
 	static inline void SetPastInp(void (*delMov)() = nullptr, void (*delIdle)() = nullptr) {
 		if (Main::fInputVec == FVector2::Zero) {

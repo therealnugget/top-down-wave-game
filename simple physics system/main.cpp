@@ -251,6 +251,7 @@ int main(int argc, char* args[])
 #define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
+        printf("fps: %f\n", 1.f / Main::DeltaTime());
         tempDTCumulative += static_cast<double>(Main::DeltaTime());
         tempDTIndex++;
 #endif

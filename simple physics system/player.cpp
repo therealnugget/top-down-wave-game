@@ -95,14 +95,14 @@ void Player::Init() {
 	animStrs[run] = "run";
 	animStrs[walk] = "walk";
 	animStrs[jump] = "jump";
-	auto temp = Physics::SubscribeEntity("sword guy", animStrs, FVector2(17.f / 64.f, 24.f / 64.f) * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 350.f, FVector2::GetOne() * 300.f, std::initializer_list<FVector2>(), FVector2::Zero, FVector2(-150.f, -300.f * 39.f / 64.f), { "right" });
+	//auto temp = Physics::SubscribeEntity("sword guy", animStrs, FVector2(17.f / 64.f, 24.f / 64.f) * Physics::GetDefaultSquareVertVec(), Main::halfDisplaySize + FVector2::GetRight() * 350.f, FVector2::GetOne() * 300.f, std::initializer_list<FVector2>(), FVector2::Zero, FVector2(-150.f, -300.f * 39.f / 64.f), { "right" });
 	player = plrNode->value;
 	player->SetCollisionCallback([](auto &collision) -> void {
 		//std::cout << "colliding!!!\n";
 		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
-	constexpr int numShapes = 0;
+	constexpr int numShapes = 200;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
@@ -115,7 +115,6 @@ void Player::Init() {
 void Player::PlayAnim(int animation) {
 	playerEnt->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
 }
-rbList* Player::temp = nullptr;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -136,9 +135,11 @@ void Player::Update(void) {
 		/*cout << "vertex at " << std::to_string(j) << " is ";
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
-#endif/*
+#endif
+	/*
 	if (temp) Physics::DeleteRB(temp);
 	temp = Physics::StandaloneRB(FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)), Main::halfDisplaySize + FVector2::GetRight() * 300.f);*/
+	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
 	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
 		Player::PlayAnim(attack);
 		Player::SetPastInp();

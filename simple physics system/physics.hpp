@@ -830,7 +830,7 @@ public:
 	static constexpr float deg2rad = 3.1415926535897932384626433832795028841971693993751058209749445923 / 180.0;
 	static constexpr float defaultCOR = .4f;
 };
-#define SHOW_QUAD_TREE
+//#define SHOW_QUAD_TREE
 #ifdef SHOW_QUAD_TREE
 static std::vector<std::tuple<FVector2, FVector2>> boundsArr;
 #endif

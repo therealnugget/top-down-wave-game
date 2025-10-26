@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="animations.cpp" />
     <ClCompile Include="create shapes.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="linkedList.hpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="winMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="animations.hpp" />
     <ClInclude Include="array.hpp" />
     <ClInclude Include="create shapes.hpp" />
     <ClInclude Include="enemy.hpp" />

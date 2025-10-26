@@ -44,7 +44,7 @@ inline void ThrowError(const char *initErrMessage) {
 	#endif
 }
 inline void CheckSDLError() {
-	const char* temp;
-	if (!*(temp = SDL_GetError())) return;
-	ThrowError(temp);
+	const char* error;
+	if (!*(error = SDL_GetError())) return;
+	ThrowError(error);
 }
