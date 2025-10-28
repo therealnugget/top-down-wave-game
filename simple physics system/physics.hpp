@@ -70,7 +70,7 @@ public:
 	inline Vector2 operator -() {
 		return Vector2(-x, -y);
 	}
-	inline static Vector2 constexpr ConstNeg(const FVector2 &vec) {
+	inline static Vector2 constexpr ConstNeg(const Vector2<float> &vec) {
 		return Vector2(-vec.x, -vec.y);
 	}
 	inline Vector2 operator /(Vector2 b) {
@@ -82,7 +82,7 @@ public:
 	inline Vector2 operator *(float b) {
 		return Vector2(x * b, y * b);
 	}
-	inline static Vector2 constexpr ConstMult(const FVector2 &vec, float b) {
+	inline static Vector2 constexpr ConstMult(const Vector2<float> &vec, float b) {
 		return Vector2(vec.x * b, vec.y * b);
 	}
 	inline Vector2 operator *=(Vector2 b) {
@@ -139,7 +139,7 @@ public:
 		if (!r) return Zero;
 		return Vector2(*this / r);
 	}
-	inline static Vector2 FromTo(FVector2 from, FVector2 to) {
+	inline static Vector2 FromTo(Vector2 from, Vector2 to) {
 		return -from + to;
 	}
 	static Vector2<T> FromTo(RigidBody *from, RigidBody *to);
@@ -532,7 +532,7 @@ static constexpr int const_max_quadtree_depth = 10;
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, bool createEntity = true, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::vector<const char*>& animPaths = std::vector<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>(), int _tag = -1, void (*collisionCallback)(Collision&)) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, bool createEntity = true, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::vector<const char*>& animPaths = std::vector<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>(), int _tag = -1/*, void (*collisionCallback)(Collision&) = nullptr*/) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
@@ -611,6 +611,7 @@ public:
 		SetPosition(pos.x, pos.y);
 	}
 private:
+	//putting this here so that the rigidbody can't be freed outside of physics (friend class) or rigidbody, because it shouldn't be deleted directly except for here; it should be freed using the Physics::deleterb() func
 	~RigidBody() {
 		delete origNarrowPVertices;
 		delete verticesNarrowP;
@@ -737,7 +738,29 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, void (*collisionCallback)(Collision &), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
+	struct SubRBData {
+	public:
+		SubRBData(std::string _basePath, std::vector<const char*> _animPaths, std::vector<FVector2> _narrowPhaseVertices = Physics::DefaultSquareVerticesVec, FVector2 _startPos, )
+		std::string basePath;
+		std::vector<const char*> animPaths;
+		std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesVec;
+		FVector2 startPos = FVector2::Zero;
+		IntVec2 size = IntVec2::One;
+		std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>();
+		FVector2 _centreOfRotNPVert = FVector2::Zero;
+		IntVec2 _renderOffset = IntVec2::Zero;
+		int tag = -1;
+		void (*collisionCallback)(Collision &) = nullptr;
+		std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>();
+		std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>();
+		FVector2 initVel = FVector2::Zero;
+		float angle = .0f;
+		float mass = 1.f;
+		bool moveable = true;
+		bool isTrigger = false;
+		const std::initializer_list<const char*> endPaths = std::initializer_list<const char*>();
+	};
+	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1/*, void (*collisionCallback)(Collision &) = nullptr*/, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void DeleteRB(rbList*);
 	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1);

@@ -1,7 +1,6 @@
 #pragma once
 #include "usefulTypedefs.hpp"
 #include "multicast delegates.hpp"
-#include "physics.hpp"
 //define this for error checking and debug functions
 #define DEBUG_BUILD
 #include <iostream>
@@ -16,11 +15,10 @@ struct Vector2;
 typedef Vector2<float> FVector2;
 class Behaviour {
 private:
-	RigidBody* rb;
 	rbList* rbNode;
 	void Update();
 protected:
-	Behaviour(void (*)(Collision&));
+	Behaviour(CollisionCallback);
 	~Behaviour();
 };
 using namespace std;

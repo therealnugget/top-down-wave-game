@@ -25,8 +25,8 @@ Node<int> *Main::setPressed;
 Behaviour::~Behaviour() {
     Physics::DeleteRB(rbNode);
 }
-Behaviour::Behaviour(void (*collisionCallback)(Collision&)) {
-    Main::Updates += std::bind(Update, this);
+Behaviour::Behaviour(CollisionCallback) {
+    Main::Updates += std::bind(Behaviour::Update, this);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {

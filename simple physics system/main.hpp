@@ -13,10 +13,6 @@ for (int i = 0; i < num_args; i++) {\
 }\
 cout << '\n'
 using namespace std;
-inline void Assert(bool condition, const char *errMessage) {
-	if (condition) return;
-	ThrowError(errMessage);
-}
 inline void Assert(bool condition, int num_args, ...) {
 	if (condition) return;
 	LogErrArgs;
@@ -47,4 +43,8 @@ inline void CheckSDLError() {
 	const char* error;
 	if (!*(error = SDL_GetError())) return;
 	ThrowError(error);
+}
+inline void Assert(bool condition, const char* errMessage) {
+	if (condition) return;
+	ThrowError(errMessage);
 }

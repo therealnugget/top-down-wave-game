@@ -1,4 +1,4 @@
 #include "orc.hpp"
-Orc::Orc() {
+Orc::Orc(CollisionCallback callback): Enemy(callback) {
 
 }

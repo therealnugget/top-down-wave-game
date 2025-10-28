@@ -1,7 +1,8 @@
 #pragma once
-class Orc {
+#include "enemy.hpp"
+class Orc : public Enemy {
 private:
-	Orc();
+	Orc(CollisionCallback);
 	enum OrcAnimation {
 		idle,
 		overhead,
