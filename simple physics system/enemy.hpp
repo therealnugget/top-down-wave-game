@@ -1,5 +1,6 @@
 #pragma once
 #include "linkedList.hpp"
-class Enemy : Behaviour {
-
+class Enemy : public Behaviour {
+protected:
+	Enemy();
 };

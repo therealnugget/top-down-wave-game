@@ -48,6 +48,9 @@
     <ClCompile Include="animations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="orc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="physics.hpp">
@@ -84,6 +87,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="animations.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="orc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

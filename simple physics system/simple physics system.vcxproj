@@ -149,6 +149,7 @@
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="linkedList.hpp" />
     <ClCompile Include="multicast delegates.cpp" />
+    <ClCompile Include="orc.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="textures.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="math.hpp" />
     <ClInclude Include="multicast delegates.hpp" />
+    <ClInclude Include="orc.hpp" />
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="player.hpp" />
     <ClInclude Include="textures.hpp" />
