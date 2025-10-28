@@ -1,6 +1,7 @@
 #pragma once
 #include "usefulTypedefs.hpp"
 #include "multicast delegates.hpp"
+#include "physics.hpp"
 //define this for error checking and debug functions
 #define DEBUG_BUILD
 #include <iostream>
@@ -14,15 +15,13 @@ template<typename T>
 struct Vector2;
 typedef Vector2<float> FVector2;
 class Behaviour {
-protected:
-	std::initializer_list<const char*> anims;
-	std::unordered_map<int, const char*> animNames;
-	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
-	std::unordered_map<int, const char*> dirNames;
-	//TODO: finish generic case of instantiation of behaviour.
-	Behaviour();
-public:
+private:
+	RigidBody* rb;
+	rbList* rbNode;
 	void Update();
+protected:
+	Behaviour(void (*)(Collision&));
+	~Behaviour();
 };
 using namespace std;
 template<typename T>

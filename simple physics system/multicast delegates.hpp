@@ -23,5 +23,8 @@ public:
 	inline void operator +=(void (*del)()) {
 		delegates.push_back(del);
 	}
+	inline void operator +=(std::function<void(void)> del) {
+		*this += del;
+	}
 	void operator ()();
 };

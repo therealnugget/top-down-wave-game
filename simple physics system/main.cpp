@@ -22,6 +22,12 @@ bool Main::pressedModKey[NUM_MOD_KEYS];
 static int currentKeyPressed;
 static bool quit;
 Node<int> *Main::setPressed;
+Behaviour::~Behaviour() {
+    Physics::DeleteRB(rbNode);
+}
+Behaviour::Behaviour(void (*collisionCallback)(Collision&)) {
+    Main::Updates += std::bind(Update, this);
+}
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {
         int ind = *i - NUM_SIG_SCANKEYS;

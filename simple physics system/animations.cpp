@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include "linkedList.hpp"
 #include "main.hpp"
-//int, int, const char *, int, const char *, etc.
+//int, int, const char *, int, const char *, etc. this is a trade-off against character-efficiency in favour of performance (no need to actually include a dictionary for this.)
 StrList Animations::MakeAnimStrs(int numElems, ...) {
 	va_list args;
 	va_start(args, numElems);

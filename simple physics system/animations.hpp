@@ -4,5 +4,5 @@
 //static
 class Animations {
 public:
-	StrList MakeAnimStrs(int numElems, ...);
+	static StrList MakeAnimStrs(int numElems, ...);
 };

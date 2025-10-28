@@ -25,12 +25,9 @@ const std::vector<FVector2> Physics::DefaultSquareVerticesVec = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
 //imageDimensions is to resize the collider based on how big the contents of the image is in comparison to the image itself
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, void (*collisionCallback)(Collision &), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char*, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
 	RigidBody *rb = new RigidBody(startPos, initVel, angle, mass, _narrowPhaseVertices, _centreOfRotNPVert, moveable, isTrigger, true, size, basePath, animPaths, imageSizes, isGlobalSize, _centreOfRot, _renderOffset, endPaths, tag);
 	return SubscribeEntity(rb);
-}
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, const std::initializer_list<const char*>& endPaths, int tag, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char *, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger) {
-	return SubscribeEntity(basePath, animPaths, _narrowPhaseVertices, startPos, size, _centreOfRot, _centreOfRotNPVert, _renderOffset, tag, imageSizes, isGlobalSize, initVel, angle, mass, moveable, isTrigger, endPaths);
 }
 Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 	static uint totalNumEntities = 0;
@@ -40,11 +37,9 @@ Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 void Physics::UnSubscribeEntity(rbList* node) {
 	rbList::Remove(&entityHead, node);
 }
+//don't delete rigidbodys directly; use this func instead
 void Physics::DeleteRB(rbList* node) {
-	RigidBody* rb = node->value;
-	Entity* ent = rb->GetEntity();
-	if (ent) delete ent;
-	delete rb;
+	delete node->value;
 	UnSubscribeEntity(node);
 }
 Node<RigidBody*>* Physics::StandaloneRB(FVector2 size, FVector2 startPos, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, int tag) {
