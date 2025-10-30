@@ -3,7 +3,7 @@
 #include "physics.hpp"
 #include <SDL.h>
 //static, therefore can't inherit from behaviour.
-class Player {
+class Player final {
 private:
 	static constexpr float rotationSpd = 500.f;
 	static float accel, speed;

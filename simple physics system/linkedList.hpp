@@ -16,7 +16,7 @@ typedef Vector2<float> FVector2;
 class Behaviour {
 private:
 	rbList* rbNode;
-	void Update();
+	virtual void Update() = 0;
 protected:
 	Behaviour(CollisionCallback);
 	~Behaviour();

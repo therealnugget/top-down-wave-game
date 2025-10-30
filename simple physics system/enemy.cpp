@@ -13,3 +13,6 @@ Enemy::Enemy(CollisionCallback callback): Behaviour(callback) {
 	animStrs[jump] = "jump";
 	player = plrNode->value;*/
 }
+void Enemy::Update(void) {
+
+}
