@@ -40,7 +40,7 @@ public:
 		Node<RigidBody*>** _this = new Node<RigidBody*> *[numShapes];
 		for (int i = 0; i < numShapes; i++) {
 			auto data = SubRBData();
-			data.endPaths = { (std::string("debug_square ") + GetTexture(typeOfShape)).c_str() };
+			data.basePath = (std::string("debug_square ") + GetTexture(typeOfShape)).c_str();
 			data.startPos = position;
 			data.size = size;
 			data.mass = _mass;

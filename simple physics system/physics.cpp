@@ -10,7 +10,6 @@ rbList *Physics::entityHead = nullptr;
 rbListList *Physics::sortedEntityHeads = nullptr;
 rbListList *Physics::unsortedEntityHeads = nullptr;
 EmptyStack<RigidBody*> Physics::sortedCacheNodes = EmptyStack<RigidBody *>();
-//TODO (minor): rename the following 4 variables
 int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
 int Physics::numSections = 0;

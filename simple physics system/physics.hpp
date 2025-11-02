@@ -336,11 +336,12 @@ private:
 public:
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
+	//TODO: change args to subrbdata passed by referenced and then only use neccessary properties
 	Entity(float _angle, std::string &basePath, std::vector<const char*> &animPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> &_imageSizes, std::unordered_map<const char *, bool> &_isGlobalSize, IntVec2 _renderOffset, std::initializer_list<const char*>& dirPaths) : angle(_angle), flip(SDL_FLIP_NONE), renderOffset(_renderOffset) {
 		centreOfRotation = new SDL_Point;
 		rect = new SDL_Rect;
 		size.IntoRectWH(rect);
-		int i = 0, j;
+		register int i = 0, j;
 		const auto animPathsSize = animPaths.size();
 		const auto FVecSize = static_cast<FVector2>(size);
 		for (auto& animPath : animPaths) {
