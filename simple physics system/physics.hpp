@@ -347,7 +347,9 @@ public:
 		for (auto& animPath : animPaths) {
 			j = 0;
 			for (auto& path : dirPaths.size() > 0 ? dirPaths : Main::dirPaths) {
-				Textures::InitAnim(*this, (basePath + '/' + animPath + '_' + path).c_str());
+				auto fullPathStr = basePath + (basePath == Main::empty_string ? Main::empty_cc : "/") + animPath + (path == Main::empty_cc ? "" : "_") + path;
+				register auto fullPath = fullPathStr.c_str();
+				if (!Textures::InitAnim(*this, fullPath)) ThrowError("could not load texture at path \"", fullPath, "0.(png/bmp)\"");
 				if (i == 0 && j == 0) SetTexture(anims[0].textures[0]);
 				if (_imageSizes.size() == 0) {
 					continue;

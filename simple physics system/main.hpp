@@ -28,13 +28,21 @@ inline void ThrowError(int num_args, ...) {
 }
 inline void ThrowError(const char *initErrMessage, const char *append) {
 	cout << "error! broken: " << initErrMessage;
-	cout << append << '\n';
+	cout << append << std::endl;
+	#ifdef DEBUG_BUILD
+	throw new exception();
+	#endif
+}
+inline void ThrowError(const char *initErrMessage, const char *append, const char *append2) {
+	cout << "error! broken: " << initErrMessage;
+	cout << append << std::flush;
+	cout << append2 << std::endl;
 	#ifdef DEBUG_BUILD
 	throw new exception();
 	#endif
 }
 inline void ThrowError(const char *initErrMessage) {
-	cout << "error! broken: " << initErrMessage << '\n';
+	cout << "error! broken: " << initErrMessage << std::endl;
 	#ifdef DEBUG_BUILD
 	throw new exception();
 	#endif
