@@ -3,8 +3,8 @@
 #include <tuple>
 #include "textures.hpp"
 #include <SDL.h>
-#include "linkedList.hpp"
 #include "main.hpp"
+#include "debug.hpp"
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -70,7 +70,7 @@ public:
 	inline Vector2 operator -() {
 		return Vector2(-x, -y);
 	}
-	inline static Vector2 constexpr ConstNeg(const FVector2 &vec) {
+	inline static Vector2 constexpr ConstNeg(const Vector2<float> &vec) {
 		return Vector2(-vec.x, -vec.y);
 	}
 	inline Vector2 operator /(Vector2 b) {
@@ -82,7 +82,7 @@ public:
 	inline Vector2 operator *(float b) {
 		return Vector2(x * b, y * b);
 	}
-	inline static Vector2 constexpr ConstMult(const FVector2 &vec, float b) {
+	inline static Vector2 constexpr ConstMult(const Vector2<float> &vec, float b) {
 		return Vector2(vec.x * b, vec.y * b);
 	}
 	inline Vector2 operator *=(Vector2 b) {
@@ -139,7 +139,7 @@ public:
 		if (!r) return Zero;
 		return Vector2(*this / r);
 	}
-	inline static Vector2 FromTo(FVector2 from, FVector2 to) {
+	inline static Vector2 FromTo(Vector2 from, Vector2 to) {
 		return -from + to;
 	}
 	static Vector2<T> FromTo(RigidBody *from, RigidBody *to);
@@ -336,17 +336,20 @@ private:
 public:
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	Entity(float _angle, const std::string &basePath, const std::vector<const char*> &animPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> _imageSizes, std::unordered_map<const char *, bool> _isGlobalSize, IntVec2 _renderOffset, const std::initializer_list<const char*>& dirPaths) : angle(_angle), flip(SDL_FLIP_NONE), renderOffset(_renderOffset) {
+	//TODO: change args to subrbdata passed by referenced and then only use neccessary properties
+	Entity(float _angle, std::string &basePath, std::vector<const char*> &animPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> &_imageSizes, std::unordered_map<const char *, bool> &_isGlobalSize, IntVec2 _renderOffset, std::initializer_list<const char*>& dirPaths) : angle(_angle), flip(SDL_FLIP_NONE), renderOffset(_renderOffset) {
 		centreOfRotation = new SDL_Point;
 		rect = new SDL_Rect;
 		size.IntoRectWH(rect);
-		int i = 0, j;
+		register int i = 0, j;
 		const auto animPathsSize = animPaths.size();
 		const auto FVecSize = static_cast<FVector2>(size);
 		for (auto& animPath : animPaths) {
 			j = 0;
 			for (auto& path : dirPaths.size() > 0 ? dirPaths : Main::dirPaths) {
-				Textures::InitAnim(*this, (basePath + '/' + animPath + '_' + path).c_str());
+				auto fullPathStr = basePath + (basePath == Main::empty_string ? Main::empty_cc : "/") + animPath + (path == Main::empty_cc ? "" : "_") + path;
+				register auto fullPath = fullPathStr.c_str();
+				if (!Textures::InitAnim(*this, fullPath)) ThrowError("could not load texture at path \"", fullPath, "0.(png/bmp)\"");
 				if (i == 0 && j == 0) SetTexture(anims[0].textures[0]);
 				if (_imageSizes.size() == 0) {
 					continue;
@@ -529,28 +532,53 @@ public:
 	}
 };
 static constexpr int const_max_quadtree_depth = 10;
+struct SubRBData {
+private:
+	const static std::initializer_list<FVector2> DefaultSquareVerticesAsList;
+public:
+	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, void (*_collisionCallback)(Collision&) = nullptr, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> _isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity) {};
+	std::string basePath;
+	std::vector<const char*> animPaths;
+	std::vector<FVector2> narrowPhaseVertices;
+	FVector2 startPos;
+	IntVec2 size;
+	std::initializer_list<FVector2> centreOfRot;
+	FVector2 centreOfRotNPVert;
+	IntVec2 renderOffset;
+	int tag;
+	void (*collisionCallback)(Collision&);
+	std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes;
+	std::unordered_map<const char*, bool> isGlobalSize;
+	FVector2 initVel;
+	float angle;
+	float mass;
+	bool moveable;
+	bool isTrigger;
+	std::initializer_list<const char*> endPaths;
+	bool createEntity;
+};
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(FVector2 _position, FVector2 _velocity, float _angle, float _mass, std::vector<FVector2> _narrowPhaseVertices, FVector2 _centreOfRotForNarrowPVert = FVector2::Zero, bool _moveable = true, bool _isTrigger = false, bool createEntity = true, IntVec2 size = IntVec2::One, const std::string& basePath = Main::empty_string, const std::vector<const char*>& animPaths = std::vector<const char *>(), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), std::initializer_list<FVector2> _centreOfRotation = std::initializer_list<FVector2>(), IntVec2 _renderOffset = IntVec2::Zero, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>(), int _tag = -1) : mass(_mass), invMass(1.f / _mass), velocity(_velocity), rotation(.0), numNarrowPhaseVertices(_narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(SubRBData data) : mass(data.mass), invMass(1.f / data.mass), velocity(data.initVel), rotation(.0), numNarrowPhaseVertices(data.narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(_centreOfRotForNarrowPVert), madeAABBTrue(false), isColliding(false), position(_position), pastPosition(_position), bMoveable(_moveable), bIsTrigger(_isTrigger), OnCollision(nullptr), tag(_tag) {
-		if (createEntity) {
-			entity = new Entity(_angle, basePath, animPaths, size, imageSizes, isGlobalSize, _renderOffset, endPaths);
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(nullptr), tag(data.tag) {
+		if (data.createEntity) {
+			entity = new Entity(data.angle, data.basePath, data.animPaths, data.size, data.imageSizes, data.isGlobalSize, data.renderOffset, data.endPaths);
 			position.IntoRectXY(entity->rect);
-			if (_centreOfRotation.size()) {
+			if (data.centreOfRot.size()) {
 				memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
 			}
 			else {
-				entity->centreOfRotation->x = size.x / 2;
-				entity->centreOfRotation->y = size.y / 2;
+				entity->centreOfRotation->x = data.size.x / 2;
+				entity->centreOfRotation->y = data.size.y / 2;
 			}
 		}
 		else entity = nullptr;
 		SetInitCOR();
-		std::copy(_narrowPhaseVertices.begin(), _narrowPhaseVertices.end(), origNarrowPVertices);
+		std::copy(data.narrowPhaseVertices.begin(), data.narrowPhaseVertices.end(), origNarrowPVertices);
 #ifdef DEBUG_BUILD
 		constexpr int numVertInBox = 4;
 		if (numNarrowPhaseVertices < numVertInBox) {
@@ -558,11 +586,8 @@ public:
 		}
 #endif
 	}
-	~RigidBody() {
-		delete origNarrowPVertices;
-		delete verticesNarrowP;
-	}
-	uint entityIndex;//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
+	//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
+	uint entityIndex;
 	int tag;
 #ifdef DEBUG_BUILD
 	bool isDebugSquare;
@@ -614,6 +639,13 @@ public:
 		SetPosition(pos.x, pos.y);
 	}
 private:
+	//putting this here so that the rigidbody can't be freed outside of physics (friend class) or rigidbody, because it shouldn't be deleted directly except for here; it should be freed using the Physics::deleterb() func
+	~RigidBody() {
+		delete origNarrowPVertices;
+		delete verticesNarrowP;
+		if (!entity) return;
+		delete entity;
+	}
 	std::function<void(Collision&)> OnCollision;
 	bool bMoveable;
 	bool bIsTrigger;
@@ -688,6 +720,7 @@ public:
 	}
 	FVector2 position;
 	FVector2 pastPosition;
+	//shouldn't add any more friends to RigidBody because right now physics being the only friend ensures that the rigidbody can't be deleted from a class other than Physics or itself.
 	friend class Physics;
 };
 //static
@@ -733,11 +766,11 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
-	static Node<RigidBody*>* SubscribeEntity(const std::string &basePath, const std::vector<const char*> &animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>(), int tag = -1, std::unordered_map<const char*, std::variant<FVector2, FVector2 *>> imageSizes = std::unordered_map<const char *, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char *, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false);
+	static Node<RigidBody*>* SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, void (*collisionCallback)(Collision &) = nullptr, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
+	static Node<RigidBody*>* SubscribeEntity(SubRBData );
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static void DeleteRB(rbList*);
-	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1);
+	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1, CollisionCallback collisionCallback = nullptr);
 	static void Finalize();
 	static void Update(float dt);
 	static void OuterBroadPhase(bool searchSorted = false);

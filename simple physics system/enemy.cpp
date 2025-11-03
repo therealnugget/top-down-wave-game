@@ -1,4 +1,7 @@
 #include "enemy.hpp"
-Enemy::Enemy() {
+Enemy::Enemy(SubRBData data): Behaviour(data) {
+	
+}
+void Enemy::Update(void) {
 
 }

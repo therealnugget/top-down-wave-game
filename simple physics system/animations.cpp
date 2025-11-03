@@ -1,28 +1,25 @@
 #include "animations.hpp"
 #include <stdarg.h>
-#include "linkedList.hpp"
 #include "main.hpp"
-//int, int, const char *, int, const char *, etc.
-StrList Animations::MakeAnimStrs(int numElems, ...) {
+#include "debug.hpp"
+//int, int, const char *, int, const char *, etc. this is a trade-off against character-efficiency in favour of performance (no need to actually include a dictionary for this.)
+CCList Animations::MakeAnimStrs(int numArgs, ...) {
 	va_list args;
-	va_start(args, numElems);
-	auto retVal = std::vector<const char*>(numElems / 2);
-	bool iOdd;
-	union PtrInt {
-		int i;
-		const char* ptr;
-	} ptrInt;
+	va_start(args, numArgs);
+#ifdef DEBUG_BUILD
+	if (numArgs < 1) ThrowError("number of arguments cannot be less than 1");
+#endif
+	auto retVal = std::vector<const char*>(numArgs);
+	int currentAnim;
 #ifdef DEBUG_BUILD
 	try {
 #endif
-		for (int i = 0; i < numElems; i++) {
-			iOdd = static_cast<bool>(i & 1);
-			if (iOdd) {
-				ptrInt.ptr = va_arg(args, const char*);
+		for (int i = 0; i < numArgs * 2; i++) {
+			if (i & 1) {
+				retVal[currentAnim] = va_arg(args, const char*);
+				continue;
 			}
-			else {
-				ptrInt.i = va_arg(args, int);
-			}
+			currentAnim = va_arg(args, int);
 		}
 #ifdef DEBUG_BUILD
 	}
@@ -32,5 +29,5 @@ StrList Animations::MakeAnimStrs(int numElems, ...) {
 	}
 #endif
 	va_end(args);
-	return StrList();
+	return retVal;
 }
