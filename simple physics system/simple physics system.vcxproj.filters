@@ -33,9 +33,6 @@
     <ClCompile Include="physics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="linkedList.hpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="create shapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,7 +45,10 @@
     <ClCompile Include="animations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="orc.cpp">
+    <ClCompile Include="sword guy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemySpawner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,7 +56,7 @@
     <ClInclude Include="physics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="main.hpp">
+    <ClInclude Include="debug.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="player.hpp">
@@ -89,7 +89,13 @@
     <ClInclude Include="animations.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="orc.hpp">
+    <ClInclude Include="sword guy.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemySpawner.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

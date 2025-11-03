@@ -1,16 +1,6 @@
 #include "enemy.hpp"
-Enemy::Enemy(CollisionCallback callback): Behaviour(callback) {
-
-	/*animStrs[overhead] = "overhead";
-	animStrs[swing] = "swing";
-	animStrs[death] = "death";
-	animStrs[dash] = "dash";
-	animStrs[hurt] = "hurt";
-	animStrs[idle] = "idle";
-	animStrs[run] = "run";
-	animStrs[walk] = "walk";
-	animStrs[jump] = "jump";
-	player = plrNode->value;*/
+Enemy::Enemy(SubRBData data): Behaviour(data) {
+	
 }
 void Enemy::Update(void) {
 

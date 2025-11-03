@@ -4,7 +4,7 @@
 #include <tuple>
 #include "create shapes.hpp"
 #include "array.hpp"
-#include "linkedList.hpp"
+#include "main.hpp"
 #include <algorithm>
 #include "animations.hpp"
 #define PLAYER_WIDTH 150

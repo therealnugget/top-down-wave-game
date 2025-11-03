@@ -1,7 +1,7 @@
 #include "animations.hpp"
 #include <stdarg.h>
-#include "linkedList.hpp"
 #include "main.hpp"
+#include "debug.hpp"
 //int, int, const char *, int, const char *, etc. this is a trade-off against character-efficiency in favour of performance (no need to actually include a dictionary for this.)
 CCList Animations::MakeAnimStrs(int numArgs, ...) {
 	va_list args;

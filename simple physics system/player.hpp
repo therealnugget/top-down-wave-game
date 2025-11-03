@@ -1,5 +1,5 @@
 #pragma once
-#include "main.hpp"
+#include "debug.hpp"
 #include "physics.hpp"
 #include <SDL.h>
 //static, therefore can't inherit from behaviour.

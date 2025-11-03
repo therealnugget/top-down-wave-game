@@ -1,8 +1,9 @@
-#include "main.hpp"
+#include "debug.hpp"
 #include "winMgr.hpp"
 #include "textures.hpp"
 #include "player.hpp"
 #include "math.hpp"
+#include "EnemySpawner.hpp"
 #include <sstream>
 #include <iomanip>
 #include <SDL_image.h>
@@ -21,12 +22,15 @@ bool Main::pressingModKey[NUM_MOD_KEYS];
 bool Main::pressedModKey[NUM_MOD_KEYS];
 static int currentKeyPressed;
 static bool quit;
-Node<int> *Main::setPressed;
+Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
     Physics::DeleteRB(rbNode);
 }
-Behaviour::Behaviour(CollisionCallback) {
-    Main::Updates += std::bind(&Behaviour::Update, this);
+void Behaviour::Update() {
+
+}
+Behaviour::Behaviour(SubRBData& data) {
+    rbNode = Physics::SubscribeEntity(data);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {
@@ -238,6 +242,7 @@ int main(int argc, char* args[])
     }
     Player::Init();
     Physics::Init();
+    EnemySpawner::Init();
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();
