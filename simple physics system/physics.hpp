@@ -331,13 +331,13 @@ struct Entity : public Animator {
 private:
 	SDL_Texture* texture;
 	float angle;
-	const SDL_RendererFlip flip;
+	SDL_RendererFlip flip;
 	SDL_Point* centreOfRotation;
 public:
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
 	//TODO: change args to subrbdata passed by referenced and then only use neccessary properties
-	Entity(float _angle, std::string &basePath, std::vector<const char*> &animPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> &_imageSizes, std::unordered_map<const char *, bool> &_isGlobalSize, IntVec2 _renderOffset, std::initializer_list<const char*>& dirPaths) : angle(_angle), flip(SDL_FLIP_NONE), renderOffset(_renderOffset) {
+	Entity(float _angle, std::string &basePath, std::vector<const char*> &animPaths, IntVec2 size, std::unordered_map<const char *, std::variant<FVector2, FVector2*>> &_imageSizes, std::unordered_map<const char *, bool> &_isGlobalSize, IntVec2 _renderOffset, std::initializer_list<const char*>& dirPaths, float renderOffsetChangeX = .0f) : angle(_angle), flip(SDL_FLIP_NONE), renderOffset(_renderOffset), renderOffsetChangeX(renderOffsetChangeX), flippedOnFrame(false) {
 		centreOfRotation = new SDL_Point;
 		rect = new SDL_Rect;
 		size.IntoRectWH(rect);
@@ -393,9 +393,26 @@ public:
 	inline void SetTexture(SDL_Texture* tex) {
 		texture = tex;
 	}
+	inline void SetFlip(bool flipState) {
+		flip = static_cast<SDL_RendererFlip>(flipState * SDL_FLIP_HORIZONTAL);
+	}
+private:
+	inline void ScaleRenderChXByBool(bool scale) {
+		renderOffsetChangeX *= !scale * 2.f - 1.f;
+	}
+public:
+	inline void ScaleRenderChangeX(bool isFlipped) {
+		ScaleRenderChXByBool(isFlipped && !flippedOnFrame);
+		flippedOnFrame |= isFlipped;
+	}
+	inline void ClearFlipped() {
+		ScaleRenderChXByBool(flippedOnFrame);
+		flippedOnFrame = false;
+	}
 	inline SDL_Texture* GetTexture() {
 		return texture;
-	}/*
+	}
+	/*
 	inline void SetNextAnimTex() {
 		Animation& curAnim = anims[currentAnimation];
 		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + 1) % curAnim.numOfFrames))]);
@@ -415,7 +432,11 @@ private:
 	//per-direction.
 	std::variant<IntVec2, IntVec2*>* imageSizes = nullptr;
 	bool* isGlobalSize;
+	//describes specifically the *original render offset*, before the render offset change x is applied.
 	IntVec2 renderOffset;
+	//describes an offset from the centre of the image, where the contents of the image exists.
+	float renderOffsetChangeX;
+	bool flippedOnFrame;
 	friend class Physics;
 	friend class RigidBody;
 };
@@ -536,7 +557,7 @@ struct SubRBData {
 private:
 	const static std::initializer_list<FVector2> DefaultSquareVerticesAsList;
 public:
-	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, void (*_collisionCallback)(Collision&) = nullptr, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> _isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity) {};
+	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, void (*_collisionCallback)(Collision&) = nullptr, std::unordered_map<const char*, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool> _isGlobalSize = std::unordered_map<const char*, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true, float _renderOffsetChangeX = .0f) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity), renderOffsetChangeX(_renderOffsetChangeX) {};
 	std::string basePath;
 	std::vector<const char*> animPaths;
 	std::vector<FVector2> narrowPhaseVertices;
@@ -556,6 +577,7 @@ public:
 	bool isTrigger;
 	std::initializer_list<const char*> endPaths;
 	bool createEntity;
+	float renderOffsetChangeX;
 };
 struct RigidBody {
 public:
@@ -566,7 +588,7 @@ public:
 #endif
 		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(nullptr), tag(data.tag) {
 		if (data.createEntity) {
-			entity = new Entity(data.angle, data.basePath, data.animPaths, data.size, data.imageSizes, data.isGlobalSize, data.renderOffset, data.endPaths);
+			entity = new Entity(data.angle, data.basePath, data.animPaths, data.size, data.imageSizes, data.isGlobalSize, data.renderOffset, data.endPaths, data.renderOffsetChangeX);
 			position.IntoRectXY(entity->rect);
 			if (data.centreOfRot.size()) {
 				memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
@@ -680,6 +702,14 @@ public:
 	inline void SetSize(IntVec2 size) {
 		madeAABBTrue &= (FVector2(entity->rect->w, entity->rect->h) == size);
 		size.IntoRectWH(entity->rect);
+	}
+	inline void SetSizeX(int sizeX) {
+		madeAABBTrue &= (entity->rect->w == sizeX);
+		entity->rect->w = sizeX;
+	}
+	inline void SetSizeY(int sizeY) {
+		madeAABBTrue &= (entity->rect->h == sizeY);
+		entity->rect->h = sizeY;
 	}
 	inline Entity *GetEntity() {
 		return entity;

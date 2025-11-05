@@ -509,7 +509,8 @@ void Physics::Update(float dt) {
 		if (currentEntity){
 			curRect = currentEntity->rect;
 			currentRB->position.IntoRectXY(curRect);
-			curRect->x += currentEntity->renderOffset.x;
+			curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
+			currentEntity->ClearFlipped();
 			curRect->y += currentEntity->renderOffset.y;
 			//can only render single-threaded. T-T
 			animFramesPassed = 0;

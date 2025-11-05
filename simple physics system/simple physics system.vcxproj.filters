@@ -45,7 +45,7 @@
     <ClCompile Include="animations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sword guy.cpp">
+    <ClCompile Include="bob.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EnemySpawner.cpp">
@@ -89,7 +89,7 @@
     <ClInclude Include="animations.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sword guy.hpp">
+    <ClInclude Include="bob.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EnemySpawner.hpp">

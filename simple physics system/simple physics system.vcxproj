@@ -149,7 +149,7 @@
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="multicast delegates.cpp" />
-    <ClCompile Include="sword guy.cpp" />
+    <ClCompile Include="bob.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="textures.cpp" />
@@ -165,7 +165,7 @@
     <ClInclude Include="main.hpp" />
     <ClInclude Include="math.hpp" />
     <ClInclude Include="multicast delegates.hpp" />
-    <ClInclude Include="sword guy.hpp" />
+    <ClInclude Include="bob.hpp" />
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="player.hpp" />
     <ClInclude Include="textures.hpp" />

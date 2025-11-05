@@ -13,14 +13,30 @@
 template<typename T>
 struct Vector2;
 typedef Vector2<float> FVector2;
+typedef Vector2<int> IntVec2;
 struct SubRBData;
+struct Entity;
 class Behaviour {
 private:
 	rbList* rbNode;
+	RigidBody *rb;
+	Entity* entity;
 	virtual void Update();
+	float origRenderOffsetX;
 protected:
-	Behaviour(SubRBData&);
+	FVector2 GetPosition();
+	void SetPosition(FVector2 setPos);
+	void AddPosition(FVector2 add);
+	void AddForce(FVector2 force);
+	void SetScale(IntVec2 scale);
+	void SetScaleX(int scaleX);
+	void SetScaleY(int scaleY);
+	void SetFlipX(bool flip);
+	void PlayAnimation(int animtion);
 	~Behaviour();
+public:
+	Behaviour(SubRBData&);
+	friend class Player;
 };
 using namespace std;
 template<typename T>
@@ -483,6 +499,12 @@ public:
 	static const std::string empty_string;
 	static const char * const empty_cc;
 private:
+	static inline void SetPauseState(bool state) {
+		Main::timeScale = !state;
+	}
+	static inline void TogglePauseState() {
+		SetPauseState(!Main::timeScale);
+	}
 	//order important for bit-wise operations.
 	static enum inpDirection: int {
 		input_down = 0, //0000
@@ -506,6 +528,7 @@ private:
 	static bool keyDownHorizon, keyDownVert;
 	//whether the axis is cancelled (i.e. vertical axis is cancelled by any horizontal input, vertical axis is cancelled by any horizontal input.)
 	static bool cancelH, cancelV;
+	static bool focusLostPauseState;
 	static Node<int>* setPressed;
 	static bool pressingKey[];//whether the key was pressed this frame
 	static bool pressedKey[];//^^ that of last frame

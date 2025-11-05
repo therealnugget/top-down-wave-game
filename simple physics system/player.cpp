@@ -11,9 +11,10 @@
 #define PLAYER_HEIGHT 150
 float Player::accel = 700000.f;
 float Player::speed = 1500.f;
-static RigidBody *player;
-static Entity* playerEnt;
-static rbList *plrNode;
+rbList* Player::plrNode;
+RigidBody *Player::player;
+Behaviour *Player::plrBehaviour;
+Entity* Player::playerEnt;
 static FVector2 currentVel;
 IntVec2 Player::pastInp = FVector2::Down;
 //#define SHOW_AABB
@@ -33,7 +34,9 @@ void Player::Init() {
 		FVector2::Zero
 #endif
 		;
-	plrNode = Physics::SubscribeEntity("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	plrBehaviour = new Behaviour(data);
+	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
 	player->SetCollisionCallback([](auto &collision) -> void {
 		//std::cout << "colliding!!!\n";

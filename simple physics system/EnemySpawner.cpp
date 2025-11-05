@@ -1,5 +1,5 @@
 #include "EnemySpawner.hpp"
-#include "sword guy.hpp"
+#include "bob.hpp"
 void EnemySpawner::Init() {
-	auto temp = new Orc();
+	auto temp = new SwordGuy();
 }

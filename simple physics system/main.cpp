@@ -31,6 +31,36 @@ void Behaviour::Update() {
 }
 Behaviour::Behaviour(SubRBData& data) {
     rbNode = Physics::SubscribeEntity(data);
+    rb = rbNode->value;
+    entity = rb->GetEntity();
+}
+FVector2 Behaviour::GetPosition() {
+    return rb->position;
+}
+void Behaviour::SetPosition(FVector2 newPos) {
+    rb->position = newPos;
+}
+void Behaviour::AddPosition(FVector2 add) {
+    rb->position += add;
+}
+void Behaviour::AddForce(FVector2 force) {
+    rb->AddForce(force);
+}
+void Behaviour::SetScale(IntVec2 scale) {
+    rb->SetSize(scale);
+}
+void Behaviour::SetScaleX(int scaleX) {
+    rb->SetSizeX(scaleX);
+}
+void Behaviour::SetScaleY(int scaleY) {
+    rb->SetSizeY(scaleY);
+}
+void Behaviour::SetFlipX(bool flip) {
+    entity->SetFlip(flip);
+    entity->ScaleRenderChangeX(flip);
+}
+void Behaviour::PlayAnimation(int animation) {
+    entity->SetAnimation(animation);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {
@@ -53,11 +83,19 @@ bool Main::cancelKey[num_inp_dirs];
 int Main::cancelOpKey[num_inp_dirs];
 bool Main::keyDownHorizon, Main::keyDownVert;
 bool Main::cancelH, Main::cancelV;
+bool Main::focusLostPauseState = false;
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
         case SDL_WINDOWEVENT:
             switch (e.window.event) {
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                focusLostPauseState = !static_cast<bool>(timeScale);
+                SetPauseState(true);
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                SetPauseState(focusLostPauseState);
+                break;
             case SDL_WINDOWEVENT_SIZE_CHANGED:
             case SDL_WINDOWEVENT_EXPOSED:
                 SDL_RenderPresent(renderer);
@@ -134,7 +172,7 @@ void Main::EarlyUpdate() {
 }
 bool Main::CheckPauseState() {
     if (!Main::KeyPressed(SDL_SCANCODE_ESCAPE)) return false;
-    Main::timeScale = (Main::timeScale == 1.f) ? .0f : 1.f;
+    TogglePauseState();
     return true;
 }
 void Main::ClearInput() {
