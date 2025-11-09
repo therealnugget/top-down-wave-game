@@ -7,6 +7,7 @@
 #include "main.hpp"
 #include <algorithm>
 #include "animations.hpp"
+#include "multicast delegates.hpp"
 #define PLAYER_WIDTH 150
 #define PLAYER_HEIGHT 150
 float Player::accel = 700000.f;
@@ -24,7 +25,6 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 }
 #endif
 void Player::Init() {
-	Main::Updates += Player::Update;
 	FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
 #define USE_NORMAL_PLAYER_POS
 	FVector2 defaultPlrPos = 
@@ -38,12 +38,13 @@ void Player::Init() {
 	plrBehaviour = new Behaviour(data);
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
+	player->updateNode = Main::Updates += Player::Update;
 	player->SetCollisionCallback([](auto &collision) -> void {
 		//std::cout << "colliding!!!\n";
 		});
 	playerEnt = player->GetEntity();
 	playerEnt->SetRecordAnim(true);
-	constexpr int numShapes = 200;
+	constexpr int numShapes = 0;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;

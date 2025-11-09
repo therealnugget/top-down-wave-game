@@ -4,6 +4,7 @@
 #include "player.hpp"
 #include "math.hpp"
 #include "EnemySpawner.hpp"
+#include "multicast delegates.hpp"
 #include <sstream>
 #include <iomanip>
 #include <SDL_image.h>
@@ -24,6 +25,7 @@ static int currentKeyPressed;
 static bool quit;
 Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
+    Main::Updates -= rb->updateNode;
     Physics::DeleteRB(rbNode);
 }
 void Behaviour::Update() {
@@ -33,6 +35,12 @@ Behaviour::Behaviour(SubRBData& data) {
     rbNode = Physics::SubscribeEntity(data);
     rb = rbNode->value;
     entity = rb->GetEntity();
+}
+void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
+    rb->updateNode = node;
+}
+uint Behaviour::GetEntityIndex() {
+    return rb->entityIndex;
 }
 FVector2 Behaviour::GetPosition() {
     return rb->position;

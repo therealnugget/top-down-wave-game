@@ -1,6 +1,5 @@
 #pragma once
 #include "usefulTypedefs.hpp"
-#include "multicast delegates.hpp"
 //define this for error checking and debug functions
 #define DEBUG_BUILD
 #include <iostream>
@@ -10,6 +9,7 @@
 #include <vector>
 #include <source_location>
 #include <unordered_map>
+#include <functional>
 template<typename T>
 struct Vector2;
 typedef Vector2<float> FVector2;
@@ -24,14 +24,16 @@ private:
 	virtual void Update();
 	float origRenderOffsetX;
 protected:
+	uint GetEntityIndex();
 	FVector2 GetPosition();
+	void SetUpdateNode(Node<std::function<void(void)>>*);
 	void SetPosition(FVector2 setPos);
-	void AddPosition(FVector2 add);
-	void AddForce(FVector2 force);
 	void SetScale(IntVec2 scale);
 	void SetScaleX(int scaleX);
 	void SetScaleY(int scaleY);
 	void SetFlipX(bool flip);
+	void AddPosition(FVector2 add);
+	void AddForce(FVector2 force);
 	void PlayAnimation(int animtion);
 	~Behaviour();
 public:
@@ -337,12 +339,6 @@ template<typename T>
 class MultiDelegate;
 template<>
 class MultiDelegate<void>;
-template<typename T>
-void MultiDelegate<T>::operator ()(T param) {
-	for (auto& del : delegates) {
-		del(param);
-	}
-}
 class Main {
 public:
 	//whether the key was pressed this frame regardless of it's state last frame

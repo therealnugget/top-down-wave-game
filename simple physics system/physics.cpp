@@ -1,5 +1,6 @@
 #include "physics.hpp"
 #include "main.hpp"
+#include "multicast delegates.hpp"
 #include "debug.hpp"
 #include "math.hpp"
 #include <limits>
@@ -29,7 +30,7 @@ const std::vector<FVector2> Physics::DefaultSquareVerticesVec = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
 //imageDimensions is to resize the collider based on how big the contents of the image is in comparison to the image itself
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, void (*collisionCallback)(Collision &), std::unordered_map<const char*, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<const char*, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, void (*collisionCallback)(Collision &), std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<std::string, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
 	return SubscribeEntity(SubRBData(basePath, animPaths, _narrowPhaseVertices, startPos, size, _centreOfRot, _centreOfRotNPVert, _renderOffset, tag, collisionCallback, imageSizes, isGlobalSize, initVel, angle, mass, moveable, isTrigger, endPaths));
 }
 Node<RigidBody*>* Physics::SubscribeEntity(SubRBData data) {
@@ -49,7 +50,7 @@ void Physics::DeleteRB(rbList* node) {
 	UnSubscribeEntity(node);
 }
 Node<RigidBody*>* Physics::StandaloneRB(FVector2 size, FVector2 startPos, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, int tag, CollisionCallback collisionCallback) {
-	RigidBody* rb = new RigidBody(SubRBData(Main::empty_string, std::vector<const char*>(), Physics::DefaultSquareVerticesVec, startPos, size, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, collisionCallback, std::unordered_map<const char*, std::variant<FVector2, FVector2*>>(), std::unordered_map<const char*, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false));
+	RigidBody* rb = new RigidBody(SubRBData(Main::empty_string, std::vector<const char*>(), Physics::DefaultSquareVerticesVec, startPos, size, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false));
 	return SubscribeEntity(rb);
 }
 template <typename T>

@@ -3,5 +3,6 @@
 //static
 class EnemySpawner final {
 public:
-	static void Init();
+	static void Init(void);
+	static void Update(void);
 };

@@ -10,15 +10,16 @@ static const char *bmp = "bmp";
 static const char *png = "png";
 rbList *Textures::curAnimNode = nullptr;
 RigidBody *Textures::curAnimRB = nullptr;
-std::unordered_map<const char*, Images::ImageData*> Images::loadedImages;
+std::unordered_map<std::string, Images::ImageData*> Images::loadedImages;
 bool Textures::InitAnim(Animator& anim, const char* basePath) {
 	struct stat buffer;
-	char *filePath;
 	int i = 0;
 	std::string iStr;
 	//one for null-terminating character, one for underscore character length
 	const size_t endBuffer = 2;
 	const size_t pathLen = strlen(imagesPath.c_str()) + strlen(basePath) + strlen(bmp) + endBuffer;
+	constexpr int maxIndexDigitLen = 10;//therefore max value of i is 9999999999
+	char* filePath = new char[maxIndexDigitLen + pathLen];
 	Animation* nextAnim = nullptr;
 	const auto GetAnim = [&]() {
 		if (nextAnim != nullptr) return nextAnim;
@@ -30,8 +31,8 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 		};
 	for(;;) {
 		iStr = to_string(i);
-		filePath = new char[strlen(iStr.c_str()) + pathLen];
 		if (!FileExists(bmp) && !FileExists(png)) {
+			delete[] filePath;
 			if (i == 0) return false;
 			GetAnim()->numOfFrames = i;
 			return true;
@@ -46,7 +47,8 @@ SDL_Texture *Images::LoadTexture(std::string path) {
 SDL_Texture *Images::LoadTexture(const char* path) {
 	const char* errorType;
 	SDL_Surface* loadedSurface;
-	auto iter = loadedImages.find(path);
+	auto strPath = std::string(path);
+	auto iter = loadedImages.find(strPath);
 	SDL_Texture* newTexture;
 	if (iter == loadedImages.end()) {
 		loadedSurface = SDL_LoadBMP(path);

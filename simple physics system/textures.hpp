@@ -16,10 +16,10 @@ private:
 	public:
 		ImageData(SDL_Surface *_surface, SDL_Texture *_texture): surface(_surface), texture(_texture) {}
 	};
-	static std::unordered_map<const char*, ImageData*> loadedImages;
+	static std::unordered_map<std::string, ImageData*> loadedImages;
 	template<typename first, typename second>
-	static inline void FinalizeMap(std::unordered_map<const char *, std::tuple<first, second>> map) {
-		std::for_each(map.begin(), map.end(), [](std::pair<const char *, std::tuple<first, second>> pair) {
+	static inline void FinalizeMap(std::unordered_map<std::string, std::tuple<first, second>> map) {
+		std::for_each(map.begin(), map.end(), [](std::pair<std::string, std::tuple<first, second>> pair) {
 			free(std::get<first>(pair.second));
 			free(std::get<second>(pair.second));
 			});

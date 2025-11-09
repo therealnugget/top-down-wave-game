@@ -5,6 +5,7 @@
 //static, therefore can't inherit from behaviour.
 class Player final {
 private:
+	static Node<std::function<void(void)>>* updateNode;
 	static Behaviour* plrBehaviour;
 	static rbList* plrNode;
 	static RigidBody* player;
