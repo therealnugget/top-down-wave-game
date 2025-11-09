@@ -26,31 +26,44 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 		return nextAnim = anim.LoadNextAnim();
 		};
 	auto FileExists = [&](const char* fileType) -> bool {
-		strcpy(filePath, (imagesPath + basePath + '_' + iStr + '.' + fileType).c_str());
-		return !stat(filePath, &buffer);
+		bool fileFound = !stat((string(filePath) + fileType).c_str(), &buffer);
+		if (fileFound) {
+			strcat(filePath, fileType);
+			return true;
+		}
+		return false;
 		};
+	auto basePathStr = string(basePath);
+	std::unordered_map<std::string, Images::ImageData *>::const_iterator loadedImg;
+	bool pastImgLoaded;
+	bool isImgLoaded = false;
+	Images::ImageData* data = nullptr;
 	for(;;) {
 		iStr = to_string(i);
-		if (!FileExists(bmp) && !FileExists(png)) {
+		pastImgLoaded = isImgLoaded;
+		strcpy(filePath, (imagesPath + basePath + '_' + iStr + '.').c_str());
+		loadedImg = Images::GetImgLoaded((string(filePath) + bmp).c_str());
+		if (loadedImg == Images::loadedImages.end()) loadedImg = Images::GetImgLoaded((string(filePath) + png).c_str());
+		isImgLoaded = loadedImg != Images::loadedImages.end();
+		if (!isImgLoaded && (pastImgLoaded && i != 0 || !FileExists(bmp) && !FileExists(png))) {
 			delete[] filePath;
 			if (i == 0) return false;
 			GetAnim()->numOfFrames = i;
 			return true;
 		}
-		GetAnim()->textures.push_back(Images::LoadTexture(filePath));
+		if (isImgLoaded) data = loadedImg->second;
+		GetAnim()->textures.push_back(Images::LoadTexture(filePath, isImgLoaded, data));
 		i++;
 	}
 }
 SDL_Texture *Images::LoadTexture(std::string path) {
 	return LoadTexture(path.c_str());
 }
-SDL_Texture *Images::LoadTexture(const char* path) {
+SDL_Texture *Images::LoadTexture(const char* path, bool imgLoaded, Images::ImageData *data) {
 	const char* errorType;
 	SDL_Surface* loadedSurface;
-	auto strPath = std::string(path);
-	auto iter = loadedImages.find(strPath);
 	SDL_Texture* newTexture;
-	if (iter == loadedImages.end()) {
+	if (!imgLoaded) {
 		loadedSurface = SDL_LoadBMP(path);
 		if (!loadedSurface) {
 			loadedSurface = IMG_Load(path);
@@ -79,9 +92,8 @@ SDL_Texture *Images::LoadTexture(const char* path) {
 		}
 	}
 	else {
-		auto loadedVal = iter->second;
-		loadedSurface = loadedVal->surface;
-		newTexture = loadedVal->texture;
+		loadedSurface = data->surface;
+		newTexture = data->texture;
 	}
 	//SDL_FreeSurface(loadedSurface);
 	return newTexture;

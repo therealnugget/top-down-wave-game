@@ -206,6 +206,13 @@ FVector2 Main::GetRandFVec(FVector2 min, FVector2 max) {
 float Main::DeltaTime() {
     return static_cast<float>(SDL_GetPerformanceCounter() - pastTime) / frequency * timeScale;
 }
+float Main::CapDeltaTime(float &maxDT) {
+    return fmaxf(DeltaTime(), maxDT);
+}
+float Main::doubleInvRefreshRate;
+float Main::DefCapDeltaTime() {
+    return fmaxf(DeltaTime(), doubleInvRefreshRate);
+}
 static void Close() {
     Physics::Finalize();
     Main::Finalize();
@@ -238,6 +245,7 @@ void Main::Start() {
     if (!renderer) {
         ThrowError("renderer couldn't be created");
     }
+    doubleInvRefreshRate = 2.f / Main::DM.refresh_rate;
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG) {
         ThrowError("couldn't init img: ", IMG_GetError());
     }

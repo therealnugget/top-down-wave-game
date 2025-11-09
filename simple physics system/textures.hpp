@@ -7,7 +7,7 @@
 #include "usefulTypedefs.hpp"
 #include <tuple>
 class Images {
-private:
+public:
 	struct ImageData {
 	private:
 		SDL_Surface *surface;
@@ -24,9 +24,11 @@ private:
 			free(std::get<second>(pair.second));
 			});
 	}
-public:
+	static std::unordered_map<std::string, ImageData *>::const_iterator GetImgLoaded(std::string path) {
+		return loadedImages.find(path);
+	}
 	static SDL_Texture* LoadTexture(std::string path);
-	static SDL_Texture* LoadTexture(const char* path);
+	static SDL_Texture* LoadTexture(const char* path, bool, ImageData *);
 	static inline void Finalize() {
 		for (auto &keyVal: loadedImages){
 			auto& val = keyVal.second;

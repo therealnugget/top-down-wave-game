@@ -409,6 +409,8 @@ public:
 	static FVector2 DisplaySize;
 	static FVector2 halfDisplaySize;
 	static float DeltaTime();
+	static float CapDeltaTime(float &);
+	static float DefCapDeltaTime();
 	static float timeScale;
 	static Uint64 pastTime;
 	static float frequency;
@@ -544,6 +546,7 @@ private:
 	static bool pressedKey[];//^^ that of last frame
 	static bool pressingModKey[];
 	static bool pressedModKey[];
+	static float doubleInvRefreshRate;
 	static void SetPastKey(int*);
 	inline static void AddKeyPress(int key) {
 		Node<int>::AddAtHead(key, &setPressed);
