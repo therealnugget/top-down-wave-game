@@ -58,11 +58,14 @@ public:
 	T value;
 	static void RemoveAllNodes(Node** head, void (*)(T*), bool freeNodes = true);
 	static void RemoveAllNodes(Node** head, bool freeNodes = true);
+	static void RemoveAllNodesWVal(Node** head, bool freeNodes = true);
 	static Node* &AddAtHead(T&, Node** head);
+	static Node* &AddAtHeadByVal(T, Node** head);
 	static Node* &AddAtHeadEmpty(Node** head, Node*);
 	static Node* &AddAtHead(T&, Node** head, Node *preConstructed);
 	//the ptr returned is only useful if you don't delete the node. 
-	static Node *Remove(Node** head, Node* remove, bool freeNode = true);
+	static Node* Remove(Node** head, Node* remove, bool freeNode = true);
+	static Node* RemoveWVal(Node** head, Node* remove, bool freeNode = true);
 	static Node *RemoveHead(Node* head, bool freeNode = true);
 	static Node *RemoveTail(Node** tail, Node* remove, bool freeNode = true);
 	static void Reverse(Node** head);
@@ -113,6 +116,11 @@ Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head) {
 	return AddAtHead(val, head, _this);
 }
 template <typename T>
+Node<T>* &Node<T>::AddAtHeadByVal(T val, Node<T>** head) {
+	Node<T>* _this = new Node<T>();
+	return AddAtHead(val, head, _this);
+}
+template <typename T>
 Node<T>* &Node<T>::AddAtHead(T &val, Node<T>** head, Node<T> *preConstructedNode) {
 	preConstructedNode->value = val;
 	preConstructedNode->prev = nullptr;
@@ -130,6 +138,7 @@ public:
 	inline Node<T>* GetHead() {
 		return head;
 	}
+	Node<T>* Remove(Node<T> *, bool freeNode = true);
 	Node<T> *PushNode(Node<T> *);
 	Node<T> *PopNode();
 	void Flush(bool freeNodes = true);
@@ -150,6 +159,10 @@ Node<T> *EmptyStack<T>::PopNode() {
 	auto oldHead = head;
 	Node<T>::Advance(&head);
 	return Node<T>::RemoveHead(oldHead, false);
+}
+template <typename T>
+Node<T>* EmptyStack<T>::Remove(Node<T> *remove, bool freeNode) {
+	return Node<T>::Remove(&head, remove, freeNode);
 }
 template<typename T>
 class Stack {
@@ -398,6 +411,7 @@ public:
 	static float DeltaTime();
 	static float timeScale;
 	static Uint64 pastTime;
+	static float frequency;
 	inline static void StartDTCounter() {
 		pastTime = SDL_GetPerformanceCounter();
 	}
@@ -582,6 +596,20 @@ Node<T>* Node<T>::Remove(Node<T>** head, Node<T>* remove, bool freeNode) {
 	return nullptr;
 }
 template <typename T>
+Node<T>* Node<T>::RemoveWVal(Node<T>** head, Node<T>* remove, bool freeNode) {
+	Node<T>* next = remove->next, * prev = remove->prev;
+	if (next) next->prev = prev;
+	if (prev) prev->next = next;
+	else {
+		*head = next;
+	}
+	delete remove->value;
+	if (!freeNode) return remove;
+	delete remove;
+	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr
+	return nullptr;
+}
+template <typename T>
 Node<T>* Node<T>::RemoveHead(Node<T>* head, bool freeNode) {
 	Node<T>* next = head->next, * prev = head->prev;
 	if (next) next->prev = prev;
@@ -634,6 +662,16 @@ void Node<T>::RemoveAllNodes(Node<T>** head, bool freeNodes) {
 		pastNode = curNode;
 		Node::Advance(&curNode);
 		Node::Remove(head, pastNode, freeNodes);
+	}
+}
+template <typename T>
+void Node<T>::RemoveAllNodesWVal(Node<T>** head, bool freeNodes) {
+	Node<T>* curNode = *head;
+	Node<T>* pastNode;
+	while (curNode) {
+		pastNode = curNode;
+		Node::Advance(&curNode);
+		Node::RemoveWVal(head, pastNode, freeNodes);
 	}
 }
 /*

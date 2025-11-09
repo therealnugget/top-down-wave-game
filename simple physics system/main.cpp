@@ -26,6 +26,8 @@ static bool quit;
 Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
     Main::Updates -= rb->updateNode;
+    if (!rb->GetCacheNodeRef()) ThrowError("mustard mustard mangos 67 diddy");
+    Physics::RemoveCacheNodeRef(rb->GetCacheNodeRef());
     Physics::DeleteRB(rbNode);
 }
 void Behaviour::Update() {
@@ -200,7 +202,6 @@ void Main::Finalize() {
 FVector2 Main::GetRandFVec(FVector2 min, FVector2 max) {
     return { GetRandFloat(min.x, max.x), GetRandFloat(min.y, max.y) };
 }
-static float frequency;
 //this is quite slow; not because of the float cast creating a new float obj, but rather the getperformancecounter(). for this reason, if you are on an absolute potato and are calling this function a lot of times in a frame without multithreading for behaviours, store the result at the start of the frame and reuse it (obviously unless you want it to be precise, but that's impractical for, for insance, movement code.)
 float Main::DeltaTime() {
     return static_cast<float>(SDL_GetPerformanceCounter() - pastTime) / frequency * timeScale;
@@ -213,6 +214,7 @@ static void Close() {
     SDL_Quit();
 }
 Uint64 Main::pastTime;
+float Main::frequency;
 SDL_Renderer* Main::renderer = nullptr;
 //display mode
 SDL_DisplayMode Main::DM;
@@ -245,23 +247,6 @@ void Main::Start() {
     dirPaths[down] = "down";
     dirPaths[right] = "right";
 }
-#ifndef NULL_PTR_REMOVE_FUNC
-#define NULL_PTR_REMOVE_FUNC
-template <>
-Node<void*>* Node<void*>::Remove(Node<void*>** head, Node<void*>* remove, bool freeNode) {
-    Node<void*>* next = remove->next, * prev = remove->prev;
-    if (next) next->prev = prev;
-    if (prev) prev->next = next;
-    else {
-        *head = next;
-    }
-    if (!freeNode) return remove;
-    delete remove->value;
-    delete remove;
-    //i'm pretty sure it returns nullptr even if you don't return, but it's better practice this way.
-    return nullptr;
-}
-#endif
 float Main::timeScale = 1.f;
 //dt updates are called before updates
 MultiDelegate<float> Main::dtUpdates;
@@ -284,11 +269,11 @@ int main(int argc, char* args[])
     {
         constexpr uint8_t maxRGBAVal = 255;
         SDL_FillRect(WindowManager::screenSurface, NULL, SDL_MapRGBA(WindowManager::screenSurface->format, maxRGBAVal, maxRGBAVal, maxRGBAVal, 0));
-        frequency = static_cast<float>(SDL_GetPerformanceFrequency());
+        Main::frequency = static_cast<float>(SDL_GetPerformanceFrequency());
     }
     Player::Init();
-    Physics::Init();
     EnemySpawner::Init();
+    Physics::Init();
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();
@@ -306,7 +291,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-#define SHOW_FPS
+//#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());

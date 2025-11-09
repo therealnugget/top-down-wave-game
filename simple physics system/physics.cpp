@@ -44,7 +44,7 @@ Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 void Physics::UnSubscribeEntity(rbList* node) {
 	rbList::Remove(&entityHead, node);
 }
-//don't delete rigidbodys directly; use this func instead
+//don't delete rigidbodies directly; use this func instead
 void Physics::DeleteRB(rbList* node) {
 	delete node->value;
 	UnSubscribeEntity(node);
@@ -321,10 +321,9 @@ void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
 	while (treeValHead) {
 		next = treeValHead->GetNext();
 		rbList::Remove(&tree->values, treeValHead, false);
-		sortedCacheNodes.PushNode(treeValHead);
+		treeValHead->value->cacheNodeRef = sortedCacheNodes.PushNode(treeValHead);
 		treeValHead = next;
 	}
-	rbList::RemoveAllNodes(&tree->values, false);
 	if (tree->IsLeafNode()) {
 		goto ret;
 	}
@@ -336,6 +335,7 @@ void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
 	}
 ret:
 	if (isRoot) {
+		tree->ClearNodes();
 		return;
 	}
 	delete tree;

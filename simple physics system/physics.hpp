@@ -379,10 +379,10 @@ public:
 		Animation& curAnim = anims[0];
 		bool imageSizesEmpty = !imageSizes;
 		for (int i = 0; i < numAnims; i++) {
-			curAnim = anims[i];
+			curAnim = anims[i];/*
 			for (j = 0; j < curAnim.numOfFrames; j++) {
 				SDL_DestroyTexture(curAnim.textures[j]);
-			}
+			}*/
 			if (imageSizesEmpty) continue;
 			delete std::get<IntVec2*>(imageSizes[i]);
 		}
@@ -495,6 +495,12 @@ public:
 	}
 	Node<T>* values;
 public:
+	inline void ClearNodes() {
+		bottomLeft = nullptr;
+		bottomRight = nullptr;
+		topLeft = nullptr;
+		topRight = nullptr;
+	}
 	inline QuadNode* GetBottomLeft() {
 		return bottomLeft;
 	}
@@ -586,7 +592,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(nullptr), tag(data.tag) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(nullptr), tag(data.tag), cacheNodeRef(nullptr) {
 		if (data.createEntity) {
 			entity = new Entity(data.angle, data.basePath, data.animPaths, data.size, data.imageSizes, data.isGlobalSize, data.renderOffset, data.endPaths, data.renderOffsetChangeX);
 			position.IntoRectXY(entity->rect);
@@ -698,7 +704,11 @@ private:
 	float mass, invMass;
 	FVector2 force;
 	Entity *entity;
+	rbList* cacheNodeRef;
 public:
+	inline rbList* GetCacheNodeRef() {
+		return cacheNodeRef;
+	}
 	inline void SetSize(IntVec2 size) {
 		madeAABBTrue &= (FVector2(entity->rect->w, entity->rect->h) == size);
 		size.IntoRectWH(entity->rect);
@@ -794,6 +804,9 @@ private:
 	}
 	static void UnSubscribeEntity(rbList*);
 public:
+	static inline void RemoveCacheNodeRef(rbList* remove) {
+		sortedCacheNodes.Remove(remove);
+	}
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}

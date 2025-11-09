@@ -170,6 +170,7 @@
     <ClInclude Include="player.hpp" />
     <ClInclude Include="textures.hpp" />
     <ClInclude Include="debug.hpp" />
+    <ClInclude Include="timer.hpp" />
     <ClInclude Include="usefulTypedefs.hpp" />
     <ClInclude Include="winMgr.hpp" />
   </ItemGroup>
