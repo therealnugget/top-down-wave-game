@@ -26,7 +26,6 @@ static bool quit;
 Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
     Main::Updates -= rb->updateNode;
-    if (!rb->GetCacheNodeRef()) ThrowError("mustard mustard mangos 67 diddy");
     Physics::RemoveCacheNodeRef(rb->GetCacheNodeRef());
     Physics::DeleteRB(rbNode);
 }

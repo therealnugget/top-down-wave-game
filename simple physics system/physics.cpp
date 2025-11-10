@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <variant>
 rbList *Physics::entityHead = nullptr;
+Node<Entity *> *Physics::standaloneEntityHead = nullptr;
+static Node<Entity*>* curStandalone;
 rbListList *Physics::sortedEntityHeads = nullptr;
 rbListList *Physics::unsortedEntityHeads = nullptr;
 EmptyStack<RigidBody*> Physics::sortedCacheNodes = EmptyStack<RigidBody *>();
@@ -40,6 +42,15 @@ Node<RigidBody*> *Physics::SubscribeEntity (RigidBody *rb){
 	static uint totalNumEntities = 0;
 	rb->entityIndex = totalNumEntities++;
 	return Node<RigidBody*>::AddAtHead(rb, &entityHead);
+}
+Node<Entity*>* Physics::SubStandaloneEnt(Entity* entity) {
+	return Node<Entity*>::AddAtHead(entity, &standaloneEntityHead);
+}
+Node<Entity*>* Physics::SubStandaloneEnt(SubRBData data) {
+	return SubStandaloneEnt(new Entity(data));
+}
+Node<Entity*>* Physics::UnsubStandaloneEnt(Node<Entity*>* remove) {
+	return Node<Entity*>::RemoveWVal(&standaloneEntityHead, remove);
 }
 void Physics::UnSubscribeEntity(rbList* node) {
 	rbList::Remove(&entityHead, node);
@@ -420,6 +431,46 @@ void Main::AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditional
 	AssignIfLess(check.y, assignConditionally.y);
 }
 static int animFramesPassed;
+void Physics::ProcessTexs() {
+	if (currentEntity) {
+		curRect = currentEntity->rect;
+		if (currentRB) {
+			currentRB->position.IntoRectXY(curRect);
+			curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
+			curRect->y += currentEntity->renderOffset.y;
+		}
+		currentEntity->ClearFlipped();
+		if (currentEntity->currentAnimation != -1) {
+			animFramesPassed = 0;
+			if (currentEntity->animTime <= Animator::neg_anim_time) {
+				animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
+				currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
+			}
+			currentEntity->animTime -= Main::DefCapDeltaTime();
+			if (currentEntity->animTime <= .0f) {
+				currentEntity->animTime += Animator::default_anim_time;
+				animFramesPassed++;
+			}
+			if (animFramesPassed && currentEntity->anims.size() > 0) {
+				currentEntity->SetNextAnimTex(animFramesPassed);
+				static std::variant<IntVec2, IntVec2*>* imageSizes;
+				imageSizes = currentEntity->imageSizes;
+				if (imageSizes) {
+					static int currentAnim;
+					currentAnim = currentEntity->currentAnimation;
+					static int baseAnim;
+					baseAnim = currentAnim / static_cast<int>(Main::num_directions);
+					if (currentEntity->isGlobalSize[baseAnim]) {
+						static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
+					}
+					else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
+				}
+			}
+		}
+		//can only render single-threaded. T-T
+		SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB ? currentRB->rotation : .0f, currentEntity->centreOfRotation, currentEntity->flip);
+	}
+}
 void Physics::Update(float dt) {
 	curNode = entityHead;
 	while (curNode) {
@@ -507,45 +558,19 @@ void Physics::Update(float dt) {
 	while (curNode) {
 		currentRB = curNode->value;
 		currentEntity = currentRB->entity;
-		if (currentEntity){
-			curRect = currentEntity->rect;
-			currentRB->position.IntoRectXY(curRect);
-			curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
-			currentEntity->ClearFlipped();
-			curRect->y += currentEntity->renderOffset.y;
-			//can only render single-threaded. T-T
-			animFramesPassed = 0;
-			if (currentEntity->animTime <= Animator::neg_anim_time) {
-				animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
-				currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
-			}
-			currentEntity->animTime -= Main::DeltaTime();
-			if (currentEntity->animTime <= .0f) {
-				currentEntity->animTime += Animator::default_anim_time;
-				animFramesPassed++;
-			}
-			if (animFramesPassed && currentEntity->anims.size() > 0) {
-				currentEntity->SetNextAnimTex(animFramesPassed);
-				static std::variant<IntVec2, IntVec2*>* imageSizes;
-				imageSizes = currentEntity->imageSizes;
-				if (imageSizes) {
-					static int currentAnim;
-					currentAnim = currentEntity->currentAnimation;
-					static int baseAnim;
-					baseAnim = currentAnim / static_cast<int>(Main::num_directions);
-					if (currentEntity->isGlobalSize[baseAnim]) {
-						static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
-					}
-					else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
-				}
-			}
-			SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB->rotation, currentEntity->centreOfRotation, currentEntity->flip);
-		}
+		ProcessTexs();
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
 		Node<RigidBody*>::Advance(&curNode);
 		if (!currentEntity || !currentEntity->bRecordAnim) continue;
 		currentEntity->pastAnimation = currentEntity->currentAnimation;
+	}
+	curStandalone = standaloneEntityHead;
+	while (curStandalone) {
+		currentRB = nullptr;
+		currentEntity = curStandalone->value;
+		ProcessTexs();
+		Node<Entity*>::Advance(&curStandalone);
 	}
 #ifdef SHOW_QUAD_TREE
 	SDL_SetRenderDrawColor(Main::renderer, 0, 0, 0, 255);

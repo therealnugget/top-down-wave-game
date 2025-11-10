@@ -48,6 +48,7 @@ private:
 };
 struct Animator {
 protected:
+	//when currentAnimation is -1, the animator is not active.
 	int currentAnimation = 0, pastAnimation = 0;
 	bool bRecordAnim = false;
 	int animFrameIndex = -1;
@@ -61,8 +62,12 @@ private:
 	}
 	friend class Textures;
 public:
-	constexpr static float default_anim_time = 1.f / 12.f;
+	constexpr static float default_anim_fps = 6.f;
+	constexpr static float default_anim_time = 1.f / default_anim_fps;
 	constexpr static float neg_anim_time = -default_anim_time;
+	inline void DeActivate() {
+		currentAnimation = -1;
+	}
 	inline void SetAnimation(int anim) {
 		currentAnimation = anim;
 		if (pastAnimation == anim) return;

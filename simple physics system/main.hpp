@@ -382,7 +382,7 @@ public:
 	static std::vector<const char *> dirPaths;
 	static enum Tag {
 		player = 0,
-		debug = 1,
+		enemy = 1,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
