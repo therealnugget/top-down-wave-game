@@ -11,7 +11,7 @@
 #define PLAYER_WIDTH 150
 #define PLAYER_HEIGHT 150
 float Player::accel = 700000.f;
-float Player::speed = 1500.f;
+float Player::speed = 3000.f;
 rbList* Player::plrNode;
 RigidBody *Player::player;
 Behaviour *Player::plrBehaviour;

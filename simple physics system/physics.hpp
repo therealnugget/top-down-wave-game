@@ -330,7 +330,7 @@ struct SubRBData {
 private:
 	const static std::initializer_list<FVector2> DefaultSquareVerticesAsList;
 public:
-	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, void (*_collisionCallback)(Collision&) = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> _isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true, float _renderOffsetChangeX = .0f) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity), renderOffsetChangeX(_renderOffsetChangeX) {};
+	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, std::function<void(Collision&)> _collisionCallback = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> _isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true, float _renderOffsetChangeX = .0f, int_fast64_t _layer = Main::Layer::playerLayer) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity), renderOffsetChangeX(_renderOffsetChangeX), layer(_layer) {};
 	std::string basePath;
 	std::vector<const char*> animPaths;
 	std::vector<FVector2> narrowPhaseVertices;
@@ -340,7 +340,7 @@ public:
 	FVector2 centreOfRotNPVert;
 	IntVec2 renderOffset;
 	int tag;
-	void (*collisionCallback)(Collision&);
+	std::function<void(Collision&)> collisionCallback;
 	std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes;
 	std::unordered_map<std::string, bool> isGlobalSize;
 	FVector2 initVel;
@@ -351,6 +351,7 @@ public:
 	std::initializer_list<const char*> endPaths;
 	bool createEntity;
 	float renderOffsetChangeX;
+	int_fast64_t layer;
 };
 //maybe only use this as a reference or ptr
 struct Entity : public Animator {
@@ -373,7 +374,6 @@ public:
 	}
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	//TODO: change args to subrbdata passed by referenced and then only use neccessary properties
 	Entity(SubRBData &data) : angle(data.angle), flip(SDL_FLIP_NONE), renderOffset(data.renderOffset), renderOffsetChangeX(data.renderOffsetChangeX), flippedOnFrame(false) {
 		/*
 		used values:
@@ -446,6 +446,12 @@ public:
 	inline void SetTexture(SDL_Texture* tex) {
 		texture = tex;
 	}
+	inline void SetAnimFrame(int frame, int animation) {
+		SetTexture(anims[animation].textures[frame]);
+	}
+	inline void SetAnimFrame(int frame) {
+		SetAnimFrame(frame, currentAnimation);
+	}
 	inline void SetFlip(bool flipState) {
 		flip = static_cast<SDL_RendererFlip>(flipState * SDL_FLIP_HORIZONTAL);
 	}
@@ -512,6 +518,7 @@ private:
 	bool isTriggerCollision;
 public:
 	Collision(RigidBody* rb, float _dot, bool _isTrigger) : collider(rb), dot(_dot), isTriggerCollision(_isTrigger) {}
+	bool CompareTag(int tag);
 	inline void SetCollider(RigidBody* newCol) {
 		collider = newCol;
 	}
@@ -619,7 +626,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(nullptr), tag(data.tag) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer) {
 		if (data.createEntity) {
 			entity = new Entity(data);
 			position.IntoRectXY(entity->rect);
@@ -709,6 +716,7 @@ private:
 	std::condition_variable collidingCond;
 	std::mutex checkColliding;
 	std::unordered_set<uint_fast64_t> collisionsOccured;
+	int_fast64_t layer;
 	const uint numNarrowPhaseVertices;
 	FVector2* origNarrowPVertices;
 	void SetInitCOR();
@@ -838,7 +846,7 @@ public:
 	static inline rbList* GetEntHead() {
 		return entityHead;
 	}
-	static Node<RigidBody*>* SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, void (*collisionCallback)(Collision &) = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
+	static Node<RigidBody*>* SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, std::function<void(Collision &)> collisionCallback = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
 	static Node<RigidBody*>* SubscribeEntity(SubRBData );
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static Node<Entity*>* SubStandaloneEnt(Entity*);

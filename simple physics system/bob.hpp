@@ -2,8 +2,6 @@
 #include "enemy.hpp"
 class SwordGuy final: public Enemy {
 private:
-	Node<Entity *> *healthBar;
-	Entity *healthBarEnt;
 	void Update(void) override;
 	enum SGAnimation {
 		idle,
@@ -18,7 +16,6 @@ private:
 		numSGAnims,
 	};
 	float speed;
-	static constexpr IntVec2 healthBarOffset = { -46, -106 };
 public:
 	SwordGuy();
 };

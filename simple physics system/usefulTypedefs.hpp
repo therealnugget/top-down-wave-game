@@ -13,4 +13,4 @@ typedef Node<RigidBody*> rbList;
 typedef std::tuple<float, float, float> FVector3;
 typedef std::vector<const char*> CCList;
 class Collision;
-typedef void (*CollisionCallback)(Collision&);
+typedef std::function<void(Collision&)> CollisionCallback;

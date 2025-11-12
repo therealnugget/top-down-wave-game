@@ -354,6 +354,10 @@ template<>
 class MultiDelegate<void>;
 class Main {
 public:
+	static enum Layer {
+		playerLayer = 0b0001,
+		enemyLayer = 0b0010,
+	};
 	//whether the key was pressed this frame regardless of it's state last frame
 	static inline bool GetKey(int key) {
 		return pressingKey[key];
