@@ -387,6 +387,7 @@ public:
 	static enum Tag {
 		player = 0,
 		enemy = 1,
+		playerAttack = 2,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -602,6 +603,7 @@ Node<T>* Node<T>::Remove(Node<T>** head, Node<T>* remove, bool freeNode) {
 	//i'm pretty sure it returns nullptr anyway, but it's better practice to explicitly return nullptr
 	return nullptr;
 }
+//this will not call the deconstructor on the value it frees.
 template <typename T>
 Node<T>* Node<T>::RemoveWVal(Node<T>** head, Node<T>* remove, bool freeNode) {
 	Node<T>* next = remove->next, * prev = remove->prev;
@@ -671,6 +673,7 @@ void Node<T>::RemoveAllNodes(Node<T>** head, bool freeNodes) {
 		Node::Remove(head, pastNode, freeNodes);
 	}
 }
+//this will not call the deconstructor on the value it frees.
 template <typename T>
 void Node<T>::RemoveAllNodesWVal(Node<T>** head, bool freeNodes) {
 	Node<T>* curNode = *head;

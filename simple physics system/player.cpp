@@ -11,8 +11,9 @@
 #define PLAYER_WIDTH 150
 #define PLAYER_HEIGHT 150
 float Player::accel = 700000.f;
-float Player::speed = 3000.f;
+float Player::speed = 2000.f;
 rbList* Player::plrNode;
+rbList* Player::plrAttack = nullptr;
 RigidBody *Player::player;
 Behaviour *Player::plrBehaviour;
 Entity* Player::playerEnt;
@@ -24,8 +25,8 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 	rbs[i]->value->SetPosition(rb->GetNarrowPhaseVertices()[j] + ((static_cast<FVector2>(FVector2::Left) + FVector2::Down) * 2.5f));
 }
 #endif
+static FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
 void Player::Init() {
-	FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
 #define USE_NORMAL_PLAYER_POS
 	FVector2 defaultPlrPos = 
 		#ifdef USE_NORMAL_PLAYER_POS
@@ -78,11 +79,14 @@ void Player::Update(void) {
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
 #endif
-	/*
-	if (temp) Physics::DeleteRB(temp);
-	temp = Physics::StandaloneRB(FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)), Main::halfDisplaySize + FVector2::GetRight() * 300.f);*/
 	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
+	if (!Main::GetKey(SDL_SCANCODE_SPACE) && plrAttack) {
+		Physics::DeleteRB(plrAttack);
+		plrAttack = nullptr;
+	}
+	if (Main::KeyPressed(SDL_SCANCODE_SPACE)) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * 2, player->position, Main::Tag::playerAttack);
 	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
+		plrAttack->value->SetPosition(player->position);
 		Player::PlayAnim(attack);
 		Player::SetPastInp();
 		return;

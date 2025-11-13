@@ -8,6 +8,7 @@ private:
 	static Node<std::function<void(void)>>* updateNode;
 	static Behaviour* plrBehaviour;
 	static rbList* plrNode;
+	static rbList* plrAttack;
 	static RigidBody* player;
 	static Entity* playerEnt;
 	static constexpr float rotationSpd = 500.f;

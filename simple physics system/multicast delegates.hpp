@@ -28,12 +28,16 @@ class MultiDelegate<void>;
 template<>
 class MultiDelegate<void> {
 private:
+	Node<std::function<void(void)>>* curNode;
 	Node<std::function<void(void)>> *delegates = nullptr;
+	bool removedOnUpdate = false;
 public:
 	inline Node<std::function<void(void)>>* operator +=(std::function<void(void)> del) {
 		return Node<std::function<void(void)>>::AddAtHead(del, &delegates);
 	}
 	inline void operator -=(Node<std::function<void(void)>>* node) {
+		removedOnUpdate = true;
+		Node<std::function<void(void)>>::Advance(&curNode);
 		Node<std::function<void(void)>>::Remove(&delegates, node);
 	}
 	void operator ()();

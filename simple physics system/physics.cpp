@@ -63,8 +63,8 @@ void Physics::DeleteRB(rbList* node) {
 	delete node->value;
 	UnSubscribeEntity(node);
 }
-Node<RigidBody*>* Physics::StandaloneRB(FVector2 size, FVector2 startPos, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle, int tag, CollisionCallback collisionCallback) {
-	RigidBody* rb = new RigidBody(SubRBData(Main::empty_string, std::vector<const char*>(), Physics::DefaultSquareVerticesVec, startPos, size, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false));
+Node<RigidBody*>* Physics::StandaloneRB(IntVec2 size, FVector2 startPos, int tag, CollisionCallback collisionCallback, int_fast64_t layer, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {
+	RigidBody* rb = new RigidBody(SubRBData(Main::empty_string, std::vector<const char*>(), size * Physics::DefaultSquareVerticesVec, startPos, IntVec2::One, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false, .0f, layer));
 	return SubscribeEntity(rb);
 }
 template <typename T>

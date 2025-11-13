@@ -93,10 +93,16 @@ public:
 	}
 	//these ones are backwards (i.e. they return lists and do arithmetic on the list) because i was feelin a bit quirky when i wrote them
 	inline std::vector<Vector2> operator *=(std::vector<Vector2> &list) {
-		return list = *this * list;
+		for (auto& vec : list) {
+			vec *= *this;
+		}
+		return list;
 	}
 	inline std::vector<Vector2> operator /=(std::vector<Vector2> &list) {
-		return list = *this / list;
+		for (auto& vec : list) {
+			vec /= *this;
+		}
+		return list;
 	}
 	//NOT the cross product.
 	inline Vector2 operator *(Vector2 b) {
@@ -247,6 +253,26 @@ public:
 	}
 	inline Vector2 operator *(Vector2 b) {
 		return Vector2(x * b.x, y * b.y);
+	}
+	inline Vector2 operator *=(Vector2 b) {
+		return *this = *this * b;
+	}
+	inline Vector2 operator *=(FVector2 b) {
+		return *this = static_cast<FVector2>(*this) * b;
+	}
+	//NOT the cross product. coudln't make this argument a reference or ptr so this is very slow. only use at initialization.
+	inline std::vector<Vector2> operator *(std::vector<Vector2> list) {
+		for (auto& vec : list) {
+			vec *= *this;
+		}
+		return list;
+	}
+	//NOT the cross product. coudln't make this argument a reference or ptr so this is very slow. only use at initialization.
+	inline std::vector<FVector2> operator *(std::vector<FVector2> list) {
+		for (auto& vec : list) {
+			vec *= *this;
+		}
+		return list;
 	}
 	inline Vector2 operator *(int b) {
 		return Vector2(x * b, y * b);
@@ -697,9 +723,6 @@ public:
 		position.y = y;
 		madeAABBTrue = false;
 	}
-	inline void SetPosition(FVector2 &pos) {
-		SetPosition(pos.x, pos.y);
-	}
 private:
 	//putting this here so that the rigidbody can't be freed outside of physics (friend class) or rigidbody, because it shouldn't be deleted directly except for here; it should be freed using the Physics::deleterb() func
 	~RigidBody() {
@@ -853,7 +876,7 @@ public:
 	static Node<Entity*>* SubStandaloneEnt(SubRBData);
 	static Node<Entity*>* UnsubStandaloneEnt(Node<Entity*>*);
 	static void DeleteRB(rbList*);
-	static Node<RigidBody*>* StandaloneRB(FVector2 size = FVector2::One, FVector2 startPos = FVector2::Zero, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f, int tag = -1, CollisionCallback collisionCallback = nullptr);
+	static Node<RigidBody*>* StandaloneRB(IntVec2 size = IntVec2::One, FVector2 startPos = FVector2::Zero, int tag = -1, CollisionCallback collisionCallback = nullptr, int_fast64_t layer = Main::Layer::playerLayer, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f);
 	static void Finalize();
 	static void ProcessTexs();
 	static void Update(float dt);

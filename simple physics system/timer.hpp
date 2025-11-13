@@ -3,6 +3,10 @@
 struct Timer {
 public:
 	Timer(): pastTime(SDL_GetPerformanceCounter()){}
+	//for when you can't initialize because you're allocating on the stack
+	inline void Initialize() {
+		pastTime = SDL_GetPerformanceCounter();
+	}
 	//doesn't account for timeScale.
 	inline float GetElapsedSeconds() {
 		return static_cast<float>(SDL_GetPerformanceCounter() - pastTime) / Main::frequency;
