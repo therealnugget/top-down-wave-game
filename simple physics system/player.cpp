@@ -8,8 +8,8 @@
 #include <algorithm>
 #include "animations.hpp"
 #include "multicast delegates.hpp"
-#define PLAYER_WIDTH 150
-#define PLAYER_HEIGHT 150
+#define PLAYER_WIDTH 70
+#define PLAYER_HEIGHT 70
 float Player::accel = 700000.f;
 float Player::speed = 2000.f;
 rbList* Player::plrNode;
@@ -25,17 +25,17 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 	rbs[i]->value->SetPosition(rb->GetNarrowPhaseVertices()[j] + ((static_cast<FVector2>(FVector2::Left) + FVector2::Down) * 2.5f));
 }
 #endif
-static FVector2 playerSize = FVector2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
+static IntVec2 playerSize = IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
 void Player::Init() {
 #define USE_NORMAL_PLAYER_POS
 	FVector2 defaultPlrPos = 
 		#ifdef USE_NORMAL_PLAYER_POS
-		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSize * .5f
+		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * static_cast<FVector2>(playerSize) * .5f
 		#else
 		FVector2::Zero
 #endif
 		;
-	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5, Main::Tag::player);
+	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
 	plrBehaviour = new Behaviour(data);
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
@@ -49,7 +49,7 @@ void Player::Init() {
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
-	FVector2 shapeSize = playerSize * scaleFact;
+	FVector2 shapeSize = static_cast<FVector2>(playerSize) * scaleFact;
 	constexpr float border = .05f;
 	constexpr float invBorder = 1.f - border;
 	//don't use createshapes using first param as numshapes here, because we need to randomize the positions.

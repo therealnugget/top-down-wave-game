@@ -3,8 +3,8 @@
 static constexpr float default_max_health = 100.f;
 static constexpr float default_immune_time = .1f;
 Enemy::Enemy(SubRBData data): maxHealth(default_max_health), health(maxHealth), enabled(true), immuneTime(default_immune_time), Behaviour(data) {
-    auto healthBarSize = IntVec2(100.f, 50.f);
-    healthBar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, Main::halfDisplaySize, healthBarSize, healthBarSize * (IntVec2::GetOne() + IntVec2::GetRight())));
+    auto healthBarSize = IntVec2(29, 14);
+    healthBar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, GetDesiredHBPos(), healthBarSize, healthBarSize * (IntVec2::GetOne() + IntVec2::GetRight())));
     healthBarEnt = healthBar->value;
     healthBarEnt->DeActivate();
 }
@@ -33,6 +33,6 @@ void Enemy::Update(void) {
         enabled = false;
         return;
     }
-    healthBarEnt->SetRectPosition(static_cast<IntVec2>(GetPosition()) + healthBarOffset);
+    healthBarEnt->SetRectPosition(GetDesiredHBPos());
     healthBarEnt->SetAnimFrame(static_cast<int>(ceilf((healthBarEnt->GetNumAnimFrames(healthbar_animation) - 1) * GetHealthProportion())), healthbar_animation);
 }

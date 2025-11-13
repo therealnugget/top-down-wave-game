@@ -5,7 +5,7 @@
 class SwordGuy;
 class Enemy : public Behaviour {
 private:
-	static constexpr IntVec2 healthBarOffset = { -46, -106 };
+	static constexpr IntVec2 healthBarOffset = { -13, -30 };
 	Node<Entity*>* healthBar;
 	Entity* healthBarEnt;
 	float maxHealth;
@@ -16,6 +16,9 @@ private:
 	static constexpr int healthbar_animation = 0;
 	float immuneTime;
 	Timer *immuneTimer;
+	inline IntVec2 GetDesiredHBPos() {
+		return static_cast<IntVec2>(GetPosition()) + healthBarOffset;
+	}
 protected:
 	Enemy(SubRBData);
 	~Enemy();

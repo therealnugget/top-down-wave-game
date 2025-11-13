@@ -219,6 +219,7 @@ struct Vector2<int> {
 public:
 	int x, y;
 	constexpr Vector2(int _x, int _y) : x(_x), y(_y) {}
+	constexpr Vector2(float _x, float _y) : x(static_cast<int>(_x)), y(static_cast<int>(_y)) {}
 	Vector2(FVector2 v) : x(static_cast<int>(v.x)), y(static_cast<int>(v.y)) {}
 	Vector2() : x(.0f), y(.0f) {}
 #ifdef DEBUG_BUILD
@@ -276,6 +277,9 @@ public:
 	}
 	inline Vector2 operator *(int b) {
 		return Vector2(x * b, y * b);
+	}
+	inline Vector2 operator *(float b) {
+		return Vector2(static_cast<float>(x) * b, static_cast<float>(y) * b);
 	}
 	inline float Magnitude() {
 		return sqrtf(Sqr(x) + Sqr(y));
@@ -511,6 +515,9 @@ public:
 	}
 	inline IntVec2 GetSize() const {
 		return { rect->w, rect->h };
+	}
+	inline IntVec2 GetRenderOffset() {
+		return renderOffset;
 	}
 private:
 	SDL_Rect* rect;

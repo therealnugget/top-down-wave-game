@@ -520,7 +520,7 @@ private:
 		Main::timeScale = !state;
 	}
 	static inline void TogglePauseState() {
-		SetPauseState(!Main::timeScale);
+		SetPauseState(Main::timeScale);
 	}
 	//order important for bit-wise operations.
 	static enum inpDirection: int {

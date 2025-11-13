@@ -4,7 +4,7 @@ class SwordGuy;
 //static
 class EnemySpawner final {
 private:
-	static constexpr int spawnFrameInterval = 10;
+	static constexpr int spawnFrameInterval = 500;
 	static int frameIndex;
 	static Node<SwordGuy*>* swordGuys;
 public:
