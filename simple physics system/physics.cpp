@@ -435,44 +435,45 @@ void Main::AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditional
 }
 static int animFramesPassed;
 void Physics::ProcessTexs() {
-	if (currentEntity) {
-		curRect = currentEntity->rect;
-		if (currentRB) {
-			currentRB->position.IntoRectXY(curRect);
-			curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
-			curRect->y += currentEntity->renderOffset.y;
-		}
-		currentEntity->ClearFlipped();
-		if (currentEntity->currentAnimation != -1) {
-			animFramesPassed = 0;
-			if (currentEntity->animTime <= Animator::neg_anim_time) {
-				animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
-				currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
-			}
-			currentEntity->animTime -= Main::DefCapDeltaTime();
-			if (currentEntity->animTime <= .0f) {
-				currentEntity->animTime += Animator::default_anim_time;
-				animFramesPassed++;
-			}
-			if (animFramesPassed && currentEntity->anims.size() > 0) {
-				currentEntity->SetNextAnimTex(animFramesPassed);
-				static std::variant<IntVec2, IntVec2*>* imageSizes;
-				imageSizes = currentEntity->imageSizes;
-				if (imageSizes) {
-					static int currentAnim;
-					currentAnim = currentEntity->currentAnimation;
-					static int baseAnim;
-					baseAnim = currentAnim / static_cast<int>(Main::num_directions);
-					if (currentEntity->isGlobalSize[baseAnim]) {
-						static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
-					}
-					else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
-				}
-			}
-		}
-		//can only render single-threaded. T-T
-		SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB ? currentRB->rotation : .0f, currentEntity->centreOfRotation, currentEntity->flip);
+	if (!currentEntity) return;
+	curRect = currentEntity->rect;
+	if (currentRB) {
+		currentRB->position.IntoRectXY(curRect);
+		curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
+		curRect->y += currentEntity->renderOffset.y;
 	}
+	currentEntity->ClearFlipped();
+	if (currentEntity->currentAnimation != -1) {
+		animFramesPassed = 0;
+		if (currentEntity->animTime <= Animator::neg_anim_time) {
+			animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
+			currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
+		}
+		currentEntity->animTime -= Main::DefCapDeltaTime();
+		if (currentEntity->animTime <= .0f) {
+			currentEntity->animTime += Animator::default_anim_time;
+			animFramesPassed++;
+		}
+		if (animFramesPassed && currentEntity->anims.size() > 0) {
+			currentEntity->SetNextAnimTex(animFramesPassed);
+			static std::variant<IntVec2, IntVec2*>* imageSizes;
+			imageSizes = currentEntity->imageSizes;
+			if (imageSizes) {
+				static int currentAnim;
+				currentAnim = currentEntity->currentAnimation;
+				static int baseAnim;
+				baseAnim = currentAnim / static_cast<int>(Main::num_directions);
+				if (currentEntity->isGlobalSize[baseAnim]) {
+					static_cast<IntVec2>(std::get<IntVec2>(imageSizes[baseAnim])).IntoRectWH(curRect);
+				}
+				else static_cast<IntVec2*>(std::get<IntVec2*>(imageSizes[baseAnim]))[currentAnim - baseAnim * Main::num_directions].IntoRectWH(curRect);
+			}
+		}
+	}
+	//can only render single-threaded. T-T
+	SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB ? currentRB->rotation : .0f, currentEntity->centreOfRotation, currentEntity->flip);
+	if (!currentEntity || !currentEntity->bRecordAnim) return;
+	currentEntity->pastAnimation = currentEntity->currentAnimation;
 }
 void Physics::Update(float dt) {
 	curNode = entityHead;
@@ -497,6 +498,8 @@ void Physics::Update(float dt) {
 		currentRB->velocity += currentRB->force * currentRB->invMass * dt;
 		currentRB->difPositionSection = (currentRB->position - currentRB->pastPosition) * inv_num_movement_iterations_f;
 		AdjustColVertices(currentRB);
+		currentEntity = currentRB->entity;
+		if (currentEntity) currentEntity->pastFrame = currentEntity->animFrameIndex;
 		Node<RigidBody*>::Advance(&curNode);
 	}
 	for (moveItrIndex = 0; moveItrIndex < num_movement_iterations; moveItrIndex++) {
@@ -568,8 +571,6 @@ void Physics::Update(float dt) {
 			currentRB->cacheNodeRef = nullptr;
 		}
 		Node<RigidBody*>::Advance(&curNode);
-		if (!currentEntity || !currentEntity->bRecordAnim) continue;
-		currentEntity->pastAnimation = currentEntity->currentAnimation;
 	}
 	curStandalone = standaloneEntityHead;
 	while (curStandalone) {

@@ -40,36 +40,9 @@ Behaviour::Behaviour(SubRBData& data) {
 void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
     rb->updateNode = node;
 }
-uint Behaviour::GetEntityIndex() {
-    return rb->entityIndex;
-}
-FVector2 Behaviour::GetPosition() {
-    return rb->position;
-}
-void Behaviour::SetPosition(FVector2 newPos) {
-    rb->position = newPos;
-}
-void Behaviour::AddPosition(FVector2 add) {
-    rb->position += add;
-}
-void Behaviour::AddForce(FVector2 force) {
-    rb->AddForce(force);
-}
-void Behaviour::SetScale(IntVec2 scale) {
-    rb->SetSize(scale);
-}
-void Behaviour::SetScaleX(int scaleX) {
-    rb->SetSizeX(scaleX);
-}
-void Behaviour::SetScaleY(int scaleY) {
-    rb->SetSizeY(scaleY);
-}
 void Behaviour::SetFlipX(bool flip) {
     entity->SetFlip(flip);
     entity->ScaleRenderChangeX(flip);
-}
-void Behaviour::PlayAnimation(int animation) {
-    entity->SetAnimation(animation);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {

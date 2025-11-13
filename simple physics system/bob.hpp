@@ -16,6 +16,7 @@ private:
 		numSGAnims,
 	};
 	float speed;
+	void CollisionCallback(Collision&);
 public:
 	SwordGuy();
 };

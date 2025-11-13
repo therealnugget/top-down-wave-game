@@ -27,7 +27,7 @@ private:
 	}
 public:
 	static inline FVector2 GetPosition() {
-		return plrBehaviour->GetPosition();
+		return player->position;
 	}
 	static void PlayAnim(int);
 	static void Init(void);

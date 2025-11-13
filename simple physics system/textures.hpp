@@ -39,10 +39,13 @@ public:
 };
 class Textures;
 struct Animation {
-protected:
+private:
 	int numOfFrames;
 	std::vector<SDL_Texture*> textures;
-private:
+public:
+	int GetNumFrames() {
+		return numOfFrames;
+	}
 	friend struct Entity;
 	friend class Textures;
 };
@@ -50,6 +53,7 @@ struct Animator {
 protected:
 	//when currentAnimation is -1, the animator is not active.
 	int currentAnimation = 0, pastAnimation = 0;
+	int pastFrame = 0;
 	bool bRecordAnim = false;
 	int animFrameIndex = -1;
 	int numAnims = 0;
@@ -71,14 +75,21 @@ public:
 	inline void SetAnimation(int anim) {
 		currentAnimation = anim;
 		if (pastAnimation == anim) return;
-		animFrameIndex = -1;
-		animTime = .0f;
+		animFrameIndex = 0;
+		animTime = Animator::default_anim_time;
 	}
 	inline void SetRecordAnim(bool value) {
 		bRecordAnim = value;
 	}
 	const inline int GetNumAnims() const {
 		return numAnims;
+	}
+	inline int GetCurAnim() {
+		return currentAnimation;
+	}
+	inline bool AnimFinished() {
+		std::cout << animFrameIndex << '\n';
+		return animFrameIndex == 0 && pastFrame == anims[currentAnimation].GetNumFrames() - 1;
 	}
 };
 //static class

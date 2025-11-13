@@ -19,22 +19,13 @@ struct Entity;
 class Behaviour {
 private:
 	rbList* rbNode;
-	RigidBody *rb;
-	Entity* entity;
 	virtual void Update();
 	float origRenderOffsetX;
 protected:
-	uint GetEntityIndex();
-	FVector2 GetPosition();
+	RigidBody* rb;
+	Entity* entity;
 	void SetUpdateNode(Node<std::function<void(void)>>*);
-	void SetPosition(FVector2 setPos);
-	void SetScale(IntVec2 scale);
-	void SetScaleX(int scaleX);
-	void SetScaleY(int scaleY);
 	void SetFlipX(bool flip);
-	void AddPosition(FVector2 add);
-	void AddForce(FVector2 force);
-	void PlayAnimation(int animtion);
 	~Behaviour();
 public:
 	Behaviour(SubRBData&);
