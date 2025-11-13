@@ -79,8 +79,8 @@ public:
 	inline Vector2 operator /(float b) {
 		return Vector2(x / b, y / b);
 	}
-	inline Vector2 operator *(float b) {
-		return Vector2(x * b, y * b);
+	inline FVector2 operator *(float b) {
+		return FVector2(static_cast<float>(x) * b, static_cast<float>(y) * b);
 	}
 	inline static Vector2 constexpr ConstMult(const Vector2<float> &vec, float b) {
 		return Vector2(vec.x * b, vec.y * b);
@@ -652,7 +652,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr) {
 		if (data.createEntity) {
 			entity = new Entity(data);
 			position.IntoRectXY(entity->rect);
@@ -833,7 +833,7 @@ private:
 	static constexpr int thread_count = 10;
 	static constexpr float thread_count_f = static_cast<float>(thread_count);
 	//relatively arbitrary what this value is, i'm just making it 144 for debugging purposes in case in the future i wonder "why is it that almost about every second on the second i'm getting a frame drop" i can refer to this. it's the number of frames that have to pass before the node cache is flushed.
-	static constexpr ushort cace_flush_interval = 144;
+	static constexpr ushort cache_flush_interval = 144;//TODO: set this back to 144
 	static const float frictionMagnitude;
 	static const float fricCoef;
 	static int threadIndex;

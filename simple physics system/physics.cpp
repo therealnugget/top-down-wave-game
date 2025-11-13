@@ -553,7 +553,7 @@ void Physics::Update(float dt) {
 			rbList::RemoveAllNodes(list, true);
 			}, true);
 	}
-	if (frameInd++ == cace_flush_interval) {
+	if (frameInd++ == cache_flush_interval) {
 		sortedCacheNodes.Flush();
 		frameInd = 0;
 	}
@@ -564,6 +564,9 @@ void Physics::Update(float dt) {
 		ProcessTexs();
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
+		if (!frameInd) {
+			currentRB->cacheNodeRef = nullptr;
+		}
 		Node<RigidBody*>::Advance(&curNode);
 		if (!currentEntity || !currentEntity->bRecordAnim) continue;
 		currentEntity->pastAnimation = currentEntity->currentAnimation;

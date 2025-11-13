@@ -58,6 +58,7 @@ void Player::Init() {
 void Player::PlayAnim(int animation) {
 	playerEnt->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
 }
+static constexpr float playerAttackSize = 1.5f;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -84,7 +85,7 @@ void Player::Update(void) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
-	if (Main::KeyPressed(SDL_SCANCODE_SPACE)) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * 2, player->position, Main::Tag::playerAttack);
+	if (Main::KeyPressed(SDL_SCANCODE_SPACE)) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * playerAttackSize, player->position, Main::Tag::playerAttack);
 	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
 		plrAttack->value->SetPosition(player->position);
 		Player::PlayAnim(attack);

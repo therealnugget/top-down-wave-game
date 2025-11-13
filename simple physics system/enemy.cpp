@@ -10,6 +10,7 @@ Enemy::Enemy(SubRBData data): maxHealth(default_max_health), health(maxHealth), 
 }
 Enemy::~Enemy() {
     Physics::UnsubStandaloneEnt(healthBar);
+    if (immuneTimer) _freea(immuneTimer);
 }
 //it's not as simple as deleting the enemy as soon as the collision callback is called. if you think about it, the collision callback is in the middle of the physics update. so we will be deleting a rigidbody in the middle of the narrow phase function, then trying to access it later on in that same function, and then again in the physics update. so the closest thing we can do is:
 //1: if we need the enemy to appear as though he is deleted as soon as the collision occurs, delete the entity, and destroy the outer behaviour at the start of the next frame
