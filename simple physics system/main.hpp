@@ -383,6 +383,10 @@ public:
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
 	static IntVec2 iInputVec;
+	static IntVec2 mousePosition;
+	static bool leftClick;
+	static bool leftClickOnFrame;
+	static bool moving;
 	static inline bool GetModKey(int key) {
 		return pressingModKey[key];
 	}
@@ -523,6 +527,7 @@ private:
 		input_last = input_left,
 		num_inp_dirs = 4,
 	};
+	static SDL_Event e;
 	//whether the key in the direction is being pressed this frame but not last frame
 	static bool dirKeyPress[num_inp_dirs];
 	//whether the key in the direction is being pressed this frame
@@ -544,6 +549,8 @@ private:
 	static bool pressedModKey[];
 	static float doubleInvRefreshRate;
 	static void SetPastKey(int*);
+	static inline void SetLClickState(bool state) {
+	}
 	inline static void AddKeyPress(int key) {
 		Node<int>::AddAtHead(key, &setPressed);
 	}

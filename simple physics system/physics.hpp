@@ -137,7 +137,7 @@ public:
 		rect->h = y;
 	}
 	//dot product (carret is more readable)
-	inline float operator ^(Vector2 &b) {
+	inline float operator ^(Vector2 b) {
 		return this->x * b.x + this->y * b.y;
 	}
 	inline Vector2 Normalized() {

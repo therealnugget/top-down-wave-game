@@ -12,13 +12,13 @@
 #define PLAYER_HEIGHT 70
 float Player::accel = 700000.f;
 float Player::speed = 2000.f;
+bool Player::mouseVertical;
 rbList* Player::plrNode;
 rbList* Player::plrAttack = nullptr;
 RigidBody *Player::player;
 Behaviour *Player::plrBehaviour;
 Entity* Player::playerEnt;
 static FVector2 currentVel;
-IntVec2 Player::pastInp = FVector2::Down;
 //#define SHOW_AABB
 #ifdef SHOW_AABB
 static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
@@ -55,9 +55,6 @@ void Player::Init() {
 	//don't use createshapes using first param as numshapes here, because we need to randomize the positions.
 	for (int i = 0; i < numShapes; i++) Shapes::CreateShapes(1, /*Main::halfDisplaySize + FVector2::GetRight() * (100.f + (static_cast<float>(static_cast<bool>(i & 1)) * 2.f - 1.f) * static_cast<float>(i) * .5f * shapeSize.x)*/Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);//nb: this line isn't causing the current error
 }
-void Player::PlayAnim(int animation) {
-	playerEnt->SetAnimation(IntVec2::VecToDir(pastInp) + Main::GetAnimOffset(animation));
-}
 static constexpr float playerAttackSize = 1.5f;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
@@ -81,16 +78,24 @@ void Player::Update(void) {
 	}
 #endif
 	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
-	if (!Main::GetKey(SDL_SCANCODE_SPACE) && plrAttack) {
+	if (!Main::leftClick && plrAttack) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
-	if (Main::KeyPressed(SDL_SCANCODE_SPACE)) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * playerAttackSize, player->position, Main::Tag::playerAttack);
-	if (Main::GetKey(SDL_SCANCODE_SPACE)) {
+	if (Main::leftClickOnFrame) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * playerAttackSize, player->position, Main::Tag::playerAttack);
+	std::cout << "dot product is " << (GetPlayerRightNorm() ^ (static_cast<FVector2>(Main::mousePosition) - GetPosition()).Normalized()) << '\n';
+	if (Main::leftClick) {
 		plrAttack->value->SetPosition(player->position);
-		Player::PlayAnim(attack);
-		Player::SetPastInp();
+		auto mouseDiff = (static_cast<FVector2>(Main::mousePosition) - GetPosition()).Normalized();
+		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
+		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
+		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
+		PlayDirAnim(attack, IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2.f - 1.f), mouseVertical * (mouseUp * 2.f - 1.f)));
 		return;
 	}
-	Player::SetPastInp([]() -> void {Player::PlayAnim(run); }, []() -> void {Player::PlayAnim(idle); });
+	Player::PlayDirAnim(run, Main::iInputVec);
+}
+void Player::PlayDirAnim(int animation, IntVec2 direction) {
+	auto useDir = Main::moving || Main::leftClick;
+	playerEnt->SetAnimation(IntVec2::VecToDir(direction) + Main::GetAnimOffset(idle * !useDir + useDir * animation));
 }

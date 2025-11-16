@@ -13,23 +13,19 @@ private:
 	static Entity* playerEnt;
 	static constexpr float rotationSpd = 500.f;
 	static float accel, speed;
-	static IntVec2 pastInp;
-	//even though this is guaranteed to have a size equivalent to "num_directions", for readability and the ability to have the directions in any order, it must be a dict.
-	static inline void SetPastInp(void (*delMov)() = nullptr, void (*delIdle)() = nullptr) {
-		if (Main::fInputVec == FVector2::Zero) {
-			if (!delIdle) return;
-			delIdle();
-			return;
-		}
-		pastInp = Main::iInputVec;
-		if (!delMov) return;
-		delMov();
-	}
+	static bool mouseVertical;
+	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2::Zero);
 public:
+	static inline FVector2 GetPlayerRightNorm() {
+		return FVector2(cosf(player->GetRotation()), sinf(player->GetRotation()));
+	}
+	static inline FVector2 GetPlayerUpNorm() {
+		auto upRotation = player->GetRotation() + 90.f;
+		return FVector2(cosf(upRotation), sinf(upRotation));
+	}
 	static inline FVector2 GetPosition() {
 		return player->position;
 	}
-	static void PlayAnim(int);
 	static void Init(void);
 	static void Finalize(void);
 	static void Update(void);

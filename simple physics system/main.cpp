@@ -14,7 +14,11 @@
 #define SHIFT_OFFSET NUM_SIG_SCANKEYS + SHIFT_INDEX
 #define ALT_OFFSET NUM_SIG_SCANKEYS + ALT_INDEX
 #define CTRL_OFFSET NUM_SIG_SCANKEYS + CONTROL_INDEX
-static SDL_Event e;
+SDL_Event Main::e;
+bool Main::moving;
+bool Main::leftClick;
+bool Main::leftClickOnFrame;
+IntVec2 Main::mousePosition;
 const std::string Main::empty_string = "";
 const char* const Main::empty_cc = empty_string.c_str();
 bool Main::pressingKey[NUM_SIG_SCANKEYS];
@@ -84,7 +88,20 @@ void Main::RegisterInput() {
                 return;
             }
             return;
-        default:
+        case SDL_MOUSEMOTION:
+            mousePosition = IntVec2(e.motion.x, e.motion.y);
+            return;
+        case SDL_MOUSEBUTTONDOWN: {
+            auto isLeft = e.button.button == SDL_BUTTON_LEFT;
+            leftClick |= isLeft;
+            leftClickOnFrame = isLeft;
+            return;
+        }
+        case SDL_MOUSEBUTTONUP:
+            leftClick &= e.button.button != SDL_BUTTON_LEFT;
+            return;
+        case SDL_KEYUP:
+        case SDL_KEYDOWN:
             currentMod = e.key.keysym.mod;
             if ((currentKeyPressed = e.key.keysym.scancode) < NUM_SIG_SCANKEYS && currentKeyPressed >= 0) {
                 pressingKey[currentKeyPressed] = e.type == SDL_KEYDOWN;
@@ -103,7 +120,9 @@ void Main::RegisterInput() {
     }
 }
 void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
-    assign[dir] = keyInfo(key1) || keyInfo(key2);
+    register bool keyPress = keyInfo(key1) || keyInfo(key2);
+    moving |= keyPress;
+    assign[dir] = keyPress;
 }
 bool Main::GetOpAxisVal(bool h, bool v, bool dirIsHorizon) {
     //get value according to the opposing axis (i.e. if dir inputted is a horizontal dir, the output is the value of vertical, and vica versa.)
@@ -132,6 +151,7 @@ void Main::SetAxisBool(bool& horizonB, bool& vertB, bool dirBools[num_inp_dirs])
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
 void Main::EarlyUpdate() {
+    leftClickOnFrame = false;
     RegisterInput();
     SDL_RenderClear(renderer);
     AssignDirKey(input_right, SDL_SCANCODE_RIGHT, SDL_SCANCODE_D);
@@ -257,6 +277,7 @@ int main(int argc, char* args[])
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();
+    SDL_GetMouseState(&Main::mousePosition.x, &Main::mousePosition.y);
     do {
         if (Main::timeScale == .0f) {
             Main::RegisterInput();
