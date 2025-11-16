@@ -37,9 +37,6 @@ public:
 		return *this;
 	}
 #endif
-	inline explicit operator bool() const {
-		return x || y;
-	}
 	inline explicit operator Vector2<int>() const {
 		return Vector2<int>(static_cast<int>(x), static_cast<int>(y));
 	}
@@ -126,7 +123,7 @@ public:
 		return x == b.x && y == b.y;
 	}
 	inline float Magnitude() {
-		return sqrtf(static_cast<float>(Sqr(x) + Sqr(y)));
+		return sqrtf(x * x + y * y);
 	}
 	inline void IntoRectXY(SDL_Rect *rect) {
 		rect->x = x;
@@ -360,7 +357,7 @@ struct SubRBData {
 private:
 	const static std::initializer_list<FVector2> DefaultSquareVerticesAsList;
 public:
-	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, std::function<void(Collision&)> _collisionCallback = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> _isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true, float _renderOffsetChangeX = .0f, int_fast64_t _layer = Main::Layer::playerLayer) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity), renderOffsetChangeX(_renderOffsetChangeX), layer(_layer) {};
+	SubRBData(std::string _basePath = Main::empty_string, std::vector<const char*> _animPaths = std::vector<const char*>(), std::vector<FVector2> _narrowPhaseVertices = DefaultSquareVerticesAsList, FVector2 _startPos = FVector2::Zero, IntVec2 _size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int _tag = -1, std::function<void(Collision&)> _collisionCallback = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> _imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> _isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 _initVel = FVector2::Zero, float _angle = .0f, float _mass = 1.f, bool _moveable = true, bool _isTrigger = false, std::initializer_list<const char*> _endPaths = std::initializer_list<const char*>(), bool _createEntity = true, float _renderOffsetChangeX = .0f, int_fast64_t _layer = Main::Layer::playerLayer, bool _neverSleep = false) : basePath(_basePath), animPaths(_animPaths), narrowPhaseVertices(_narrowPhaseVertices), startPos(_startPos), size(_size), centreOfRot(_centreOfRot), centreOfRotNPVert(_centreOfRotNPVert), renderOffset(_renderOffset), tag(_tag), collisionCallback(_collisionCallback), imageSizes(_imageSizes), isGlobalSize(_isGlobalSize), initVel(_initVel), angle(_angle), mass(_mass), moveable(_moveable), isTrigger(_isTrigger), endPaths(_endPaths), createEntity(_createEntity), renderOffsetChangeX(_renderOffsetChangeX), layer(_layer), neverSleep(_neverSleep) {};
 	std::string basePath;
 	std::vector<const char*> animPaths;
 	std::vector<FVector2> narrowPhaseVertices;
@@ -382,6 +379,7 @@ public:
 	bool createEntity;
 	float renderOffsetChangeX;
 	int_fast64_t layer;
+	bool neverSleep;
 };
 //maybe only use this as a reference or ptr
 struct Entity : public Animator {
@@ -676,10 +674,10 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), position(data.startPos), pastPosition(position), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), newPosition(data.startPos), pastPosition(FVector2::Zero), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep) {
 		if (data.createEntity) {
 			entity = new Entity(data);
-			position.IntoRectXY(entity->rect);
+			newPosition.IntoRectXY(entity->rect);
 			if (data.centreOfRot.size()) {
 				memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
 			}
@@ -712,23 +710,18 @@ public:
 	}
 	inline void AddForce(FVector2 f) {
 		force += f;
-		madeAABBTrue = f != FVector2::Zero;
 	}
 	inline FVector2 GetVelocity() const {
 		return velocity;
 	}
 	inline void SetVelocity(FVector2 value) {
-		if (velocity == value) return;
-		madeAABBTrue = false;
 		velocity = value;
 	}
 	inline void SetPosition(FVector2 value) {
-		if (position == value) return;
-		position = value;
-		madeAABBTrue = false;
+		newPosition = value;
 	}
 	inline FVector2 GetPosition() {
-		return position;
+		return newPosition;
 	}
 	inline AABB &GetBroadPAABB() {
 		return broadPhaseAABB;
@@ -743,9 +736,8 @@ public:
 		return numNarrowPhaseVertices;
 	};
 	inline void SetPosition(float x, float y) {
-		position.x = x;
-		position.y = y;
-		madeAABBTrue = false;
+		newPosition.x = x;
+		newPosition.y = y;
 	}
 private:
 	//putting this here so that the rigidbody can't be freed outside of physics (friend class) or rigidbody, because it shouldn't be deleted directly except for here; it should be freed using the Physics::deleterb() func
@@ -787,6 +779,8 @@ private:
 	FVector2 force;
 	Entity *entity;
 	rbList* cacheNodeRef;
+	bool neverSleep;
+	FVector2 position;
 public:
 	inline rbList* GetCacheNodeRef() {
 		return cacheNodeRef;
@@ -840,7 +834,7 @@ public:
 	inline void ClearCollidedEntites() {
 		collisionsOccured.clear();
 	}
-	FVector2 position;
+	FVector2 newPosition;
 	FVector2 pastPosition;
 	Node<std::function<void(void)>>* updateNode;
 	//shouldn't add any more friends to RigidBody because right now physics being the only friend ensures that the rigidbody can't be deleted from a class other than Physics or itself.
@@ -918,7 +912,7 @@ public:
 #endif
 	);
 	static void ProjectVertices(FVector2* vertices, uint numVertices, FVector2 axis, float &min, float &max);
-	static void AdjustColVertices(RigidBody *rb, bool addPos = true);
+	static void AdjustColVertices(RigidBody *rb);
 	static void ThreadFunc(int);
 	static void Init();
 	//this works because only exactly straight lines are drawn from vertex-to-vertex, thus the greatest and smallest points of each entity must be a vertex.

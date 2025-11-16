@@ -117,10 +117,6 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		std::numeric_limits<float>::max()
 #endif
 		;
-	/*
-	for (auto& rb : rbs) {
-		printf("%d\n", rb->entityIndex);
-	}*/
 	{
 		std::lock_guard<std::mutex> lockOuterMutex(outerMutex);
 		a->checkColliding.lock();
@@ -129,20 +125,6 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	uint_fast64_t collisionIndex;
 	if (a->GetEntityCollided(a->entityIndex, b->entityIndex, &collisionIndex) || b->GetEntityCollided(a->entityIndex, b->entityIndex, &collisionIndex)) goto free_mutex;
 	a->SetEntitiesCollided(collisionIndex);
-	/*
-	auto waitTilNotCol = [&](RigidBody* rb) {
-		std::unique_lock<std::mutex> lock(rb->checkColliding);
-		while (rb->isColliding
-#ifdef IS_MULTI_THREADED
-			&& !stopThread[index]
-#endif
-			) {
-			rb->collidingCond.wait(lock);
-		}
-		};
-	for (auto& rb : rbs) {
-		waitTilNotCol(rb);
-	}*/
 	{
 		int i;
 		float minA, maxA;
@@ -151,11 +133,7 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		FVector2 vec;
 		FVector2 vecB, edge, axis;
 		float axisDepth;
-		auto checkVertices = [&](RigidBody* rb) {
-			if (!rb->GetMadeAABBTrue()) {
-				Physics::AdjustColVertices(rb);
-				rb->madeAABBTrue = true;
-			}
+		auto checkProj = [&](RigidBody* rb) {
 			FVector2* vertices = rb->GetNarrowPhaseVertices();
 			uint numVertices = rb->GetNumNarrowPhaseVertices();
 			for (i = 0; i < numVertices; i++) {
@@ -172,9 +150,9 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 				}
 			}
 			};
-		checkVertices(a);
-		checkVertices(b);
-		FVector2 aPos = a->GetPosition(), bPos = b->GetPosition();
+		checkProj(a);
+		checkProj(b);
+		FVector2 aPos = a->position, bPos = b->position;
 		if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
 		bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
 		float dot = .0f;
@@ -184,10 +162,10 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 
 		{
 			FVector2 offset = normal * depth * .5f;
-			a->SetPosition(aPos - offset * aMoveable - offset * !bMoveable);
-			b->SetPosition(bPos + offset * bMoveable + offset * !aMoveable);
-			if (aMoveable) Physics::AdjustColVertices(a);
-			if (bMoveable) Physics::AdjustColVertices(b);
+			a->position = aPos - offset * aMoveable - offset * !bMoveable;
+			b->position = bPos + offset * bMoveable + offset * !aMoveable;
+			if (aMoveable) AdjustColVertices(a);
+			if (bMoveable) AdjustColVertices(b);
 			FVector2 relVel = b->GetVelocity() - a->GetVelocity();
 			dot = normal ^ relVel;
 		}
@@ -215,17 +193,6 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	free_mutex:
 	a->checkColliding.unlock();
 	b->checkColliding.unlock();
-	/*
-	auto SetNotCol = [&](RigidBody* rb) {
-		{
-			std::unique_lock<std::mutex> lock(rb->checkColliding);
-			rb->isColliding = false;
-		}
-		rb->collidingCond.notify_one();
-		};
-	for (auto& rb : rbs) {
-		SetNotCol(rb);
-	}*/
 }
 void Physics::ProjectVertices(FVector2 *vertices, uint numVertices, FVector2 axis, float &min, float &max) {
 	ASMSetProjection(vertices, &axis, numVertices, &min, &max);
@@ -324,7 +291,6 @@ static Entity *currentEntity;
 static FVector2 maxNarrowPhase, minNarrowPhase;
 static FVector2 *curNarrowPVert;
 static uint curVertIndex;
-static FVector2 toAddToPos;
 int Physics::moveItrIndex;
 static SDL_Rect* curRect;
 static bool lastMovementItr;
@@ -397,7 +363,7 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 	sort(quadNode->GetTopLeft(), static_cast<int>(QuadNode<RigidBody*>::TypeOfNode::tTopLeft));
 }
 //slow af. matrix rotation multiplication, then adds the position to the vertices and it's O(n) where n is num vertices for the rb. default is pos and rot, otherwise specified just rot.
-void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
+void Physics::AdjustColVertices(RigidBody* rb) {
 	double sinB, cosB;
 	FVector2* curVertex;
 	FVector2 currentVertexWithoutPos;
@@ -418,12 +384,9 @@ void Physics::AdjustColVertices(RigidBody* rb, bool addPos) {
 		*/
 		curVertex->x = static_cast<float>(vertexBeforeRotCalc.x * cosB - vertexBeforeRotCalc.y * sinB);
 		curVertex->y = static_cast<float>(vertexBeforeRotCalc.x * sinB + vertexBeforeRotCalc.y * cosB);
-		*curVertex += currentCentreOfNPVertRot;
-		if (!addPos) {
-			continue;
-		}
-		*curVertex += rb->GetPosition();
+		*curVertex += currentCentreOfNPVertRot + rb->position;
 	}
+	rb->madeAABBTrue = true;
 }
 void Main::AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally) {
 	AssignIfMore(check.x, assignConditionally.x);
@@ -500,19 +463,20 @@ void Physics::Update(float dt) {
 		if (currentRBVel.Magnitude() > (fricCoefByDT = fricCoef * dt)) currentRB->velocity -= Math::SignOrZero(currentRBVel) * fricCoefByDT;
 		else currentRB->velocity = FVector2::Zero;
 		currentRB->velocity += currentRB->force * currentRB->invMass * dt;
-		currentRB->difPositionSection = (currentRB->position - currentRB->pastPosition) * inv_num_movement_iterations_f;
-		AdjustColVertices(currentRB);
-		currentEntity = currentRB->entity;
+		currentRB->difPositionSection = (currentRB->newPosition - currentRB->pastPosition) * inv_num_movement_iterations_f;
+		if (currentRB->velocity != FVector2::Zero || currentRB->difPositionSection != FVector2::Zero || !currentRB->madeAABBTrue) AdjustColVertices(currentRB);
 		Node<RigidBody*>::Advance(&curNode);
 	}
 	for (moveItrIndex = 0; moveItrIndex < num_movement_iterations; moveItrIndex++) {
 		curNode = entityHead;
 		while (curNode) {
 			currentRB = curNode->value;
-			toAddToPos = (currentRB->velocity * dt) * inv_num_movement_iterations_f;
+			if (moveItrIndex == 0) {
+				currentRB->difPositionSection += currentRB->velocity * dt * inv_num_movement_iterations_f;
+			}
 			for (curVertIndex = 0; curVertIndex < currentRB->numNarrowPhaseVertices; curVertIndex++) {
 				curNarrowPVert = &currentRB->GetNarrowPhaseVertices()[curVertIndex];
-				*curNarrowPVert += currentRB->difPositionSection + toAddToPos;
+				*curNarrowPVert += currentRB->difPositionSection;
 				if (curVertIndex == 0) {
 					minNarrowPhase = *curNarrowPVert;
 					maxNarrowPhase = *curNarrowPVert;
@@ -522,8 +486,9 @@ void Physics::Update(float dt) {
 				Main::AssignIfLess(*curNarrowPVert, minNarrowPhase);
 			}
 			currentRB->broadPhaseAABB = { minNarrowPhase, maxNarrowPhase };
-			currentRB->position += toAddToPos;
+			currentRB->position += currentRB->difPositionSection;
 			currentRB->ClearCollidedEntites();
+			currentRB->madeAABBTrue &= currentRB->difPositionSection == FVector2::Zero;
 			Node<RigidBody*>::Advance(&curNode);
 		}
 		numEntities = 0;
@@ -570,6 +535,7 @@ void Physics::Update(float dt) {
 		ProcessTexs();
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
+		currentRB->newPosition = currentRB->pastPosition;
 		if (!frameInd) {
 			currentRB->cacheNodeRef = nullptr;
 		}

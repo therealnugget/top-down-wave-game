@@ -55,7 +55,7 @@ void Player::Init() {
 	//don't use createshapes using first param as numshapes here, because we need to randomize the positions.
 	for (int i = 0; i < numShapes; i++) Shapes::CreateShapes(1, /*Main::halfDisplaySize + FVector2::GetRight() * (100.f + (static_cast<float>(static_cast<bool>(i & 1)) * 2.f - 1.f) * static_cast<float>(i) * .5f * shapeSize.x)*/Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);//nb: this line isn't causing the current error
 }
-static constexpr float playerAttackSize = 1.5f;
+static constexpr float playerAttackSize = 1.2f;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -82,15 +82,17 @@ void Player::Update(void) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
-	if (Main::leftClickOnFrame) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT)) * playerAttackSize, player->position, Main::Tag::playerAttack);
-	std::cout << "dot product is " << (GetPlayerRightNorm() ^ (static_cast<FVector2>(Main::mousePosition) - GetPosition()).Normalized()) << '\n';
 	if (Main::leftClick) {
-		plrAttack->value->SetPosition(player->position);
-		auto mouseDiff = (static_cast<FVector2>(Main::mousePosition) - GetPosition()).Normalized();
+		auto pos = player->GetPosition();
+		auto mouseDiff = (static_cast<FVector2>(Main::mousePosition) - pos).Normalized();
 		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
 		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
 		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
-		PlayDirAnim(attack, IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2.f - 1.f), mouseVertical * (mouseUp * 2.f - 1.f)));
+		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
+		PlayDirAnim(attack, mouseDirection);
+		auto plrAttkPos = pos + static_cast<FVector2>(mouseDirection * playerSize.x);
+		if (Main::leftClickOnFrame) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(playerSize.x), static_cast<float>(playerSize.y)) * playerAttackSize, plrAttkPos, Main::Tag::playerAttack);
+		plrAttack->value->SetPosition(plrAttkPos);
 		return;
 	}
 	Player::PlayDirAnim(run, Main::iInputVec);

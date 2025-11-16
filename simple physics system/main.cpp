@@ -281,6 +281,7 @@ int main(int argc, char* args[])
     do {
         if (Main::timeScale == .0f) {
             Main::RegisterInput();
+            Main::StartDTCounter();
             Main::CheckPauseState();
         pause_screen:
             Main::ClearInput();

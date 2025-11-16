@@ -24,7 +24,7 @@ public:
 		return FVector2(cosf(upRotation), sinf(upRotation));
 	}
 	static inline FVector2 GetPosition() {
-		return player->position;
+		return player->GetPosition();
 	}
 	static void Init(void);
 	static void Finalize(void);

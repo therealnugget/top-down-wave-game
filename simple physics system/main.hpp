@@ -464,7 +464,7 @@ public:
 	}
 	inline static char* IntToStr(uint i, ushort maxIntChar = 100) {
 		char* _this = new char[maxIntChar];
-		sprintf(_this, "%llu", i);
+		sprintf(_this, "%u", i);
 		return _this;
 	}
 	static inline void AssignIfLess(float& check, float& assignConditionally) {

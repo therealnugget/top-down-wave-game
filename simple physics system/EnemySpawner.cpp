@@ -4,7 +4,7 @@
 int EnemySpawner::frameIndex;
 Node<SwordGuy*> *EnemySpawner::swordGuys = nullptr;
 void EnemySpawner::Update(void) {
-	if (frameIndex++ % spawnFrameInterval) return;
+	if (frameIndex++ % spawnFrameInterval || swordGuys->Length() > maxEnemies) return;
 	SwordGuy *guy = new SwordGuy();
 	guy->enemySpawnNode = Node<SwordGuy*>::AddAtHeadByVal(guy, &swordGuys);
 }

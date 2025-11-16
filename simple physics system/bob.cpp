@@ -11,7 +11,7 @@ SwordGuy::SwordGuy() : Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(num
     entity->SetAnimation(run);
     entity->SetNotLoop(hurt);
     SetUpdateNode(Main::Updates += [this]() {Update();});
-    speed = 150.f;
+    speed = 3000000.f;
 }
 void SwordGuy::CollisionCallback(Collision& collision) {
     if (!collision.CompareTag(Main::Tag::playerAttack) || entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
@@ -22,8 +22,9 @@ void SwordGuy::Update(void) {
     Enemy::Update();
     //important so that we don't try to run the rest of the update if the outer enemy has been deleted
     if (!enabled) return;
-    auto pos = rb->position, playerPos = Player::GetPosition();
-    rb->position += FVector2::FromTo(pos, playerPos).Normalized() * speed * Main::DefCapDeltaTime();
+    auto pos = rb->GetPosition(), playerPos = Player::GetPosition();
+    //rb->SetPosition(pos + FVector2::FromTo(pos, playerPos).Normalized() * speed * Main::DefCapDeltaTime());
+    rb->AddForce(FVector2::FromTo(pos, playerPos).Normalized() * speed * Main::DefCapDeltaTime());
     SetFlipX(pos.x > playerPos.x);
     if (entity->GetCurAnim() == hurt && entity->AnimFinished()) {
         entity->SetAnimation(run);
