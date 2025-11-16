@@ -5,14 +5,14 @@ private:
 	void Update(void) override;
 	enum SGAnimation {
 		idle,
+		death,
+		hurt,
+		walk,
+		run,
+		jump,
 		overhead,
 		swing,
-		death,
 		dash,
-		hurt,
-		run,
-		walk,
-		jump,
 		numSGAnims,
 	};
 	float speed;

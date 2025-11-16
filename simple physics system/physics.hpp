@@ -489,6 +489,11 @@ private:
 	inline void ScaleRenderChXByBool(bool scale) {
 		renderOffsetChangeX *= !scale * 2.f - 1.f;
 	}
+	inline void SetInitAnimTex() {
+		animFrameIndex = 0;
+		animTime = Animator::default_anim_time;
+		SetTexture(anims[currentAnimation].textures[0]);
+	}
 public:
 	inline void ScaleRenderChangeX(bool isFlipped) {
 		ScaleRenderChXByBool(isFlipped && !flippedOnFrame);
@@ -510,8 +515,20 @@ public:
 		Animation& curAnim = anims[currentAnimation];
 		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + inc) % curAnim.numOfFrames))]);
 	}
-	const inline int GetNumAnimFrames(int animation) const {
-		return anims[animation].numOfFrames;
+	inline void SetAnimation(int anim) {
+		currentAnimation = anim;
+		if (pastAnimation == anim) return;
+		SetInitAnimTex();
+	}
+	inline void ResetAnim(int anim) {
+		currentAnimation = anim;
+		SetInitAnimTex();
+	}
+	inline int GetAnimFrame() {
+		return animFrameIndex;
+	}
+	inline bool GetLooping() {
+		return anims[currentAnimation].bLoop;
 	}
 	inline IntVec2 GetSize() const {
 		return { rect->w, rect->h };

@@ -446,6 +446,7 @@ void Physics::ProcessTexs() {
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
 		if (currentEntity->animTime <= Animator::neg_anim_time) {
+			//-= because the int cast returns a negative value
 			animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
 			currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
 		}
@@ -454,7 +455,10 @@ void Physics::ProcessTexs() {
 			currentEntity->animTime += Animator::default_anim_time;
 			animFramesPassed++;
 		}
-		if (animFramesPassed && currentEntity->anims.size() > 0) {
+		if (!currentEntity->GetLooping() && (currentEntity->GetAnimFrame() + animFramesPassed >= currentEntity->GetNumAnimFrames() || currentEntity->animFrameIndex == -1)) {
+			currentEntity->animFrameIndex = -1;
+		}
+		else if (animFramesPassed && currentEntity->anims.size() > 0) {
 			currentEntity->SetNextAnimTex(animFramesPassed);
 			static std::variant<IntVec2, IntVec2*>* imageSizes;
 			imageSizes = currentEntity->imageSizes;
@@ -499,7 +503,6 @@ void Physics::Update(float dt) {
 		currentRB->difPositionSection = (currentRB->position - currentRB->pastPosition) * inv_num_movement_iterations_f;
 		AdjustColVertices(currentRB);
 		currentEntity = currentRB->entity;
-		if (currentEntity) currentEntity->pastFrame = currentEntity->animFrameIndex;
 		Node<RigidBody*>::Advance(&curNode);
 	}
 	for (moveItrIndex = 0; moveItrIndex < num_movement_iterations; moveItrIndex++) {

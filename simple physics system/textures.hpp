@@ -40,21 +40,27 @@ public:
 class Textures;
 struct Animation {
 private:
+	bool bLoop = true;
 	int numOfFrames;
 	std::vector<SDL_Texture*> textures;
 public:
-	int GetNumFrames() {
+	bool GetLoop() {
+		return bLoop;
+	}
+	int GetNumFrames() const {
 		return numOfFrames;
 	}
 	friend struct Entity;
+	friend struct Animator;
 	friend class Textures;
 };
+//why did i re-code this in this project after writing an animator in my c project? and for that matter, why did i write it again instead of copying the code? simple: to allow new ideas to propagate, which they did. to make sure i had it right the first time by having to create it from the ground up again and seeing if i find more efficient or effective ways of completing the same task.
 struct Animator {
 protected:
 	//when currentAnimation is -1, the animator is not active.
 	int currentAnimation = 0, pastAnimation = 0;
-	int pastFrame = 0;
 	bool bRecordAnim = false;
+	//-1 is finished
 	int animFrameIndex = -1;
 	int numAnims = 0;
 	float animTime = .0f;
@@ -72,11 +78,8 @@ public:
 	inline void DeActivate() {
 		currentAnimation = -1;
 	}
-	inline void SetAnimation(int anim) {
-		currentAnimation = anim;
-		if (pastAnimation == anim) return;
-		animFrameIndex = 0;
-		animTime = Animator::default_anim_time;
+	inline void SetNotLoop(int anim) {
+		anims[anim].bLoop = false;
 	}
 	inline void SetRecordAnim(bool value) {
 		bRecordAnim = value;
@@ -84,12 +87,17 @@ public:
 	const inline int GetNumAnims() const {
 		return numAnims;
 	}
+	const inline int GetNumAnimFrames(int animation) const {
+		return anims[animation].GetNumFrames();
+	}
+	inline int GetNumAnimFrames() const {
+		return anims[currentAnimation].GetNumFrames();
+	}
 	inline int GetCurAnim() {
 		return currentAnimation;
 	}
 	inline bool AnimFinished() {
-		std::cout << animFrameIndex << '\n';
-		return animFrameIndex == 0 && pastFrame == anims[currentAnimation].GetNumFrames() - 1;
+		return animFrameIndex == -1;
 	}
 };
 //static class

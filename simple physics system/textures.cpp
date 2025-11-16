@@ -21,7 +21,7 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 	constexpr int maxIndexDigitLen = 10;//therefore max value of i is 9999999999
 	char* filePath = new char[maxIndexDigitLen + pathLen];
 	Animation* nextAnim = nullptr;
-	const auto GetAnim = [&]() {
+	const auto GetAnim = [&]() -> Animation * {
 		if (nextAnim != nullptr) return nextAnim;
 		return nextAnim = anim.LoadNextAnim();
 		};
