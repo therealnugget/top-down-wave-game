@@ -16,6 +16,7 @@ private:
 		numSGAnims,
 	};
 	float speed;
+	static constexpr float attackDistSqr = 10000.f;
 	void CollisionCallback(Collision&);
 public:
 	SwordGuy();

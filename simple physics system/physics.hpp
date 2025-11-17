@@ -122,8 +122,15 @@ public:
 	inline bool operator ==(Vector2 b) {
 		return x == b.x && y == b.y;
 	}
+	static constexpr float rad2deg = 180.f / 3.1415926535f;
+	inline float Angle() {
+		return atan2f(y, x) * rad2deg;
+	}
 	inline float Magnitude() {
 		return sqrtf(x * x + y * y);
+	}
+	inline float SqrMagnitude() {
+		return x * x + y * y;
 	}
 	inline void IntoRectXY(SDL_Rect *rect) {
 		rect->x = x;
@@ -504,11 +511,6 @@ public:
 	inline SDL_Texture* GetTexture() {
 		return texture;
 	}
-	/*
-	inline void SetNextAnimTex() {
-		Animation& curAnim = anims[currentAnimation];
-		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + 1) % curAnim.numOfFrames))]);
-	}*/
 	inline void SetNextAnimTex(int inc) {
 		Animation& curAnim = anims[currentAnimation];
 		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + inc) % curAnim.numOfFrames))]);
@@ -564,9 +566,13 @@ private:
 	RigidBody* collider;
 	float dot;
 	bool isTriggerCollision;
+	FVector2 normal;
 public:
-	Collision(RigidBody* rb, float _dot, bool _isTrigger) : collider(rb), dot(_dot), isTriggerCollision(_isTrigger) {}
+	Collision(RigidBody* rb, float _dot, bool _isTrigger, FVector2 _normal) : collider(rb), dot(_dot), isTriggerCollision(_isTrigger), normal(_normal) {}
 	bool CompareTag(int tag);
+	inline FVector2 GetNormal() {
+		return normal;
+	}
 	inline void SetCollider(RigidBody* newCol) {
 		collider = newCol;
 	}
@@ -670,11 +676,11 @@ static constexpr int const_max_quadtree_depth = 10;
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(SubRBData data) : mass(data.mass), invMass(1.f / data.mass), velocity(data.initVel), rotation(.0), numNarrowPhaseVertices(data.narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(SubRBData data) : mass(data.mass), invMass(1.f / data.mass), velocity(data.initVel), rotation(data.angle), numNarrowPhaseVertices(data.narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), madeAABBTrue(false), isColliding(false), newPosition(data.startPos), pastPosition(FVector2::Zero), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), isColliding(false), newPosition(data.startPos), pastPosition(FVector2::Zero), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep), friction(FVector2::One) {
 		if (data.createEntity) {
 			entity = new Entity(data);
 			newPosition.IntoRectXY(entity->rect);
@@ -717,6 +723,9 @@ public:
 	inline void SetVelocity(FVector2 value) {
 		velocity = value;
 	}
+	inline void AddVelocity(FVector2 value) {
+		velocity = value;
+	}
 	inline void SetPosition(FVector2 value) {
 		newPosition = value;
 	}
@@ -738,6 +747,14 @@ public:
 	inline void SetPosition(float x, float y) {
 		newPosition.x = x;
 		newPosition.y = y;
+	}
+	inline void SetRotation(double newAngle) {
+		rotation = newAngle;
+		if (!entity) return;
+		entity->angle = newAngle;
+	}
+	inline void SetFricCoef(float fric) {
+		friction = FVector2::GetOne() * fric;
 	}
 private:
 	//putting this here so that the rigidbody can't be freed outside of physics (friend class) or rigidbody, because it shouldn't be deleted directly except for here; it should be freed using the Physics::deleterb() func
@@ -770,7 +787,6 @@ private:
 		return aIndex | (bIndex << 32);
 	}
 	FVector2 velocity;
-	bool madeAABBTrue;
 	//broad-phase
 	AABB broadPhaseAABB;
 	//narrow-phase
@@ -781,20 +797,18 @@ private:
 	rbList* cacheNodeRef;
 	bool neverSleep;
 	FVector2 position;
+	FVector2 friction;
 public:
 	inline rbList* GetCacheNodeRef() {
 		return cacheNodeRef;
 	}
 	inline void SetSize(IntVec2 size) {
-		madeAABBTrue &= (FVector2(entity->rect->w, entity->rect->h) == size);
 		size.IntoRectWH(entity->rect);
 	}
 	inline void SetSizeX(int sizeX) {
-		madeAABBTrue &= (entity->rect->w == sizeX);
 		entity->rect->w = sizeX;
 	}
 	inline void SetSizeY(int sizeY) {
-		madeAABBTrue &= (entity->rect->h == sizeY);
 		entity->rect->h = sizeY;
 	}
 	inline Entity *GetEntity() {
@@ -804,19 +818,12 @@ public:
 	inline float GetCOR() {
 		return coefRestitution;
 	}
-	inline void SetRotation(double value) {
-		madeAABBTrue &= value == rotation;
-		rotation = value;
-	}
 	inline double GetRotation() {
 		return rotation;
 	}
 	//gets the centre of rotation for the narrow-phase collision's position vertices.
 	inline FVector2 GetCentreNarrowPVertRot() {
 		return centreOfNarrowPVertRot;
-	}
-	inline bool GetMadeAABBTrue() {
-		return madeAABBTrue;
 	}
 	inline void SetCollisionCallback(std::function<void(Collision&)> callback) {
 		OnCollision = callback;

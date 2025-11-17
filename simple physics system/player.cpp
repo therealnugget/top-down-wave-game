@@ -12,6 +12,11 @@
 #define PLAYER_HEIGHT 70
 float Player::accel = 700000.f;
 float Player::speed = 2000.f;
+float Player::knockBack = 600.f;
+float Player::plrAttkET = .0f;
+FVector2 Player::mouseDiff;
+static constexpr float attackSizeMult = 1.2f;
+IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGHT * attackSizeMult);
 bool Player::mouseVertical;
 rbList* Player::plrNode;
 rbList* Player::plrAttack = nullptr;
@@ -55,7 +60,8 @@ void Player::Init() {
 	//don't use createshapes using first param as numshapes here, because we need to randomize the positions.
 	for (int i = 0; i < numShapes; i++) Shapes::CreateShapes(1, /*Main::halfDisplaySize + FVector2::GetRight() * (100.f + (static_cast<float>(static_cast<bool>(i & 1)) * 2.f - 1.f) * static_cast<float>(i) * .5f * shapeSize.x)*/Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize) * border), Main::DisplaySize * invBorder), shapeSize, scaleFact, Shapes::blueSqr, std::initializer_list<FVector2>(), FVector2::Zero, -shapeSize * .5f, false);//nb: this line isn't causing the current error
 }
-static constexpr float playerAttackSize = 1.2f;
+static constexpr float playerAttackSizeMult = 1.2f;
+static constexpr float playerAttackOut = .2f;
 void Player::Update(void) {
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -84,15 +90,30 @@ void Player::Update(void) {
 	}
 	if (Main::leftClick) {
 		auto pos = player->GetPosition();
-		auto mouseDiff = (static_cast<FVector2>(Main::mousePosition) - pos).Normalized();
+		mouseDiff = (static_cast<FVector2>(Main::mousePosition) - pos).Normalized();
 		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
 		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
 		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
 		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
 		PlayDirAnim(attack, mouseDirection);
-		auto plrAttkPos = pos + static_cast<FVector2>(mouseDirection * playerSize.x);
-		if (Main::leftClickOnFrame) plrAttack = Physics::StandaloneRB(IntVec2(static_cast<float>(playerSize.x), static_cast<float>(playerSize.y)) * playerAttackSize, plrAttkPos, Main::Tag::playerAttack);
-		plrAttack->value->SetPosition(plrAttkPos);
+		auto plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
+		if (Main::leftClickOnFrame) {
+			plrAttack = Physics::SubscribeEntity(SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, {Main::empty_cc}));
+			auto attackRB = plrAttack->value;
+			auto attackEnt = attackRB->GetEntity();
+			attackEnt->SetNotLoop(attkSlashAnim);
+			attackRB->SetFricCoef(.0f);
+			attackEnt->SetAnimSpd(attackSlashAnimSpeed);
+			plrAttkET = .0f;
+		}
+		auto attackEnt = plrAttack->value->GetEntity();
+		if (attackEnt->AnimFinished()) {
+			attackEnt->ResetAnim(attkSlashAnim);
+			plrAttkET = .0f;
+		}
+		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f);
+		plrAttkET += Main::DeltaTime();
+		plrAttack->value->SetPosition(plrAttkPos + mouseDiff * plrAttkET * plrAttkOutSpd);
 		return;
 	}
 	Player::PlayDirAnim(run, Main::iInputVec);

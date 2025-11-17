@@ -183,7 +183,7 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 			goto free_mutex;
 		}
 		{
-			Collision collisionData = Collision(b, dot, triggerCollision);
+			Collision collisionData = Collision(b, dot, triggerCollision, normal);
 			if (a->OnCollision) a->OnCollision(collisionData);
 			if (!b->OnCollision) goto free_mutex;
 			collisionData.SetCollider(a);
@@ -386,7 +386,6 @@ void Physics::AdjustColVertices(RigidBody* rb) {
 		curVertex->y = static_cast<float>(vertexBeforeRotCalc.x * sinB + vertexBeforeRotCalc.y * cosB);
 		*curVertex += currentCentreOfNPVertRot + rb->position;
 	}
-	rb->madeAABBTrue = true;
 }
 void Main::AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally) {
 	AssignIfMore(check.x, assignConditionally.x);
@@ -408,14 +407,15 @@ void Physics::ProcessTexs() {
 	currentEntity->ClearFlipped();
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
-		if (currentEntity->animTime <= Animator::neg_anim_time) {
+		auto animTime = Animator::default_anim_time / currentEntity->animSpeed;
+		if (currentEntity->animTime <= Animator::neg_anim_time / currentEntity->animSpeed) {
 			//-= because the int cast returns a negative value
-			animFramesPassed -= static_cast<int>(currentEntity->animTime / Animator::default_anim_time);
-			currentEntity->animTime += animFramesPassed * Animator::default_anim_time;
+			animFramesPassed -= static_cast<int>(currentEntity->animTime / animTime);
+			currentEntity->animTime += animFramesPassed * animTime;
 		}
-		currentEntity->animTime -= Main::DefCapDeltaTime();
+		currentEntity->animTime -= Main::DefCapDeltaTime() * currentEntity->animSpeed;
 		if (currentEntity->animTime <= .0f) {
-			currentEntity->animTime += Animator::default_anim_time;
+			currentEntity->animTime += animTime;
 			animFramesPassed++;
 		}
 		if (!currentEntity->GetLooping() && (currentEntity->GetAnimFrame() + animFramesPassed >= currentEntity->GetNumAnimFrames() || currentEntity->animFrameIndex == -1)) {
@@ -438,7 +438,7 @@ void Physics::ProcessTexs() {
 		}
 	}
 	//can only render single-threaded. T-T
-	SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentRB ? currentRB->rotation : .0f, currentEntity->centreOfRotation, currentEntity->flip);
+	SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentEntity->angle, currentEntity->centreOfRotation, currentEntity->flip);
 	if (!currentEntity || !currentEntity->bRecordAnim) return;
 	currentEntity->pastAnimation = currentEntity->currentAnimation;
 }
@@ -460,11 +460,11 @@ void Physics::Update(float dt) {
 		//v=velocity from last frame + net force applied from last frame * inverse mass of entity * delta time
 		//can't add the force after the total force is added to the velocity, otherwise the force will be reset before the start of the next frame.
 		currentRBVel = currentRB->GetVelocity();
-		if (currentRBVel.Magnitude() > (fricCoefByDT = fricCoef * dt)) currentRB->velocity -= Math::SignOrZero(currentRBVel) * fricCoefByDT;
+		if (currentRBVel.Magnitude() > (fricCoefByDT = fricCoef * dt)) currentRB->velocity -= Math::SignOrZero(currentRBVel) * fricCoefByDT * currentRB->friction;
 		else currentRB->velocity = FVector2::Zero;
 		currentRB->velocity += currentRB->force * currentRB->invMass * dt;
 		currentRB->difPositionSection = (currentRB->newPosition - currentRB->pastPosition) * inv_num_movement_iterations_f;
-		if (currentRB->velocity != FVector2::Zero || currentRB->difPositionSection != FVector2::Zero || !currentRB->madeAABBTrue) AdjustColVertices(currentRB);
+		AdjustColVertices(currentRB);
 		Node<RigidBody*>::Advance(&curNode);
 	}
 	for (moveItrIndex = 0; moveItrIndex < num_movement_iterations; moveItrIndex++) {
@@ -488,7 +488,6 @@ void Physics::Update(float dt) {
 			currentRB->broadPhaseAABB = { minNarrowPhase, maxNarrowPhase };
 			currentRB->position += currentRB->difPositionSection;
 			currentRB->ClearCollidedEntites();
-			currentRB->madeAABBTrue &= currentRB->difPositionSection == FVector2::Zero;
 			Node<RigidBody*>::Advance(&curNode);
 		}
 		numEntities = 0;

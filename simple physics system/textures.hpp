@@ -59,10 +59,11 @@ struct Animator {
 protected:
 	//when currentAnimation is -1, the animator is not active.
 	int currentAnimation = 0, pastAnimation = 0;
-	bool bRecordAnim = false;
+	bool bRecordAnim = true;
 	//-1 is finished
 	int animFrameIndex = -1;
 	int numAnims = 0;
+	float animSpeed = 1.f;
 	float animTime = .0f;
 	std::vector<Animation> anims;
 private:
@@ -89,6 +90,9 @@ public:
 	}
 	const inline int GetNumAnimFrames(int animation) const {
 		return anims[animation].GetNumFrames();
+	}
+	inline void SetAnimSpd(float speed) {
+		animSpeed = speed;
 	}
 	inline int GetNumAnimFrames() const {
 		return anims[currentAnimation].GetNumFrames();

@@ -16,6 +16,7 @@ SwordGuy::SwordGuy() : Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(num
 void SwordGuy::CollisionCallback(Collision& collision) {
     if (!collision.CompareTag(Main::Tag::playerAttack) || entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
     entity->ResetAnim(hurt);
+    rb->AddVelocity(collision.GetNormal() * Player::GetMouseDiff());
     health--;
 }
 void SwordGuy::Update(void) {
@@ -24,9 +25,13 @@ void SwordGuy::Update(void) {
     if (!enabled) return;
     auto pos = rb->GetPosition(), playerPos = Player::GetPosition();
     //rb->SetPosition(pos + FVector2::FromTo(pos, playerPos).Normalized() * speed * Main::DefCapDeltaTime());
-    rb->AddForce(FVector2::FromTo(pos, playerPos).Normalized() * speed * Main::DefCapDeltaTime());
+    auto toPlr = FVector2::FromTo(pos, playerPos);
+    rb->AddForce(toPlr.Normalized() * speed * Main::DefCapDeltaTime());
     SetFlipX(pos.x > playerPos.x);
-    if (entity->GetCurAnim() == hurt && entity->AnimFinished()) {
-        entity->SetAnimation(run);
+    if (entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
+    if (toPlr.SqrMagnitude() < attackDistSqr) {
+        entity->SetAnimation(swing);
+        return;
     }
+    entity->SetAnimation(run);
 }
