@@ -384,7 +384,7 @@ public:
 	static FVector2 fInputVec2;
 	static IntVec2 iInputVec;
 	static IntVec2 mousePosition;
-	static bool leftClick;
+	static bool leftClick, pastLeftClick;
 	static bool leftClickOnFrame;
 	static bool moving;
 	static inline bool GetModKey(int key) {
@@ -475,31 +475,24 @@ public:
 		if (check <= assignConditionally) return;
 		assignConditionally = check;
 	}
+	static inline void SetPauseState(bool state) {
+		Main::timeScale = !state;
+	}
+	static inline void TogglePauseState() {
+		SetPauseState(Main::timeScale);
+	}
 	//it is NOT the case that both x and y have to be bigger for "assignConditionally" to be assigned. either-or per-component.
 	static void AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//it is NOT the case that both x and y have to be smaller for "assignConditionally" to be assigned. either-or per-component.
 	static void AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally);
-	//inclusive max, min. WILL NOT swap args when they are the wrong way around in non-debug builds (i.e., when the DEBUG_BUILD macro isn't defined)
+	//min inclusive, max exclusive
 	static inline int GetRandInt(int min, int max) {
-		if (max < min) {
-			int temp = std::move(min);
-			min = std::move(max);
-			max = std::move(temp);
-		}
-		return static_cast<int>((static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * (max - min) + min);
+		return static_cast<int>((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * (max - min) + min);
 	}
-	//inclusive max, min. WILL NOT swap args when they are the wrong way around in non-debug builds (i.e., when the DEBUG_BUILD macro isn't defined)
+	static int GetRandInt(int a, int b, int c);
 	static inline float GetRandFloat(float min, float max) {
-#ifdef DEBUG_BUILD
-		if (max < min) {
-			float temp = std::move(min);
-			min = std::move(max);
-			max = std::move(temp);
-		}
-#endif
 		return static_cast<float>((static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * (max - min) + min);
 	}
-	//inclusive max, min. WILL NOT swap args when they are the wrong way around in non-debug builds (i.e., when the DEBUG_BUILD macro isn't defined)
 	static FVector2 GetRandFVec(FVector2 min, FVector2 max);
 	template<typename T>
 	static inline std::initializer_list<T> VecToInitList(std::vector<T>& vec) {
@@ -511,12 +504,6 @@ public:
 	static const std::string empty_string;
 	static const char * const empty_cc;
 private:
-	static inline void SetPauseState(bool state) {
-		Main::timeScale = !state;
-	}
-	static inline void TogglePauseState() {
-		SetPauseState(Main::timeScale);
-	}
 	//order important for bit-wise operations.
 	static enum inpDirection: int {
 		input_down = 0, //0000

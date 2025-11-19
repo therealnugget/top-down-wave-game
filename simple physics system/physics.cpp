@@ -122,9 +122,9 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		a->checkColliding.lock();
 		b->checkColliding.lock();
 	}
-	uint_fast64_t collisionIndex;
-	if (a->GetEntityCollided(a->entityIndex, b->entityIndex, &collisionIndex) || b->GetEntityCollided(a->entityIndex, b->entityIndex, &collisionIndex)) goto free_mutex;
-	a->SetEntitiesCollided(collisionIndex);
+	uint_fast64_t collisionIndexAB = RigidBody::GetDoubleEntColIndex(a, b), collisionIndexBA = RigidBody::GetDoubleEntColIndex(b, a);
+	if (a->GetEntityCollided(collisionIndexAB, collisionIndexBA) || b->GetEntityCollided(collisionIndexAB, collisionIndexBA)) goto free_mutex;
+	a->SetEntitiesCollided(collisionIndexAB);
 	{
 		int i;
 		float minA, maxA;
@@ -179,10 +179,8 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 			if (bMoveable) b->velocity += jn * b->GetInvMass();
 		}
 	ret:;
-		if (!colliding || moveItrIndex != 0) {
-			goto free_mutex;
-		}
-		{
+		if (colliding && !a->GetEntityCollided(collisionIndexAB, collisionIndexBA, true) && !b->GetEntityCollided(collisionIndexAB, collisionIndexBA, true)) {
+			a->SetEntitiesCollided(collisionIndexBA, true);
 			Collision collisionData = Collision(b, dot, triggerCollision, normal);
 			if (a->OnCollision) a->OnCollision(collisionData);
 			if (!b->OnCollision) goto free_mutex;
@@ -404,7 +402,6 @@ void Physics::ProcessTexs() {
 		curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
 		curRect->y += currentEntity->renderOffset.y;
 	}
-	currentEntity->ClearFlipped();
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
 		auto animTime = Animator::default_anim_time / currentEntity->animSpeed;
@@ -487,7 +484,7 @@ void Physics::Update(float dt) {
 			}
 			currentRB->broadPhaseAABB = { minNarrowPhase, maxNarrowPhase };
 			currentRB->position += currentRB->difPositionSection;
-			currentRB->ClearCollidedEntites();
+			currentRB->ClearCollidedEntities();
 			Node<RigidBody*>::Advance(&curNode);
 		}
 		numEntities = 0;
@@ -532,6 +529,7 @@ void Physics::Update(float dt) {
 		currentRB = curNode->value;
 		currentEntity = currentRB->entity;
 		ProcessTexs();
+		currentRB->ClearCollidedEntities(true);
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
 		currentRB->newPosition = currentRB->pastPosition;

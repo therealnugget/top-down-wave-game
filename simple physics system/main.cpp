@@ -16,7 +16,7 @@
 #define CTRL_OFFSET NUM_SIG_SCANKEYS + CONTROL_INDEX
 SDL_Event Main::e;
 bool Main::moving;
-bool Main::leftClick;
+bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
 IntVec2 Main::mousePosition;
 const std::string Main::empty_string = "";
@@ -44,9 +44,10 @@ Behaviour::Behaviour(SubRBData& data) {
 void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
     rb->updateNode = node;
 }
-void Behaviour::SetFlipX(bool flip) {
-    entity->SetFlip(flip);
-    entity->ScaleRenderChangeX(flip);
+int Main::GetRandInt(int a, int b, int c) {
+    int min = Math::Min<int>(Math::Min<int>(a, b), c);
+    int max = Math::Max<int>(Math::Max<int>(a, b), c);
+    return GetRandInt(min, max + 1);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {
@@ -94,7 +95,6 @@ void Main::RegisterInput() {
         case SDL_MOUSEBUTTONDOWN: {
             auto isLeft = e.button.button == SDL_BUTTON_LEFT;
             leftClick |= isLeft;
-            leftClickOnFrame = isLeft;
             return;
         }
         case SDL_MOUSEBUTTONUP:
@@ -121,7 +121,6 @@ void Main::RegisterInput() {
 }
 void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
     register bool keyPress = keyInfo(key1) || keyInfo(key2);
-    moving |= keyPress;
     assign[dir] = keyPress;
 }
 bool Main::GetOpAxisVal(bool h, bool v, bool dirIsHorizon) {
@@ -151,8 +150,8 @@ void Main::SetAxisBool(bool& horizonB, bool& vertB, bool dirBools[num_inp_dirs])
 static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
 void Main::EarlyUpdate() {
-    leftClickOnFrame = false;
     RegisterInput();
+    leftClickOnFrame = leftClick && !pastLeftClick;
     SDL_RenderClear(renderer);
     AssignDirKey(input_right, SDL_SCANCODE_RIGHT, SDL_SCANCODE_D);
     AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
@@ -168,6 +167,7 @@ void Main::EarlyUpdate() {
     }
     //inverted y
     iInputVec = IntVec2(processedKey[input_right] - processedKey[input_left], processedKey[input_down] - processedKey[input_up]);
+    moving = iInputVec != IntVec2::Zero;
     //uncomment if needed
     //fInputVec2 = FVector2(GetKey(SDL_SCANCODE_L) - GetKey(SDL_SCANCODE_J), GetKey(SDL_SCANCODE_K) - GetKey(SDL_SCANCODE_I)).Normalized();
     fInputVec = FVector2(iInputVec);
@@ -182,6 +182,8 @@ void Main::ClearInput() {
 }
 //called after all behaviour scripts because it calls "sdl_renderpresent" and adds more key functionality
 void Main::LateUpdate() {
+    moving = false;
+    pastLeftClick = leftClick;
     SDL_RenderPresent(renderer);
     ClearInput();
 }

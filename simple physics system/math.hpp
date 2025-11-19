@@ -26,32 +26,32 @@ public:
 	static inline float Max(float a, float b) {
 		return a > b ? a : b;
 	}
-	template<typename T2>
-	static inline Vector2<T2> Sign(Vector2<T2> v) {
-		return Vector2<T2>(Sign(v.x), Sign(v.y));
+	template<typename T>
+	static inline Vector2<T> Sign(Vector2<T> v) {
+		return Vector2<T>(Sign(v.x), Sign(v.y));
 	}
-	template<typename T2>
-	static inline Vector2<T2> SignOrZero(Vector2<T2> v) {
-		return Vector2<T2>(SignOrZero(v.x), SignOrZero(v.y));
+	template<typename T>
+	static inline Vector2<T> SignOrZero(Vector2<T> v) {
+		return Vector2<T>(SignOrZero(v.x), SignOrZero(v.y));
 	}
-	template<typename T2>
-	static inline Vector2<T2> abs(Vector2<T2> orig) {
+	template<typename T>
+	static inline Vector2<T> abs(Vector2<T> orig) {
 		return orig * Sign(orig);
 	}
-	template<typename T2>
-	static inline Vector2<T2> Min(Vector2<T2> a, Vector2<T2> b) {
-		return Vector2<T2>(Min(a.x, b.x), Min(a.y, b.y));
+	template<typename T>
+	static inline Vector2<T> Min(Vector2<T> a, Vector2<T> b) {
+		return Vector2<T>(Min(a.x, b.x), Min(a.y, b.y));
 	}
-	template<typename T2>
-	static inline Vector2<T2> Max(Vector2<T2> a, Vector2<T2> b) {
-		return Vector2<T2>(Max(a.x, b.x), Max(a.y, b.y));
+	template<typename T>
+	static inline Vector2<T> Max(Vector2<T> a, Vector2<T> b) {
+		return Vector2<T>(Max(a.x, b.x), Max(a.y, b.y));
 	}
 	static inline float sqr(float f) {
 		return f * f;
 	}
-	template<typename T2>
-	static inline Vector2<T2> Round(Vector2<T2> v) {
-		return Vector2<T2>(roundf(v.x), roundf(v.y));
+	template<typename T>
+	static inline Vector2<T> Round(Vector2<T> v) {
+		return Vector2<T>(roundf(v.x), roundf(v.y));
 	}
 	static inline float Cross(Vector2<float> a, Vector2<float> b) {
 		return a.x * b.y - a.y * b.x;

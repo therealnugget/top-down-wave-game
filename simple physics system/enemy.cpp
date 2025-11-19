@@ -10,9 +10,7 @@ Enemy::~Enemy() {
 //1: if we need the enemy to appear as though he is deleted as soon as the collision occurs, delete the entity, and destroy the outer behaviour at the start of the next frame
 // or 2: if we don't care about showing the enemy for the single frame in which he is, in this example, dead, then we can simply destroy the enemy at the start of the next frame as we've done here.
 void Enemy::Update(void) {
-    if (!health) {
-        EnemySpawner::DestroySwordGuy(enemySpawnNode);
-        enabled = false;
-        return;
-    }
+    if (health) return;
+    EnemySpawner::DestroySwordGuy(enemySpawnNode);
+    enabled = false;
 }

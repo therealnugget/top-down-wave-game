@@ -8,15 +8,19 @@
 #include <algorithm>
 #include "animations.hpp"
 #include "multicast delegates.hpp"
+//#define IS_DEV
 #define PLAYER_WIDTH 70
 #define PLAYER_HEIGHT 70
 float Player::accel = 700000.f;
 float Player::speed = 2000.f;
 float Player::knockBack = 600.f;
 float Player::plrAttkET = .0f;
+float Player::maxHealth = 30.f;
+float Player::health = Player::maxHealth;
 FVector2 Player::mouseDiff;
 static constexpr float attackSizeMult = 1.2f;
 IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGHT * attackSizeMult);
+IntVec2 Player::pastInp;
 bool Player::mouseVertical;
 rbList* Player::plrNode;
 rbList* Player::plrAttack = nullptr;
@@ -31,7 +35,22 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 }
 #endif
 static IntVec2 playerSize = IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
-void Player::Init() {
+FVector2 Player::healthBarOffset = { -21, -35 };
+IntVec2 Player::healthBarSize = IntVec2(40, 20);
+Node<Entity*> *Player::healthbar;
+Entity* Player::healthBarEnt;
+void Player::TakeDamage(void) {
+#ifdef IS_DEV
+	return;
+#endif
+	if (PlayingHurtAnim()) return;
+	health--;
+	PlayDirAnim(hit, pastInp);
+	if (health <= .0f) {
+		Main::SetPauseState(true);
+	}
+}
+void Player::Init(void) {
 #define USE_NORMAL_PLAYER_POS
 	FVector2 defaultPlrPos = 
 		#ifdef USE_NORMAL_PLAYER_POS
@@ -40,16 +59,22 @@ void Player::Init() {
 		FVector2::Zero
 #endif
 		;
-	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
+	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
 	plrBehaviour = new Behaviour(data);
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
 	player->updateNode = Main::Updates += Player::Update;
-	player->SetCollisionCallback([](auto &collision) -> void {
-		//std::cout << "colliding!!!\n";
+	player->SetCollisionCallback([](Collision &collision) -> void {
+		if (!collision.CompareTag(Main::Tag::enemy)) return;
+		TakeDamage();
 		});
 	playerEnt = player->GetEntity();
+	PlayDirAnim(idle);
+	playerEnt->SetNotLoopDirs(Main::GetAnimOffset(hit));
 	playerEnt->SetRecordAnim(true);
+	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, player->GetPosition() + healthBarOffset, healthBarSize));
+	healthBarEnt = healthbar->value;
+	healthBarEnt->SetNotLoop(healthBarAnim);
 	constexpr int numShapes = 0;
 	if (!numShapes) return;
 	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
@@ -83,11 +108,14 @@ void Player::Update(void) {
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
 #endif
+	healthBarEnt->SetRectPosition(GetPosition() + healthBarOffset);
+	healthBarEnt->SetAnimFrame(static_cast<int>(floorf(GetHealthFrac() * static_cast<float>(healthBarEnt->GetNumAnimFrames() - 1))));
 	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
 	if (!Main::leftClick && plrAttack) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
+	if (PlayingHurtAnim()) return;
 	if (Main::leftClick) {
 		auto pos = player->GetPosition();
 		mouseDiff = (static_cast<FVector2>(Main::mousePosition) - pos).Normalized();
@@ -96,8 +124,9 @@ void Player::Update(void) {
 		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
 		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
 		PlayDirAnim(attack, mouseDirection);
+		pastInp = mouseDirection;
 		auto plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
-		if (Main::leftClickOnFrame) {
+		if (!plrAttack) {
 			plrAttack = Physics::SubscribeEntity(SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, {Main::empty_cc}));
 			auto attackRB = plrAttack->value;
 			auto attackEnt = attackRB->GetEntity();
@@ -116,9 +145,13 @@ void Player::Update(void) {
 		plrAttack->value->SetPosition(plrAttkPos + mouseDiff * plrAttkET * plrAttkOutSpd);
 		return;
 	}
-	Player::PlayDirAnim(run, Main::iInputVec);
+	if (Main::moving) {
+		Player::PlayDirAnim(run, Main::iInputVec);
+		pastInp = Main::iInputVec;
+		return;
+	}
+	Player::PlayDirAnim(idle, pastInp);
 }
 void Player::PlayDirAnim(int animation, IntVec2 direction) {
-	auto useDir = Main::moving || Main::leftClick;
-	playerEnt->SetAnimation(IntVec2::VecToDir(direction) + Main::GetAnimOffset(idle * !useDir + useDir * animation));
+	playerEnt->SetAnimation(IntVec2::VecToDir(direction) + Main::GetAnimOffset(animation));
 }

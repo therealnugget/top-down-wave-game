@@ -231,6 +231,9 @@ public:
 		cout << x << ", " << y << '\n';
 	}
 #endif
+	inline bool operator ==(Vector2 b) {
+		return x == b.x && y == b.y;
+	}
 	inline Vector2 operator +(Vector2 b) {
 		return Vector2(x + b.x, y + b.y);
 	}
@@ -409,7 +412,7 @@ public:
 	}
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	Entity(SubRBData &data) : angle(data.angle), flip(SDL_FLIP_NONE), renderOffset(data.renderOffset), renderOffsetChangeX(data.renderOffsetChangeX), flippedOnFrame(false) {
+	Entity(SubRBData &data) : angle(data.angle), flip(SDL_FLIP_NONE), renderOffset(data.renderOffset), renderOffsetChangeX(data.renderOffsetChangeX) {
 		/*
 		used values:
 		float _angle
@@ -488,26 +491,20 @@ public:
 		SetAnimFrame(frame, currentAnimation);
 	}
 	inline void SetFlip(bool flipState) {
+		auto flipNotMatch = GetFlip() != flipState;
 		flip = static_cast<SDL_RendererFlip>(flipState * SDL_FLIP_HORIZONTAL);
+		renderOffsetChangeX *= flipNotMatch * -2.f + 1.f;
+	}
+	inline bool GetFlip(void) {
+		return flip == SDL_FLIP_HORIZONTAL;
 	}
 private:
-	inline void ScaleRenderChXByBool(bool scale) {
-		renderOffsetChangeX *= !scale * 2.f - 1.f;
-	}
 	inline void SetInitAnimTex() {
 		animFrameIndex = 0;
 		animTime = Animator::default_anim_time;
 		SetTexture(anims[currentAnimation].textures[0]);
 	}
 public:
-	inline void ScaleRenderChangeX(bool isFlipped) {
-		ScaleRenderChXByBool(isFlipped && !flippedOnFrame);
-		flippedOnFrame |= isFlipped;
-	}
-	inline void ClearFlipped() {
-		ScaleRenderChXByBool(flippedOnFrame);
-		flippedOnFrame = false;
-	}
 	inline SDL_Texture* GetTexture() {
 		return texture;
 	}
@@ -545,7 +542,6 @@ private:
 	IntVec2 renderOffset;
 	//describes an offset from the centre of the image, where the contents of the image exists.
 	float renderOffsetChangeX;
-	bool flippedOnFrame;
 	friend class Physics;
 	friend class RigidBody;
 };
@@ -680,7 +676,7 @@ public:
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), isColliding(false), newPosition(data.startPos), pastPosition(FVector2::Zero), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep), friction(FVector2::One) {
+		centreOfNarrowPVertRot(data.centreOfRotNPVert), isColliding(false), position(data.startPos), newPosition(data.startPos), pastPosition(data.startPos), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep), friction(FVector2::One) {
 		if (data.createEntity) {
 			entity = new Entity(data);
 			newPosition.IntoRectXY(entity->rect);
@@ -705,6 +701,7 @@ public:
 	//therefore there can be a max of 2^32-1 entities in the scene. not that the system can handle anywhere close to that, of course.
 	uint entityIndex;
 	int tag;
+	FVector2 newPosition;
 #ifdef DEBUG_BUILD
 	bool isDebugSquare;
 #endif
@@ -771,6 +768,7 @@ private:
 	std::atomic<bool> isColliding;
 	std::condition_variable collidingCond;
 	std::mutex checkColliding;
+	std::unordered_set<uint_fast64_t> collisionsChecked;
 	std::unordered_set<uint_fast64_t> collisionsOccured;
 	int_fast64_t layer;
 	const uint numNarrowPhaseVertices;
@@ -782,9 +780,6 @@ private:
 	double rotation;
 	inline FVector2* GetOrigNarrowPVertices() {
 		return origNarrowPVertices;
-	}
-	static inline uint_fast64_t GetDoubleEntColIndex(uint_fast64_t aIndex, uint_fast64_t bIndex) {
-		return aIndex | (bIndex << 32);
 	}
 	FVector2 velocity;
 	//broad-phase
@@ -798,6 +793,7 @@ private:
 	bool neverSleep;
 	FVector2 position;
 	FVector2 friction;
+	FVector2 pastPosition;
 public:
 	inline rbList* GetCacheNodeRef() {
 		return cacheNodeRef;
@@ -828,21 +824,19 @@ public:
 	inline void SetCollisionCallback(std::function<void(Collision&)> callback) {
 		OnCollision = callback;
 	}
-	inline void SetEntitiesCollided(uint_fast64_t collisionIndex) {
-		collisionsOccured.emplace(collisionIndex);
+	inline void SetEntitiesCollided(uint_fast64_t collisionIndex, bool useOccCols = false) {
+		(useOccCols ? collisionsOccured : collisionsChecked).emplace(collisionIndex);
 	}
-	inline bool GetEntityCollided(uint aIndex, uint bIndex, uint_fast64_t* collisionIndex) {
-		auto GetEntCollided = [collisionIndex, this](uint a, uint b) -> bool {
-			*collisionIndex = GetDoubleEntColIndex(static_cast<uint_fast64_t>(a), static_cast<uint_fast64_t>(b));
-			return collisionsOccured.contains(*collisionIndex);
-			};
-		return GetEntCollided(aIndex, bIndex) || GetEntCollided(bIndex, aIndex);
+	static inline uint_fast64_t GetDoubleEntColIndex(RigidBody *aIndex, RigidBody *bIndex) {
+		return static_cast<uint_fast64_t>(aIndex->entityIndex) | (static_cast<uint_fast64_t>(bIndex->entityIndex) << 32);
 	}
-	inline void ClearCollidedEntites() {
-		collisionsOccured.clear();
+	inline bool GetEntityCollided(uint_fast64_t colAB, uint_fast64_t colBA, bool useOccCols = false) {
+		auto checked = useOccCols ? collisionsOccured : collisionsChecked;
+		return checked.contains(colAB) || checked.contains(colBA);
 	}
-	FVector2 newPosition;
-	FVector2 pastPosition;
+	inline void ClearCollidedEntities(bool occCols = false) {
+		(occCols ? collisionsOccured : collisionsChecked).clear();
+	}
 	Node<std::function<void(void)>>* updateNode;
 	//shouldn't add any more friends to RigidBody because right now physics being the only friend ensures that the rigidbody can't be deleted from a class other than Physics or itself.
 	friend class Physics;
@@ -858,7 +852,7 @@ private:
 	static constexpr int thread_count = 10;
 	static constexpr float thread_count_f = static_cast<float>(thread_count);
 	//relatively arbitrary what this value is, i'm just making it 144 for debugging purposes in case in the future i wonder "why is it that almost about every second on the second i'm getting a frame drop" i can refer to this. it's the number of frames that have to pass before the node cache is flushed.
-	static constexpr ushort cache_flush_interval = 144;//TODO: set this back to 144
+	static constexpr ushort cache_flush_interval = 144;
 	static const float frictionMagnitude;
 	static const float fricCoef;
 	static int threadIndex;

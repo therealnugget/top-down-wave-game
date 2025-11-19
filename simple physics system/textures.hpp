@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "usefulTypedefs.hpp"
 #include <tuple>
+#include "main.hpp"
 class Images {
 public:
 	struct ImageData {
@@ -82,6 +83,11 @@ public:
 	inline void SetNotLoop(int anim) {
 		anims[anim].bLoop = false;
 	}
+	inline void SetNotLoopDirs(int anim) {
+		for (int i = 0; i < Main::num_directions; i++) {
+			anims[anim + i].bLoop = false;
+		}
+	}
 	inline void SetRecordAnim(bool value) {
 		bRecordAnim = value;
 	}
@@ -102,6 +108,9 @@ public:
 	}
 	inline bool AnimFinished() {
 		return animFrameIndex == -1;
+	}
+	inline bool FirstFrame() {
+		return animFrameIndex == 0;
 	}
 };
 //static class
