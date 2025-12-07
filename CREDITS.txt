@@ -1,13 +1,17 @@
 Credits go to:
 o_lobster
-https://o-lobster.itch.io/
+https://o-lobster.itch.io/		->	(https://creativecommons.org/licenses/by/4.0/deed.en)
 for
 Top_Down_Adventure_Pack_v.1.0
+
 Credits go to:
-https://immortal-burrito.itch.io
+https://immortal-burrito.itch.io	->	(https://creativecommons.org/licenses/by/4.0/deed.en)
 for
 Demon_sword
+
 Credits go to:
-https://polar-34.itch.io
+https://polar-34.itch.io	->		(https://creativecommons.org/publicdomain/zero/1.0/deed.en)
 for
 Health Bars and Hearts
+
+changes were not made to the assets, but the work was built upon.

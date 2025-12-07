@@ -29,6 +29,7 @@ private:
 	static IntVec2 attackSize;
 	static IntVec2 pastInp;
 	static bool mouseVertical;
+	static bool colOnFrame;
 	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2::Zero);
 public:
 	static inline float GetHealthFrac() {

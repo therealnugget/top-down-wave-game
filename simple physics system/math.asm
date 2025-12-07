@@ -14,6 +14,7 @@ ASMDot proc
 	addss xmm0, xmm1
 	ret
 ASMDot endp
+;			rcx					rdx				r8			r9			rbp+48 (after push rbx)
 ;(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max)<---- signature
 ASMSetProjection proc
 	push rbp

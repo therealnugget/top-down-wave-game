@@ -119,7 +119,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL2.lib;SDL2main.lib;SDL2_image.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)libs</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -146,8 +146,10 @@
   <ItemGroup>
     <ClCompile Include="animations.cpp" />
     <ClCompile Include="create shapes.cpp" />
+    <ClCompile Include="Crystal.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="multicast delegates.cpp" />
     <ClCompile Include="bob.cpp" />
     <ClCompile Include="player.cpp" />
@@ -160,8 +162,10 @@
     <ClInclude Include="animations.hpp" />
     <ClInclude Include="array.hpp" />
     <ClInclude Include="create shapes.hpp" />
+    <ClInclude Include="Crystal.hpp" />
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="EnemySpawner.hpp" />
+    <ClInclude Include="Item.hpp" />
     <ClInclude Include="main.hpp" />
     <ClInclude Include="math.hpp" />
     <ClInclude Include="multicast delegates.hpp" />
@@ -178,7 +182,9 @@
     <Image Include="images\debug square.png" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="math.asm" />
+    <MASM Include="math.asm">
+      <FileType>Document</FileType>
+    </MASM>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

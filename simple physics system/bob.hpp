@@ -19,6 +19,7 @@ private:
 	};
 	//-1 for yet to decide
 	int attackDecision;
+	bool decideAttack;
 	float speed;
 	float plrDistSqr;
 	float signAtDash;
@@ -34,4 +35,7 @@ private:
 	void ResetIfAttkFin(int animation);
 public:
 	SwordGuy();
+	inline FVector2 GetPosition() {
+		return rb->newPosition;
+	}
 };

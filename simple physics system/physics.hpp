@@ -145,16 +145,16 @@ public:
 		return this->x * b.x + this->y * b.y;
 	}
 	inline Vector2 Normalized() {
-		T r = Magnitude();
-		if (!r) return Zero;
-		return Vector2(*this / r);
+		auto r = Magnitude();
+		bool rZero = r == .0f;
+		return GetZero() * rZero + *this / r * !rZero;
 	}
 	inline static Vector2 FromTo(Vector2 from, Vector2 to) {
 		return -from + to;
 	}
 	static Vector2<T> FromTo(RigidBody *from, RigidBody *to);
 	inline void Normalize() {
-		*this = Normalized();
+		*this /= Magnitude();
 	}
 	static const Vector2 One;
 	static const Vector2 Zero;
@@ -237,6 +237,9 @@ public:
 	inline Vector2 operator +(Vector2 b) {
 		return Vector2(x + b.x, y + b.y);
 	}
+	inline Vector2 operator -(Vector2 b){
+		return Vector2(x - b.x, y - b.y);
+	}
 	inline Vector2 operator +=(Vector2 b) {
 		return *this = *this + b;
 	}
@@ -246,7 +249,7 @@ public:
 	inline Vector2 operator /=(int b) {
 		return *this = *this / b;
 	}
-	inline Vector2 operator -() {
+	inline Vector2 operator -() const {
 		return Vector2(-x, -y);
 	}
 	inline Vector2 operator /(Vector2 b) {
@@ -305,6 +308,10 @@ public:
 	inline void IntoRectWH(SDL_Rect* rect) {
 		rect->w = x;
 		rect->h = y;
+	}
+	inline void IntoRectXY(SDL_Rect* rect) {
+		rect->x = x;
+		rect->y = y;
 	}
 	static const Vector2 One;
 	static const Vector2 Zero;
@@ -408,11 +415,11 @@ public:
 		data.renderOffset = renderOffset;
 		data.endPaths = dirPaths;
 		data.renderOffsetChangeX = renderOffsetChangeX;
-		return new Entity(data);
+		return new Entity(&data);
 	}
 	//last boolean argument of image sizes is whether you're using the per-component size
 	//would be more efficient to have "image sizes" and "is global sizes" as one map, but it is more readable & maintainable to separate them into two.
-	Entity(SubRBData &data) : angle(data.angle), flip(SDL_FLIP_NONE), renderOffset(data.renderOffset), renderOffsetChangeX(data.renderOffsetChangeX) {
+	Entity(SubRBData *data) : angle(data->angle), flip(SDL_FLIP_NONE), renderOffset(data->renderOffset), renderOffsetChangeX(data->renderOffsetChangeX) {
 		/*
 		used values:
 		float _angle
@@ -426,19 +433,23 @@ public:
 		float renderOffsetChangeX*/
 		centreOfRotation = new SDL_Point;
 		rect = new SDL_Rect;
-		data.size.IntoRectWH(rect);
-		data.startPos.IntoRectXY(rect);
+		data->size.IntoRectWH(rect);
+#ifdef DEBUG_BUILD
+		Assert(data->size.x, "size on the x cannot be zero");
+		Assert(data->size.y, "size on the y cannot be zero");
+#endif
+		data->startPos.IntoRectXY(rect);
 		register int i = 0, j;
-		const auto animPathsSize = data.animPaths.size();
-		const auto FVecSize = static_cast<FVector2>(data.size);
-		for (auto& animPath : data.animPaths) {
+		const auto animPathsSize = data->animPaths.size();
+		const auto FVecSize = static_cast<FVector2>(data->size);
+		for (auto& animPath : data->animPaths) {
 			j = 0;
-			for (auto& path : data.endPaths.size() > 0 ? data.endPaths : Main::dirPaths) {
-				auto fullPathStr = data.basePath + (data.basePath == Main::empty_string ? Main::empty_cc : "/") + animPath + (path[0] ? "_" : "") + path;
+			for (auto& path : data->endPaths.size() > 0 ? data->endPaths : Main::dirPaths) {
+				auto fullPathStr = data->basePath + (data->basePath == Main::empty_string ? Main::empty_cc : "/") + animPath + (path[0] ? "_" : "") + path;
 				register auto fullPath = fullPathStr.c_str();
 				if (!Textures::InitAnim(*this, fullPath)) ThrowError("could not load texture at path \"images/", fullPath, "0.(png/bmp)\"");
 				if (i == 0 && j == 0) SetTexture(anims[0].textures[0]);
-				if (data.imageSizes.size() == 0) {
+				if (data->imageSizes.size() == 0) {
 					continue;
 				}
 				if (i == 0 && j == 0) {
@@ -446,9 +457,9 @@ public:
 					isGlobalSize = new bool[animPathsSize];
 				}
 				auto& curThisImgSize = imageSizes[i];
-				const auto& currentIsGlobalSize = data.isGlobalSize[animPath];
+				const auto& currentIsGlobalSize = data->isGlobalSize[animPath];
 				isGlobalSize[i] = currentIsGlobalSize;
-				const auto& curImgSize = data.imageSizes[animPath];
+				const auto& curImgSize = data->imageSizes[animPath];
 				if (currentIsGlobalSize) {
 					if (j > 0) continue;
 					curThisImgSize = static_cast<IntVec2>(static_cast<FVector2>(std::get<FVector2>(curImgSize)) * FVecSize);
@@ -667,30 +678,31 @@ public:
 		topLeft = new QuadNode(minAABB.x, halfAABB.y, halfAABB.x, maxAABB.y);
 		topRight = new QuadNode(halfAABB, maxAABB);
 	}
+	friend class Physics;
 };
-static constexpr int const_max_quadtree_depth = 10;
+static constexpr int const_max_quadtree_depth = 8;
 struct RigidBody {
 public:
 	//vertices of collider are at entity pos at origin.
-	RigidBody(SubRBData data) : mass(data.mass), invMass(1.f / data.mass), velocity(data.initVel), rotation(data.angle), numNarrowPhaseVertices(data.narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
+	RigidBody(SubRBData *data) : mass(data->mass), invMass(1.f / data->mass), velocity(data->initVel), rotation(data->angle), numNarrowPhaseVertices(data->narrowPhaseVertices.size()), origNarrowPVertices(new FVector2[numNarrowPhaseVertices]), verticesNarrowP(new FVector2[numNarrowPhaseVertices]),
 #ifdef DEBUG_BUILD
 		isDebugSquare(false),
 #endif
-		centreOfNarrowPVertRot(data.centreOfRotNPVert), isColliding(false), position(data.startPos), newPosition(data.startPos), pastPosition(data.startPos), bMoveable(data.moveable), bIsTrigger(data.isTrigger), OnCollision(data.collisionCallback), tag(data.tag), layer(data.layer), cacheNodeRef(nullptr), neverSleep(data.neverSleep), friction(FVector2::One) {
-		if (data.createEntity) {
+		centreOfNarrowPVertRot(data->centreOfRotNPVert), isColliding(false), position(data->startPos), newPosition(data->startPos), pastPosition(data->startPos), bMoveable(data->moveable), bIsTrigger(data->isTrigger), OnCollision(data->collisionCallback), tag(data->tag), layer(data->layer), cacheNodeRef(nullptr), neverSleep(data->neverSleep), friction(FVector2::One) {
+		if (data->createEntity) {
 			entity = new Entity(data);
 			newPosition.IntoRectXY(entity->rect);
-			if (data.centreOfRot.size()) {
+			if (data->centreOfRot.size()) {
 				memset(entity->centreOfRotation, 0, sizeof(SDL_Point));
 			}
 			else {
-				entity->centreOfRotation->x = data.size.x / 2;
-				entity->centreOfRotation->y = data.size.y / 2;
+				entity->centreOfRotation->x = data->size.x / 2;
+				entity->centreOfRotation->y = data->size.y / 2;
 			}
 		}
 		else entity = nullptr;
 		SetInitCOR();
-		std::copy(data.narrowPhaseVertices.begin(), data.narrowPhaseVertices.end(), origNarrowPVertices);
+		std::copy(data->narrowPhaseVertices.begin(), data->narrowPhaseVertices.end(), origNarrowPVertices);
 #ifdef DEBUG_BUILD
 		constexpr int numVertInBox = 4;
 		if (numNarrowPhaseVertices < numVertInBox) {
@@ -705,6 +717,9 @@ public:
 #ifdef DEBUG_BUILD
 	bool isDebugSquare;
 #endif
+	inline void SetTrigger(bool trigger) {
+		bIsTrigger = trigger;
+	}
 	inline float GetMass() {
 		return mass;
 	}
@@ -768,8 +783,8 @@ private:
 	std::atomic<bool> isColliding;
 	std::condition_variable collidingCond;
 	std::mutex checkColliding;
-	std::unordered_set<uint_fast64_t> collisionsChecked;
-	std::unordered_set<uint_fast64_t> collisionsOccured;
+	/*std::unordered_set<uint_fast64_t> collisionsChecked;
+	std::unordered_set<uint_fast64_t> collisionsOccured;*/
 	int_fast64_t layer;
 	const uint numNarrowPhaseVertices;
 	FVector2* origNarrowPVertices;
@@ -823,7 +838,7 @@ public:
 	}
 	inline void SetCollisionCallback(std::function<void(Collision&)> callback) {
 		OnCollision = callback;
-	}
+	}/*
 	inline void SetEntitiesCollided(uint_fast64_t collisionIndex, bool useOccCols = false) {
 		(useOccCols ? collisionsOccured : collisionsChecked).emplace(collisionIndex);
 	}
@@ -831,23 +846,24 @@ public:
 		return static_cast<uint_fast64_t>(aIndex->entityIndex) | (static_cast<uint_fast64_t>(bIndex->entityIndex) << 32);
 	}
 	inline bool GetEntityCollided(uint_fast64_t colAB, uint_fast64_t colBA, bool useOccCols = false) {
-		auto checked = useOccCols ? collisionsOccured : collisionsChecked;
+		auto &checked = useOccCols ? collisionsOccured : collisionsChecked;
 		return checked.contains(colAB) || checked.contains(colBA);
 	}
 	inline void ClearCollidedEntities(bool occCols = false) {
 		(occCols ? collisionsOccured : collisionsChecked).clear();
-	}
+	}*/
 	Node<std::function<void(void)>>* updateNode;
 	//shouldn't add any more friends to RigidBody because right now physics being the only friend ensures that the rigidbody can't be deleted from a class other than Physics or itself.
 	friend class Physics;
 };
+class Text;
 //static
 class Physics {
 private:
 	//decreasing the number of movement iterations increases fps at the expense of physical accuracy
 	static constexpr int num_movement_iterations = 20;
 	static constexpr float inv_num_movement_iterations_f = 1.f / static_cast<float>(num_movement_iterations);
-	static constexpr FVector2 initCellSize = { 10000.f, 10000.f };
+	static constexpr FVector2 initCellSize = { 5000.f, 5000.f };
 	static constexpr AABB initCellAABB = { FVector2::ConstNeg(FVector2::ConstMult(initCellSize, .5f)), FVector2::ConstMult(initCellSize, .5f) };
 	static constexpr int thread_count = 10;
 	static constexpr float thread_count_f = static_cast<float>(thread_count);
@@ -858,6 +874,7 @@ private:
 	static int threadIndex;
 	static rbList *entityHead;
 	static Node<Entity *> *standaloneEntityHead;
+	static Node<Text*>* textHead;
 	static rbListList *sortedEntityHeads;
 	static rbListList *unsortedEntityHeads;
 	static QuadNode<RigidBody*> quadRoot;
@@ -881,6 +898,9 @@ private:
 		return initCellSize;
 	}
 	static void UnSubscribeEntity(rbList*);
+	static inline float Projection(FVector2& a, FVector2& b) {
+		return a.x * b.x + a.y * b.y;
+	}
 public:
 	static inline void RemoveCacheNodeRef(rbList* remove) {
 		sortedCacheNodes.Remove(remove);
@@ -889,10 +909,12 @@ public:
 		return entityHead;
 	}
 	static Node<RigidBody*>* SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> narrowPhaseVertices = Physics::DefaultSquareVerticesAsList, FVector2 startPos = FVector2::Zero, IntVec2 size = IntVec2::One, std::initializer_list<FVector2> _centreOfRot = std::initializer_list<FVector2>(), FVector2 _centreOfRotNPVert = FVector2::Zero, IntVec2 _renderOffset = IntVec2::Zero, int tag = -1, std::function<void(Collision &)> collisionCallback = nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes = std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool> isGlobalSize = std::unordered_map<std::string, bool>(), FVector2 initVel = FVector2::Zero, float angle = .0f, float mass = 1.f, bool moveable = true, bool isTrigger = false, const std::initializer_list<const char*>& endPaths = std::initializer_list<const char*>());
-	static Node<RigidBody*>* SubscribeEntity(SubRBData );
+	static Node<RigidBody*>* SubscribeEntity(SubRBData *);
 	static Node<RigidBody*> *SubscribeEntity(RigidBody *);
 	static Node<Entity*>* SubStandaloneEnt(Entity*);
-	static Node<Entity*>* SubStandaloneEnt(SubRBData);
+	static Node<Text*>* SubText(Text*);
+	static Node<Text*>* UnSubText(Node<Text*>*);
+	static Node<Entity*>* SubStandaloneEnt(SubRBData *);
 	static Node<Entity*>* UnsubStandaloneEnt(Node<Entity*>*);
 	static void DeleteRB(rbList*);
 	static Node<RigidBody*>* StandaloneRB(IntVec2 size = IntVec2::One, FVector2 startPos = FVector2::Zero, int tag = -1, CollisionCallback collisionCallback = nullptr, int_fast64_t layer = Main::Layer::playerLayer, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f);
@@ -900,7 +922,7 @@ public:
 	static void ProcessTexs();
 	static void Update(float dt);
 	static void OuterBroadPhase(bool searchSorted = false);
-	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0, int typeOfNode = 0);
+	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0);
 	static void DeleteQuadEntities(QuadNode<RigidBody*>*, bool isRoot = false);
 	static void BroadPhase(Node<RigidBody *> *rb
 #ifdef IS_MULTI_THREADED
@@ -917,8 +939,7 @@ public:
 	static void ThreadFunc(int);
 	static void Init();
 	//this works because only exactly straight lines are drawn from vertex-to-vertex, thus the greatest and smallest points of each entity must be a vertex.
-	static inline bool EntityInBoxBroadPhase(AABB box, RigidBody* rb) {
-		AABB& Bp = rb->GetBroadPAABB();
+	static inline bool EntityInBoxBroadPhase(AABB &box, AABB& Bp) {
 		return (Bp.minimum.x >= box.minimum.x || Bp.maximum.x >= box.minimum.x) && (Bp.minimum.x <= box.maximum.x || Bp.maximum.x <= box.maximum.x) && (Bp.minimum.y >= box.minimum.y || Bp.maximum.y >= box.minimum.y) && (Bp.minimum.y <= box.maximum.y || Bp.maximum.y <= box.maximum.y);
 	}
 	static std::condition_variable threadFuncConds[Physics::thread_count];

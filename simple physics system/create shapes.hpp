@@ -51,7 +51,7 @@ public:
 			data.isTrigger = isTrigger;
 			data.moveable = moveable;
 			data.renderOffset = renderOffset;
-			_this[i] = Physics::SubscribeEntity(new RigidBody(data));
+			_this[i] = Physics::SubscribeEntity(new RigidBody(&data));
 		}
 		return _this;
 	}

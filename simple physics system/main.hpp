@@ -19,16 +19,18 @@ struct Entity;
 class Behaviour {
 private:
 	rbList* rbNode;
-	virtual void Update();
 	float origRenderOffsetX;
 protected:
+	virtual void Update();
+	bool colOnFrame;
 	RigidBody* rb;
 	Entity* entity;
 	void SetUpdateNode(Node<std::function<void(void)>>*);
 	void SetFlipX(bool flip);
 	~Behaviour();
 public:
-	Behaviour(SubRBData&);
+	Behaviour(SubRBData);
+	Behaviour(SubRBData *);
 	friend class Player;
 };
 using namespace std;
@@ -379,6 +381,7 @@ public:
 		player = 0,
 		enemy = 1,
 		playerAttack = 2,
+		crystal = 3,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -387,6 +390,7 @@ public:
 	static bool leftClick, pastLeftClick;
 	static bool leftClickOnFrame;
 	static bool moving;
+	static bool canChangePause;
 	static inline bool GetModKey(int key) {
 		return pressingModKey[key];
 	}
@@ -423,6 +427,7 @@ public:
 	static void EarlyUpdate();
 	static MultiDelegate<float> dtUpdates;
 	static MultiDelegate<void> Updates;
+	static MultiDelegate<void> PauseUpdates;
 	static void LateUpdate();
 	static void Start();
 	static void Finalize();

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "animations.hpp"
 #include "multicast delegates.hpp"
+#include "Item.hpp"
 //#define IS_DEV
 #define PLAYER_WIDTH 70
 #define PLAYER_HEIGHT 70
@@ -15,13 +16,14 @@ float Player::accel = 700000.f;
 float Player::speed = 2000.f;
 float Player::knockBack = 600.f;
 float Player::plrAttkET = .0f;
-float Player::maxHealth = 30.f;
+float Player::maxHealth = 55.f;
 float Player::health = Player::maxHealth;
 FVector2 Player::mouseDiff;
 static constexpr float attackSizeMult = 1.2f;
 IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGHT * attackSizeMult);
 IntVec2 Player::pastInp;
 bool Player::mouseVertical;
+bool Player::colOnFrame = false;
 rbList* Player::plrNode;
 rbList* Player::plrAttack = nullptr;
 RigidBody *Player::player;
@@ -59,13 +61,14 @@ void Player::Init(void) {
 		FVector2::Zero
 #endif
 		;
-	auto data = SubRBData("Top_Down_Adventure_Pack_v.1.0/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
-	plrBehaviour = new Behaviour(data);
+	auto data = SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
+	plrBehaviour = new Behaviour(&data);
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
 	player->updateNode = Main::Updates += Player::Update;
 	player->SetCollisionCallback([](Collision &collision) -> void {
-		if (!collision.CompareTag(Main::Tag::enemy)) return;
+		if (!collision.CompareTag(Main::Tag::enemy) || colOnFrame) return;
+		colOnFrame = true;
 		TakeDamage();
 		});
 	playerEnt = player->GetEntity();
@@ -88,6 +91,16 @@ void Player::Init(void) {
 static constexpr float playerAttackSizeMult = 1.2f;
 static constexpr float playerAttackOut = .2f;
 void Player::Update(void) {
+	colOnFrame = false;
+	if (Main::KeyPressed(SDL_SCANCODE_K)) {
+		for (int i = 0; i < 3; i++) {
+			constexpr IntVec2 itemTextSize = IntVec2(150, 100);
+			constexpr int itemYSeparation = 190;
+			new Text(IntVec2::GetOne() * itemTextSize, Main::halfDisplaySize + IntVec2::GetUp() * (i - 1) * itemYSeparation, "test", true);
+		}
+		Main::TogglePauseState();
+		Main::canChangePause = false;
+	}
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
 	currentVel = player->GetVelocity();/*
@@ -127,7 +140,8 @@ void Player::Update(void) {
 		pastInp = mouseDirection;
 		auto plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
 		if (!plrAttack) {
-			plrAttack = Physics::SubscribeEntity(SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, {Main::empty_cc}));
+			auto data = SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, { Main::empty_cc });
+			plrAttack = Physics::SubscribeEntity(&data);
 			auto attackRB = plrAttack->value;
 			auto attackEnt = attackRB->GetEntity();
 			attackEnt->SetNotLoop(attkSlashAnim);

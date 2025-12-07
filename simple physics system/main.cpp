@@ -15,6 +15,7 @@
 #define ALT_OFFSET NUM_SIG_SCANKEYS + ALT_INDEX
 #define CTRL_OFFSET NUM_SIG_SCANKEYS + CONTROL_INDEX
 SDL_Event Main::e;
+bool Main::canChangePause = true;
 bool Main::moving;
 bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
@@ -34,9 +35,15 @@ Behaviour::~Behaviour() {
     Physics::DeleteRB(rbNode);
 }
 void Behaviour::Update() {
-
+    colOnFrame = false;
 }
-Behaviour::Behaviour(SubRBData& data) {
+//debugging: remember this is not the only constructor of behaviour
+Behaviour::Behaviour(SubRBData data): colOnFrame(false) {
+    rbNode = Physics::SubscribeEntity(&data);
+    rb = rbNode->value;
+    entity = rb->GetEntity();
+}
+Behaviour::Behaviour(SubRBData *data): colOnFrame(false) {
     rbNode = Physics::SubscribeEntity(data);
     rb = rbNode->value;
     entity = rb->GetEntity();
@@ -152,7 +159,6 @@ static int currentDir;
 void Main::EarlyUpdate() {
     RegisterInput();
     leftClickOnFrame = leftClick && !pastLeftClick;
-    SDL_RenderClear(renderer);
     AssignDirKey(input_right, SDL_SCANCODE_RIGHT, SDL_SCANCODE_D);
     AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
     AssignDirKey(input_left, SDL_SCANCODE_LEFT, SDL_SCANCODE_A);
@@ -254,6 +260,7 @@ float Main::timeScale = 1.f;
 MultiDelegate<float> Main::dtUpdates;
 //regular (no argument) updates are called after dt updates
 MultiDelegate<void> Main::Updates;
+MultiDelegate<void> Main::PauseUpdates;
 constexpr static int afk_sleep_time = 16;
 int main(int argc, char* args[])
 {
@@ -281,12 +288,15 @@ int main(int argc, char* args[])
     Main::StartDTCounter();
     SDL_GetMouseState(&Main::mousePosition.x, &Main::mousePosition.y);
     do {
+        SDL_RenderClear(Main::renderer);
         if (Main::timeScale == .0f) {
             Main::RegisterInput();
-            Main::StartDTCounter();
-            Main::CheckPauseState();
+            if (Main::canChangePause) Main::CheckPauseState();
+            Main::PauseUpdates();
         pause_screen:
             Main::ClearInput();
+            Main::StartDTCounter();
+            Main::LateUpdate();
             SDL_Delay(afk_sleep_time);
             continue;
         }
@@ -295,7 +305,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-//#define SHOW_FPS
+#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());
