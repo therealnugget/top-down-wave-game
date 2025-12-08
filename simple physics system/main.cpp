@@ -30,7 +30,7 @@ static int currentKeyPressed;
 static bool quit;
 Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
-    Main::Updates -= rb->updateNode;
+    if (rb->updateNode) Main::Updates -= rb->updateNode;
     if (rb->GetCacheNodeRef()) Physics::RemoveCacheNodeRef(rb->GetCacheNodeRef());
     Physics::DeleteRB(rbNode);
 }
@@ -188,6 +188,7 @@ void Main::ClearInput() {
 }
 //called after all behaviour scripts because it calls "sdl_renderpresent" and adds more key functionality
 void Main::LateUpdate() {
+    Main::LateUpdates();
     moving = false;
     pastLeftClick = leftClick;
     SDL_RenderPresent(renderer);
@@ -260,6 +261,7 @@ float Main::timeScale = 1.f;
 MultiDelegate<float> Main::dtUpdates;
 //regular (no argument) updates are called after dt updates
 MultiDelegate<void> Main::Updates;
+MultiDelegate<void> Main::LateUpdates;
 MultiDelegate<void> Main::PauseUpdates;
 constexpr static int afk_sleep_time = 16;
 int main(int argc, char* args[])

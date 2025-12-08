@@ -10,6 +10,7 @@ private:
 	static constexpr float plrAttkOutSpd = 600.f;
 	static constexpr int attkSlashAnim = 0;
 	static constexpr int healthBarAnim = 0;
+	static const FVector2 playerCollider;
 	static float plrAttkET;
 	static float maxHealth;
 	static float health;
@@ -20,6 +21,8 @@ private:
 	static RigidBody* player;
 	static Entity* playerEnt;
 	static Node<Entity*> *healthbar;
+	static Node<RigidBody*> *crystalCollider;
+	static RigidBody* crystalColliderRb;
 	static Entity* healthBarEnt;
 	static float accel, speed;
 	static float knockBack;
@@ -56,6 +59,7 @@ public:
 	static void Init(void);
 	static void Finalize(void);
 	static void Update(void);
+	static void LateUpdate(void);
 	inline static bool PlayingHurtAnim() {
 		return playerEnt->GetCurAnim() == Main::GetAnimOffset(hit) + IntVec2::VecToDir(pastInp) && !playerEnt->AnimFinished();
 	}

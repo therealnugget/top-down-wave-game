@@ -27,7 +27,7 @@ private:
 	FVector2 toPlr;
 	static constexpr float attackDistSqr = 10000.f;
 	static constexpr float dashDistSqr = 17000.f;
-	void CollisionCallback(Collision&);
+	void CollisionCallback(Collision*);
 	int curAnim;
 	inline FVector2 GetToPlr() {
 		return FVector2::FromTo(rb->newPosition, Player::GetPosition());

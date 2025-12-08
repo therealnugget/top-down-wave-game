@@ -35,7 +35,7 @@ const std::vector<FVector2> Physics::DefaultSquareVerticesVec = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
 //imageDimensions is to resize the collider based on how big the contents of the image is in comparison to the image itself
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::function<void(Collision&)> collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<std::string, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::function<void(Collision*)> collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<std::string, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
 	auto data = SubRBData(basePath, animPaths, _narrowPhaseVertices, startPos, size, _centreOfRot, _centreOfRotNPVert, _renderOffset, tag, collisionCallback, imageSizes, isGlobalSize, initVel, angle, mass, moveable, isTrigger, endPaths);
 	return SubscribeEntity(&data);
 }
@@ -63,9 +63,6 @@ Node<Entity*>* Physics::SubStandaloneEnt(SubRBData *data) {
 //deletes value of node
 Node<Entity*>* Physics::UnsubStandaloneEnt(Node<Entity*>* remove) {
 	return Node<Entity*>::RemoveWVal(&standaloneEntityHead, remove);
-}
-bool Collision::CompareTag(int tag) {
-	return collider->tag == tag;
 }
 void Physics::UnSubscribeEntity(rbList* node) {
 	rbList::Remove(&entityHead, node);
@@ -173,15 +170,16 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		checkProj(a);
 		float dot = .0f;
 		bool triggerCollision = a->bIsTrigger || b->bIsTrigger;
-		if (!colliding) goto ret;
+		if (!colliding) goto free_mutex;
 
 		{
 			checkProj(b);
 			FVector2 aPos = a->position, bPos = b->position;
 			if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
 			bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
-			if (triggerCollision || !(a->layer & b->layer))
-				goto ret;
+			constexpr int last_bit_offset = 63;
+			if (triggerCollision) goto ret;
+			if (!(a->layer & b->layer) || a->layer == b->layer && (!(a->layer << last_bit_offset) || !(b->layer << last_bit_offset))) goto free_mutex;
 
 			{
 				FVector2 offset = normal * depth * .5f;
@@ -205,11 +203,23 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 	ret:;
 		if (colliding/* && !a->GetEntityCollided(collisionIndexAB, collisionIndexBA, true) && !b->GetEntityCollided(collisionIndexAB, collisionIndexBA, true)*/) {
 			//a->SetEntitiesCollided(collisionIndexBA, true);
-			Collision collisionData = Collision(b, dot, triggerCollision, normal);
-			if (a->OnCollision) a->OnCollision(collisionData);
-			if (!b->OnCollision) goto free_mutex;
-			collisionData.SetCollider(a);
+			Collision *collisionData = nullptr;
+			if (a->OnCollision) {
+				collisionData = static_cast<Collision*>(_malloca(sizeof(Collision)));
+				*collisionData = Collision(b, dot, triggerCollision, normal);
+				a->OnCollision(collisionData);
+			}
+			if (!b->OnCollision) {
+				_freea(collisionData);
+				goto free_mutex;
+			}
+			if (!collisionData) {
+				collisionData = static_cast<Collision*>(_malloca(sizeof(Collision)));
+				*collisionData = Collision(a, dot, triggerCollision, normal);
+			}
+			else collisionData->SetCollider(a);
 			b->OnCollision(collisionData);
+			_freea(collisionData);
 		}
 	}
 	free_mutex:

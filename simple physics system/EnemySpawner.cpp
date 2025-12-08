@@ -11,7 +11,7 @@ Node<Text*> *EnemySpawner::waveText = nullptr;
 Timer* EnemySpawner::waveTextTimer = nullptr;
 Node<SwordGuy*> *EnemySpawner::swordGuys = nullptr;
 int EnemySpawner::waveIndex = 0;
-int EnemySpawner::maxEnemies = 20;
+int EnemySpawner::maxEnemies = 30;
 IntVec2 EnemySpawner::waveTextSizeVec = IntVec2(waveTextSize * 2, waveTextSize);
 void EnemySpawner::DestroyWaveText(void) {
 	delete waveTextTimer;

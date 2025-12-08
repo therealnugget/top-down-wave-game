@@ -347,9 +347,11 @@ template<>
 class MultiDelegate<void>;
 class Main {
 public:
+	//first bit assigned for whether the collider will collide with itself
 	static enum Layer {
-		playerLayer = 0b0001,
-		enemyLayer = 0b0010,
+		playerLayer = 0b0010,
+		crystalLayer = 0b0010,
+		enemyLayer = 0b0011,
 	};
 	//whether the key was pressed this frame regardless of it's state last frame
 	static inline bool GetKey(int key) {
@@ -382,6 +384,7 @@ public:
 		enemy = 1,
 		playerAttack = 2,
 		crystal = 3,
+		playerTrigCrystal = 4,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -427,6 +430,7 @@ public:
 	static void EarlyUpdate();
 	static MultiDelegate<float> dtUpdates;
 	static MultiDelegate<void> Updates;
+	static MultiDelegate<void> LateUpdates;
 	static MultiDelegate<void> PauseUpdates;
 	static void LateUpdate();
 	static void Start();

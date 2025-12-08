@@ -20,6 +20,7 @@ float Player::maxHealth = 55.f;
 float Player::health = Player::maxHealth;
 FVector2 Player::mouseDiff;
 static constexpr float attackSizeMult = 1.2f;
+const FVector2 Player::playerCollider = FVector2(.375f, .5f);
 IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGHT * attackSizeMult);
 IntVec2 Player::pastInp;
 bool Player::mouseVertical;
@@ -37,9 +38,12 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 }
 #endif
 static IntVec2 playerSize = IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
+static IntVec2 playerSizeFVec = static_cast<FVector2>(playerSize);
 FVector2 Player::healthBarOffset = { -21, -35 };
 IntVec2 Player::healthBarSize = IntVec2(40, 20);
 Node<Entity*> *Player::healthbar;
+Node<RigidBody*>* Player::crystalCollider;
+RigidBody* Player::crystalColliderRb;
 Entity* Player::healthBarEnt;
 void Player::TakeDamage(void) {
 #ifdef IS_DEV
@@ -56,18 +60,25 @@ void Player::Init(void) {
 #define USE_NORMAL_PLAYER_POS
 	FVector2 defaultPlrPos = 
 		#ifdef USE_NORMAL_PLAYER_POS
-		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * static_cast<FVector2>(playerSize) * .5f
+		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSizeFVec * .5f
 		#else
 		FVector2::Zero
 #endif
 		;
-	auto data = SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), FVector2(.375f, .5f) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player);
-	plrBehaviour = new Behaviour(&data);
+	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * 1.5f * Physics::DefaultSquareVerticesVec, defaultPlrPos);
+	crystalData.isTrigger = true;
+	crystalData.tag = Main::Tag::playerTrigCrystal;
+	crystalData.createEntity = false;
+	crystalCollider = Physics::SubscribeEntity(&crystalData);
+	crystalColliderRb = crystalCollider->value;
+	plrBehaviour = new Behaviour(SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), static_cast<FVector2>(playerCollider) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player));
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
+	player->SetTrigger(true);
 	player->updateNode = Main::Updates += Player::Update;
-	player->SetCollisionCallback([](Collision &collision) -> void {
-		if (!collision.CompareTag(Main::Tag::enemy) || colOnFrame) return;
+	Main::LateUpdates += Player::LateUpdate;
+	player->SetCollisionCallback([](Collision *collision) -> void {
+		if (!collision->CompareTag(Main::Tag::enemy) || colOnFrame) return;
 		colOnFrame = true;
 		TakeDamage();
 		});
@@ -90,6 +101,10 @@ void Player::Init(void) {
 }
 static constexpr float playerAttackSizeMult = 1.2f;
 static constexpr float playerAttackOut = .2f;
+void Player::LateUpdate(void) {
+	healthBarEnt->SetRectPosition(GetPosition() + healthBarOffset);
+	crystalColliderRb->SetPosition(GetPosition());
+}
 void Player::Update(void) {
 	colOnFrame = false;
 	if (Main::KeyPressed(SDL_SCANCODE_K)) {
@@ -121,7 +136,6 @@ void Player::Update(void) {
 		player->GetNarrowPhaseVertices()[j].PrintVec();*/
 	}
 #endif
-	healthBarEnt->SetRectPosition(GetPosition() + healthBarOffset);
 	healthBarEnt->SetAnimFrame(static_cast<int>(floorf(GetHealthFrac() * static_cast<float>(healthBarEnt->GetNumAnimFrames() - 1))));
 	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
 	if (!Main::leftClick && plrAttack) {
