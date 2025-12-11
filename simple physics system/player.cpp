@@ -18,6 +18,7 @@ float Player::knockBack = 600.f;
 float Player::plrAttkET = .0f;
 float Player::maxHealth = 55.f;
 float Player::health = Player::maxHealth;
+float Player::crystalColldierSizeMult = 1.4f;
 FVector2 Player::mouseDiff;
 static constexpr float attackSizeMult = 1.2f;
 const FVector2 Player::playerCollider = FVector2(.375f, .5f);
@@ -39,8 +40,10 @@ static void SetPositions(rbList** rbs, int i, int j, RigidBody *rb) {
 #endif
 static IntVec2 playerSize = IntVec2(static_cast<float>(PLAYER_WIDTH), static_cast<float>(PLAYER_HEIGHT));
 static IntVec2 playerSizeFVec = static_cast<FVector2>(playerSize);
-FVector2 Player::healthBarOffset = { -21, -35 };
+FVector2 Player::healthBarOffset = { -21.f, -35.f };
 IntVec2 Player::healthBarSize = IntVec2(40, 20);
+FVector2 Player::progressBarPos = { .0, .0f };
+IntVec2 Player::progressBarInitSize = IntVec2(2000, 100);
 Node<Entity*> *Player::healthbar;
 Node<RigidBody*>* Player::crystalCollider;
 RigidBody* Player::crystalColliderRb;
@@ -65,7 +68,7 @@ void Player::Init(void) {
 		FVector2::Zero
 #endif
 		;
-	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * 1.5f * Physics::DefaultSquareVerticesVec, defaultPlrPos);
+	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * crystalColldierSizeMult * Physics::DefaultSquareVerticesVec, defaultPlrPos);
 	crystalData.isTrigger = true;
 	crystalData.tag = Main::Tag::playerTrigCrystal;
 	crystalData.createEntity = false;
@@ -87,6 +90,8 @@ void Player::Init(void) {
 	playerEnt->SetNotLoopDirs(Main::GetAnimOffset(hit));
 	playerEnt->SetRecordAnim(true);
 	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, player->GetPosition() + healthBarOffset, healthBarSize));
+	progressBarPos.x = Main::halfDisplaySize.x * .0f;
+	auto progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize));
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
 	constexpr int numShapes = 0;

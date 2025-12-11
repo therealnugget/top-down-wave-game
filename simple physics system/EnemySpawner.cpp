@@ -23,8 +23,8 @@ void EnemySpawner::Update(void) {
 	if (waveTextTimer && waveTextTimer->GetElapsedSeconds() > waveTextDisappearTime) DestroyWaveText();
 	auto bIsEndWave = curNumEnemies == 0;
 	if (bIsEndWave && !lastFrameEndWave) {
-		maxEnemies *= wave_num_enemy_mult;
-		numSpawnedEnemies = 0;
+		/*maxEnemies *= wave_num_enemy_mult;
+		numSpawnedEnemies = 0;*/
 		if (waveTextTimer) DestroyWaveText();
 		waveText = Physics::SubText(new Text(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) - waveTextSizeVec * .1f - IntVec2::GetUp() * waveTextSizeVec * .3f, "Wave " + std::to_string(++waveIndex)));
 		waveTextTimer = new Timer();

@@ -21,7 +21,8 @@ bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
 IntVec2 Main::mousePosition;
 const std::string Main::empty_string = "";
-const char* const Main::empty_cc = empty_string.c_str();
+const char* const Main::empty_cc = "";
+const std::initializer_list<const char*> const Main::empty_cc_init = { empty_cc };
 bool Main::pressingKey[NUM_SIG_SCANKEYS];
 bool Main::pressedKey[NUM_SIG_SCANKEYS];
 bool Main::pressingModKey[NUM_MOD_KEYS];
@@ -307,7 +308,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-#define SHOW_FPS
+//#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());

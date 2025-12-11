@@ -11,9 +11,14 @@ private:
 	static constexpr int attkSlashAnim = 0;
 	static constexpr int healthBarAnim = 0;
 	static const FVector2 playerCollider;
+	static float crystalColldierSizeMult;
 	static float plrAttkET;
 	static float maxHealth;
 	static float health;
+	static float accel, speed;
+	static float knockBack;
+	static bool mouseVertical;
+	static bool colOnFrame;
 	static Node<std::function<void(void)>>* updateNode;
 	static Behaviour* plrBehaviour;
 	static rbList* plrNode;
@@ -24,15 +29,13 @@ private:
 	static Node<RigidBody*> *crystalCollider;
 	static RigidBody* crystalColliderRb;
 	static Entity* healthBarEnt;
-	static float accel, speed;
-	static float knockBack;
 	static FVector2 mouseDiff;
 	static FVector2 healthBarOffset;
+	static FVector2 progressBarPos;
 	static IntVec2 healthBarSize;
+	static IntVec2 progressBarInitSize;
 	static IntVec2 attackSize;
 	static IntVec2 pastInp;
-	static bool mouseVertical;
-	static bool colOnFrame;
 	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2::Zero);
 public:
 	static inline float GetHealthFrac() {

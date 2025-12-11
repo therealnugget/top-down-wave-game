@@ -512,6 +512,7 @@ public:
 	}
 	static const std::string empty_string;
 	static const char * const empty_cc;
+	static const std::initializer_list<const char *> const empty_cc_init;
 private:
 	//order important for bit-wise operations.
 	static enum inpDirection: int {

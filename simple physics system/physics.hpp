@@ -62,7 +62,9 @@ public:
 		return *this = *this / b;
 	}
 	inline Vector2 operator /=(T b) {
-		return *this = *this / b;
+		this->x /= b;
+		this->y /= b;
+		return *this;
 	}
 	inline Vector2 operator -() {
 		return Vector2(-x, -y);
@@ -447,7 +449,7 @@ public:
 			for (auto& path : data->endPaths.size() > 0 ? data->endPaths : Main::dirPaths) {
 				auto fullPathStr = data->basePath + (data->basePath == Main::empty_string ? Main::empty_cc : "/") + animPath + (path[0] ? "_" : "") + path;
 				register auto fullPath = fullPathStr.c_str();
-				if (!Textures::InitAnim(*this, fullPath)) ThrowError("could not load texture at path \"images/", fullPath, "0.(png/bmp)\"");
+				if (!Textures::InitAnim(*this, fullPath)) ThrowError("could not load texture at path \"images/", fullPath, "_0.(png/bmp)\"");
 				if (i == 0 && j == 0) SetTexture(anims[0].textures[0]);
 				if (data->imageSizes.size() == 0) {
 					continue;
