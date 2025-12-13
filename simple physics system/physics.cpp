@@ -16,6 +16,7 @@ static Node<Text*>* curText;
 rbListList *Physics::sortedEntityHeads = nullptr;
 rbListList *Physics::unsortedEntityHeads = nullptr;
 EmptyStack<RigidBody*> Physics::sortedCacheNodes = EmptyStack<RigidBody *>();
+uint Physics::numCacheNodes = 0;
 int Physics::numEntities = 0;
 int Physics::sectionSize = 0;
 int Physics::numSections = 0;
@@ -66,6 +67,7 @@ Node<Entity*>* Physics::UnsubStandaloneEnt(Node<Entity*>* remove) {
 }
 void Physics::UnSubscribeEntity(rbList* node) {
 	rbList::Remove(&entityHead, node);
+	numEntities--;
 }
 //don't delete rigidbodies directly; use this func instead
 void Physics::DeleteRB(rbList* node) {
@@ -342,7 +344,9 @@ void Physics::DeleteQuadEntities(QuadNode<RigidBody*>* tree, bool isRoot) {
 	while (treeValHead) {
 		next = treeValHead->GetNext();
 		rbList::Remove(&tree->values, treeValHead, false);
+		numCacheNodes = 0;
 		treeValHead->value->cacheNodeRef = sortedCacheNodes.PushNode(treeValHead);
+		numCacheNodes++;
 		treeValHead = next;
 	}
 	if (tree->IsLeafNode()) {
@@ -372,7 +376,10 @@ void Physics::SortEntity(QuadNode<RigidBody*>* quadNode, Node<RigidBody *> *enti
 			else rbList::AddAtHead(curRB, &quadNode->values, sortedCacheNodes.PopNode());
 			noEntInCurCell++;
 		}
-		else if (currentDepth == 0) rbList::AddAtHead(curRB, &unsortedRbs);
+		else if (currentDepth == 0) {
+			curRB->cacheNodeRef = nullptr;
+			rbList::AddAtHead(curRB, &unsortedRbs);
+		}
 		Node<RigidBody*>::Advance(&entities);
 	}
 	auto AddRbsToNPList = [unsortedRbs, noEntInCurCell](rbList* vals, rbListList** head, int &numEnts, int &secSize, int &excessEntNo, int &numSecs) -> void {
@@ -561,7 +568,7 @@ void Physics::Update(float dt) {
 			rbList::RemoveAllNodes(list, true);
 			}, true);
 	}
-	if (frameInd++ == cache_flush_interval) {
+	if (frameInd++ == cache_flush_interval && numCacheNodes > numEntities) {
 		sortedCacheNodes.Flush();
 		frameInd = 0;
 	}

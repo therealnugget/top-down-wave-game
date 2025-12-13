@@ -8,8 +8,9 @@ void Text::RenderText(Text* text) {
 }
 void Text::Update(void) {
 	RenderText(this);
-	if (!Main::KeyPressed(SDL_SCANCODE_K)) return;
-	Main::TogglePauseState();
+	if (!Main::leftClickOnFrame) return;
+	Main::canChangePause = true;
+	Main::SetPauseState(false);
 	delete this;
 }
 void Text::Finalize(void) {

@@ -7,6 +7,7 @@ void Crystal::Update(void) {
 	crystalInForce += crystal_in_force_add * dt;
 	if (toPlr.SqrMagnitude() < destroyDistance || homeTime->GetElapsedSeconds() > max_alive_seconds) entity->SetAnimation(collect);
 	if (!entity->AnimFinished() || entity->GetCurAnim() != collect) return;
+	Player::IncreaseProgress(progressAmount);
 	delete homeTime;
 	delete this;
 }

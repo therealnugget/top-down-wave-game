@@ -26,14 +26,19 @@ private:
 	static RigidBody* player;
 	static Entity* playerEnt;
 	static Node<Entity*> *healthbar;
+	static Entity* healthBarEnt;
+	static Node<Entity*> *progressBar;
+	static Entity* progressBarEnt;
 	static Node<RigidBody*> *crystalCollider;
 	static RigidBody* crystalColliderRb;
-	static Entity* healthBarEnt;
 	static FVector2 mouseDiff;
 	static FVector2 healthBarOffset;
 	static FVector2 progressBarPos;
 	static IntVec2 healthBarSize;
 	static IntVec2 progressBarInitSize;
+	static float progressAmount;
+	static float maxProgress;
+	static float progressIncrease;
 	static IntVec2 attackSize;
 	static IntVec2 pastInp;
 	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2::Zero);
@@ -59,6 +64,7 @@ public:
 		return player->GetPosition();
 	}
 	static void TakeDamage(void);
+	static void IncreaseProgress(float);
 	static void Init(void);
 	static void Finalize(void);
 	static void Update(void);

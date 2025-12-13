@@ -44,16 +44,36 @@ FVector2 Player::healthBarOffset = { -21.f, -35.f };
 IntVec2 Player::healthBarSize = IntVec2(40, 20);
 FVector2 Player::progressBarPos = { .0, .0f };
 IntVec2 Player::progressBarInitSize = IntVec2(2000, 100);
+float Player::maxProgress = 10.f;
+float Player::progressIncrease = 1.3f;
+float Player::progressAmount = .0f;
 Node<Entity*> *Player::healthbar;
+Entity* Player::healthBarEnt;
+Node<Entity*> *Player::progressBar;
+Entity* Player::progressBarEnt;
 Node<RigidBody*>* Player::crystalCollider;
 RigidBody* Player::crystalColliderRb;
-Entity* Player::healthBarEnt;
+void Player::IncreaseProgress(float add) {
+	progressAmount += add;
+	if (progressAmount > maxProgress) {
+		progressAmount -= floorf(progressAmount / maxProgress) * maxProgress;
+		for (int i = 0; i < 3; i++) {
+			constexpr IntVec2 itemTextSize = IntVec2(150, 100);
+			constexpr int itemYSeparation = 190;
+			new Text(IntVec2::GetOne() * itemTextSize, Main::halfDisplaySize + IntVec2::GetUp() * (i - 1) * itemYSeparation, "test", true);
+		}
+		Main::TogglePauseState();
+		Main::canChangePause = false;
+		maxProgress *= progressIncrease;
+	}
+	progressBarEnt->SetSizeX((progressAmount) / maxProgress * static_cast<float>(progressBarInitSize.x));
+}
 void Player::TakeDamage(void) {
 #ifdef IS_DEV
 	return;
 #endif
 	if (PlayingHurtAnim()) return;
-	health--;
+	//health--;
 	PlayDirAnim(hit, pastInp);
 	if (health <= .0f) {
 		Main::SetPauseState(true);
@@ -91,7 +111,8 @@ void Player::Init(void) {
 	playerEnt->SetRecordAnim(true);
 	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, player->GetPosition() + healthBarOffset, healthBarSize));
 	progressBarPos.x = Main::halfDisplaySize.x * .0f;
-	auto progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize));
+	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
+	progressBarEnt = progressBar->value;
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
 	constexpr int numShapes = 0;
@@ -112,15 +133,6 @@ void Player::LateUpdate(void) {
 }
 void Player::Update(void) {
 	colOnFrame = false;
-	if (Main::KeyPressed(SDL_SCANCODE_K)) {
-		for (int i = 0; i < 3; i++) {
-			constexpr IntVec2 itemTextSize = IntVec2(150, 100);
-			constexpr int itemYSeparation = 190;
-			new Text(IntVec2::GetOne() * itemTextSize, Main::halfDisplaySize + IntVec2::GetUp() * (i - 1) * itemYSeparation, "test", true);
-		}
-		Main::TogglePauseState();
-		Main::canChangePause = false;
-	}
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
 	currentVel = player->GetVelocity();/*

@@ -436,8 +436,8 @@ public:
 		centreOfRotation = new SDL_Point;
 		rect = new SDL_Rect;
 #ifdef DEBUG_BUILD
-		Assert(data->size.x, "size on the x cannot be zero");
-		Assert(data->size.y, "size on the y cannot be zero");
+		Assert(data->size.x >= .0f, "size on the x cannot be less than zero");
+		Assert(data->size.y >= .0f, "size on the y cannot be less than zero");
 #endif
 		data->size.IntoRectWH(rect);
 		data->startPos.IntoRectXY(rect);
@@ -542,6 +542,16 @@ public:
 	}
 	inline IntVec2 GetSize() const {
 		return { rect->w, rect->h };
+	}
+	inline void SetSizeX(int x) {
+		rect->w = x;
+	}
+	inline void SetSizeY(int y) {
+		rect->h = y;
+	}
+	inline void SetSize(IntVec2 size) {
+		rect->w = size.x;
+		rect->h = size.y;
 	}
 	inline IntVec2 GetRenderOffset() {
 		return renderOffset;
@@ -868,7 +878,7 @@ class Text;
 class Physics {
 private:
 	//decreasing the number of movement iterations increases fps at the expense of physical accuracy
-	static constexpr int num_movement_iterations = 20;
+	static constexpr int num_movement_iterations = 20;//TODO: set to 8
 	static constexpr float inv_num_movement_iterations_f = 1.f / static_cast<float>(num_movement_iterations);
 	static constexpr FVector2 initCellSize = { 5000.f, 5000.f };
 	static constexpr AABB initCellAABB = { FVector2::ConstNeg(FVector2::ConstMult(initCellSize, .5f)), FVector2::ConstMult(initCellSize, .5f) };
@@ -886,6 +896,7 @@ private:
 	static rbListList *unsortedEntityHeads;
 	static QuadNode<RigidBody*> quadRoot;
 	static EmptyStack<RigidBody *> sortedCacheNodes;
+	static uint numCacheNodes;
 	static int numEntities;
 	static int numSections;
 	static int sectionSize;

@@ -94,20 +94,20 @@ void Main::RegisterInput() {
             case SDL_WINDOWEVENT_SIZE_CHANGED:
             case SDL_WINDOWEVENT_EXPOSED:
                 SDL_RenderPresent(renderer);
-                return;
+                break;
             }
-            return;
+            break;
         case SDL_MOUSEMOTION:
             mousePosition = IntVec2(e.motion.x, e.motion.y);
-            return;
+            break;
         case SDL_MOUSEBUTTONDOWN: {
             auto isLeft = e.button.button == SDL_BUTTON_LEFT;
             leftClick |= isLeft;
-            return;
+            break;
         }
         case SDL_MOUSEBUTTONUP:
             leftClick &= e.button.button != SDL_BUTTON_LEFT;
-            return;
+            break;
         case SDL_KEYUP:
         case SDL_KEYDOWN:
             currentMod = e.key.keysym.mod;
@@ -123,9 +123,10 @@ void Main::RegisterInput() {
                 SDL_SetWindowFullscreen(WindowManager::window, SDL_WINDOW_FULLSCREEN * (fullScreen = curFullScreenState) + SDL_WINDOW_MAXIMIZED * curFullScreenState);
             }
             quit |= e.type == SDL_QUIT || (Main::ModKeyHeld(CONTROL_INDEX) && KeyPressed(SDL_SCANCODE_Q));
-            return;
+            break;
         }
     }
+    leftClickOnFrame = leftClick && !pastLeftClick;
 }
 void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
     register bool keyPress = keyInfo(key1) || keyInfo(key2);
@@ -159,7 +160,6 @@ static int currentDir;
 //this contains the behaviour for assigning which key was pressed in the frame, thus it should be called before any other behaviours.
 void Main::EarlyUpdate() {
     RegisterInput();
-    leftClickOnFrame = leftClick && !pastLeftClick;
     AssignDirKey(input_right, SDL_SCANCODE_RIGHT, SDL_SCANCODE_D);
     AssignDirKey(input_up, SDL_SCANCODE_UP, SDL_SCANCODE_W);
     AssignDirKey(input_left, SDL_SCANCODE_LEFT, SDL_SCANCODE_A);
