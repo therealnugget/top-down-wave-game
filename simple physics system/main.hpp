@@ -27,7 +27,7 @@ protected:
 	Entity* entity;
 	void SetUpdateNode(Node<std::function<void(void)>>*);
 	void SetFlipX(bool flip);
-	~Behaviour();
+	virtual ~Behaviour();
 public:
 	Behaviour(SubRBData);
 	Behaviour(SubRBData *);
@@ -496,11 +496,11 @@ public:
 	static void AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//min inclusive, max exclusive
 	static inline int GetRandInt(int min, int max) {
-		return static_cast<int>((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * (max - min) + min);
+		return static_cast<int>(ceilf(static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * static_cast<float>(max - min)) + min - 1);
 	}
 	static int GetRandInt(int a, int b, int c);
 	static inline float GetRandFloat(float min, float max) {
-		return static_cast<float>((static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * (max - min) + min);
+		return static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min) + min;
 	}
 	static FVector2 GetRandFVec(FVector2 min, FVector2 max);
 	template<typename T>
@@ -544,7 +544,7 @@ private:
 	static bool pressedKey[];//^^ that of last frame
 	static bool pressingModKey[];
 	static bool pressedModKey[];
-	static float doubleInvRefreshRate;
+	static float invRefreshRate;
 	static void SetPastKey(int*);
 	static inline void SetLClickState(bool state) {
 	}

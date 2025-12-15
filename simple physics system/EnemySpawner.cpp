@@ -12,7 +12,7 @@ Timer* EnemySpawner::waveTextTimer = nullptr;
 Node<SwordGuy*> *EnemySpawner::swordGuys = nullptr;
 int EnemySpawner::waveIndex = 0;
 int EnemySpawner::maxEnemies = 30;
-IntVec2 EnemySpawner::waveTextSizeVec = IntVec2(waveTextSize * 2, waveTextSize);
+Text::TextData EnemySpawner::textData;
 void EnemySpawner::DestroyWaveText(void) {
 	delete waveTextTimer;
 	waveTextTimer = nullptr;
@@ -26,7 +26,8 @@ void EnemySpawner::Update(void) {
 		maxEnemies *= wave_num_enemy_mult;
 		numSpawnedEnemies = 0;
 		if (waveTextTimer) DestroyWaveText();
-		waveText = Physics::SubText(new Text(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) - waveTextSizeVec * .1f - IntVec2::GetUp() * waveTextSizeVec * .3f, "Wave " + std::to_string(++waveIndex)));
+		textData.SetText(("Wave " + std::to_string(++waveIndex)).c_str());
+		waveText = Physics::SubText(new Text(&textData));
 		waveTextTimer = new Timer();
 	}
 	lastFrameEndWave = bIsEndWave;
@@ -43,5 +44,6 @@ void EnemySpawner::DestroySwordGuy(Node<SwordGuy *> *guy) {
 	Node<SwordGuy*>::Remove(&swordGuys, guy);
 }
 void EnemySpawner::Init(void) {
+	textData = Text::TextData(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) - waveTextSizeVec * .1f - IntVec2::Up * waveTextSizeVec * .3f, "broken");
 	Main::Updates += EnemySpawner::Update;
 }

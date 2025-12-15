@@ -16,7 +16,7 @@ float Player::accel = 700000.f;
 float Player::speed = 2000.f;
 float Player::knockBack = 600.f;
 float Player::plrAttkET = .0f;
-float Player::maxHealth = 55.f;
+float Player::maxHealth = 35.f;
 float Player::health = Player::maxHealth;
 float Player::crystalColldierSizeMult = 1.4f;
 FVector2 Player::mouseDiff;
@@ -45,7 +45,7 @@ IntVec2 Player::healthBarSize = IntVec2(40, 20);
 FVector2 Player::progressBarPos = { .0, .0f };
 IntVec2 Player::progressBarInitSize = IntVec2(2000, 100);
 float Player::maxProgress = 10.f;
-float Player::progressIncrease = 1.3f;
+float Player::progressIncrease = 1.5f;
 float Player::progressAmount = .0f;
 Node<Entity*> *Player::healthbar;
 Entity* Player::healthBarEnt;
@@ -57,10 +57,8 @@ void Player::IncreaseProgress(float add) {
 	progressAmount += add;
 	if (progressAmount > maxProgress) {
 		progressAmount -= floorf(progressAmount / maxProgress) * maxProgress;
-		for (int i = 0; i < 3; i++) {
-			constexpr IntVec2 itemTextSize = IntVec2(150, 100);
-			constexpr int itemYSeparation = 190;
-			new Text(IntVec2::GetOne() * itemTextSize, Main::halfDisplaySize + IntVec2::GetUp() * (i - 1) * itemYSeparation, "test", true);
+		for (int i = 0; i < Item::numItems; i++) {
+			Item::MakeRandItem(i);
 		}
 		Main::TogglePauseState();
 		Main::canChangePause = false;
@@ -68,16 +66,23 @@ void Player::IncreaseProgress(float add) {
 	}
 	progressBarEnt->SetSizeX((progressAmount) / maxProgress * static_cast<float>(progressBarInitSize.x));
 }
-void Player::TakeDamage(void) {
+void Player::TakeDamage(float damage) {
 #ifdef IS_DEV
 	return;
 #endif
 	if (PlayingHurtAnim()) return;
-	//health--;
+	health -= damage;
 	PlayDirAnim(hit, pastInp);
 	if (health <= .0f) {
 		Main::SetPauseState(true);
 	}
+}
+void Player::IncreaseHealth(float increaseFactor) {
+	maxHealth *= 1.f + increaseFactor;
+}
+void Player::IncreasePickupRange(float increaseFactor) {
+	auto crystalColEnt = crystalColliderRb->GetEntity();
+	crystalColEnt->SetSize(crystalColEnt->GetSize() * (1.f + increaseFactor));
 }
 void Player::Init(void) {
 #define USE_NORMAL_PLAYER_POS
@@ -101,9 +106,7 @@ void Player::Init(void) {
 	player->updateNode = Main::Updates += Player::Update;
 	Main::LateUpdates += Player::LateUpdate;
 	player->SetCollisionCallback([](Collision *collision) -> void {
-		if (!collision->CompareTag(Main::Tag::enemy) || colOnFrame) return;
-		colOnFrame = true;
-		TakeDamage();
+
 		});
 	playerEnt = player->GetEntity();
 	PlayDirAnim(idle);

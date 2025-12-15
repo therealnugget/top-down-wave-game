@@ -458,7 +458,7 @@ void Physics::ProcessTexs() {
 			animFramesPassed -= static_cast<int>(currentEntity->animTime / animTime);
 			currentEntity->animTime += animFramesPassed * animTime;
 		}
-		currentEntity->animTime -= Main::DefCapDeltaTime() * currentEntity->animSpeed;
+		currentEntity->animTime -= Main::DeltaTime() * currentEntity->animSpeed;
 		if (currentEntity->animTime <= .0f) {
 			currentEntity->animTime += animTime;
 			animFramesPassed++;
@@ -595,7 +595,7 @@ void Physics::Update(float dt) {
 	}
 	curText = textHead;
 	while (curText) {
-		Text::RenderText(curText->value);
+		curText->value->RenderText();
 		Node<Text*>::Advance(&curText);
 	}
 #ifdef SHOW_QUAD_TREE

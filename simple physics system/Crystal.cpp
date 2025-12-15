@@ -1,7 +1,7 @@
 #include "Crystal.hpp"
 void Crystal::Update(void) {
 	if (!home) return;
-	auto dt = Main::DeltaTime();
+	auto dt = Main::DefCapDeltaTime();
 	auto toPlr = FVector2::FromTo(rb->GetPosition(), Player::GetPosition());
 	rb->AddForce(toPlr.Normalized() * crystalInForce * dt);
 	crystalInForce += crystal_in_force_add * dt;

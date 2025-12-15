@@ -20,11 +20,14 @@ private:
 	//-1 for yet to decide
 	int attackDecision;
 	bool decideAttack;
+	bool animFinished;
+	bool plrColOnFrm;
 	float speed;
 	float plrDistSqr;
 	float signAtDash;
-	bool animFinished;
+	float damage;
 	FVector2 toPlr;
+	static constexpr float dashPositionAdd = 200.f;
 	static constexpr float attackDistSqr = 10000.f;
 	static constexpr float dashDistSqr = 17000.f;
 	void CollisionCallback(Collision*);

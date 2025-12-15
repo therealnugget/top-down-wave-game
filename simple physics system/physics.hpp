@@ -236,10 +236,10 @@ public:
 	inline bool operator ==(Vector2 b) {
 		return x == b.x && y == b.y;
 	}
-	inline Vector2 operator +(Vector2 b) {
+	inline Vector2 operator +(Vector2 b) const{
 		return Vector2(x + b.x, y + b.y);
 	}
-	inline Vector2 operator -(Vector2 b){
+	inline Vector2 operator -(Vector2 b) const{
 		return Vector2(x - b.x, y - b.y);
 	}
 	inline Vector2 operator +=(Vector2 b) {
@@ -264,7 +264,7 @@ public:
 	inline Vector2 operator /(int b) {
 		return Vector2(static_cast<FVector2>(*this) / static_cast<float>(b));
 	}
-	inline Vector2 operator *(Vector2 b) {
+	inline Vector2 operator *(Vector2 b) const {
 		return Vector2(x * b.x, y * b.y);
 	}
 	inline Vector2 operator *=(Vector2 b) {
@@ -287,10 +287,10 @@ public:
 		}
 		return list;
 	}
-	inline Vector2 operator *(int b) {
+	inline Vector2 operator *(int b) const {
 		return Vector2(x * b, y * b);
 	}
-	inline Vector2 operator *(float b) {
+	inline Vector2 operator *(float b) const {
 		return Vector2(static_cast<float>(x) * b, static_cast<float>(y) * b);
 	}
 	inline float Magnitude() {
@@ -371,6 +371,9 @@ private:
 	inline int Sqr(int n) {
 		return n * n;
 	}
+};
+struct MouseBounds {
+	IntVec2 min, max;
 };
 struct SubRBData {
 private:
@@ -878,7 +881,7 @@ class Text;
 class Physics {
 private:
 	//decreasing the number of movement iterations increases fps at the expense of physical accuracy
-	static constexpr int num_movement_iterations = 20;//TODO: set to 8
+	static constexpr int num_movement_iterations = 8;
 	static constexpr float inv_num_movement_iterations_f = 1.f / static_cast<float>(num_movement_iterations);
 	static constexpr FVector2 initCellSize = { 5000.f, 5000.f };
 	static constexpr AABB initCellAABB = { FVector2::ConstNeg(FVector2::ConstMult(initCellSize, .5f)), FVector2::ConstMult(initCellSize, .5f) };
@@ -959,6 +962,9 @@ public:
 	//this works because only exactly straight lines are drawn from vertex-to-vertex, thus the greatest and smallest points of each entity must be a vertex.
 	static inline bool EntityInBoxBroadPhase(AABB &box, AABB& Bp) {
 		return (Bp.minimum.x >= box.minimum.x || Bp.maximum.x >= box.minimum.x) && (Bp.minimum.x <= box.maximum.x || Bp.maximum.x <= box.maximum.x) && (Bp.minimum.y >= box.minimum.y || Bp.maximum.y >= box.minimum.y) && (Bp.minimum.y <= box.maximum.y || Bp.maximum.y <= box.maximum.y);
+	}
+	static inline bool PointInBounds(IntVec2 pt, const MouseBounds &bounds) {
+		return pt.x > bounds.min.x && pt.y > bounds.min.y && pt.x < bounds.max.x && pt.y < bounds.max.y;
 	}
 	static std::condition_variable threadFuncConds[Physics::thread_count];
 	static std::condition_variable mainWaitConds[Physics::thread_count];

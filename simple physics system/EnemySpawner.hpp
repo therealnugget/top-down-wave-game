@@ -8,7 +8,7 @@ class EnemySpawner final {
 private:
 	static constexpr int spawnFrameInterval = 15;
 	static int maxEnemies;
-	static constexpr float wave_num_enemy_mult = 1.3f;
+	static constexpr float wave_num_enemy_mult = 1.2f;
 	static constexpr float waveTextDisappearTime = 2.f;
 	static int waveIndex;
 	static int numSpawnedEnemies;
@@ -19,7 +19,8 @@ private:
 	static Node<Text*> *waveText;
 	static Timer *waveTextTimer;
 	static constexpr int waveTextSize = 140;
-	static IntVec2 waveTextSizeVec;
+	static constexpr IntVec2 waveTextSizeVec = IntVec2(waveTextSize * 2, waveTextSize);
+	static Text::TextData textData;
 public:
 	static void Init(void);
 	static void DestroyWaveText(void);

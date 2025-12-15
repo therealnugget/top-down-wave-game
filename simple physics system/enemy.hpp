@@ -7,7 +7,7 @@ class Enemy : public Behaviour {
 protected:
 	int health;
 	Enemy(SubRBData);
-	~Enemy();
+	~Enemy() override;
 	virtual void Update(void);
 	bool enabled;
 	enum EnemyAnimation {

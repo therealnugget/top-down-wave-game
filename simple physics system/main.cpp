@@ -55,7 +55,7 @@ void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
 int Main::GetRandInt(int a, int b, int c) {
     int min = Math::Min<int>(Math::Min<int>(a, b), c);
     int max = Math::Max<int>(Math::Max<int>(a, b), c);
-    return GetRandInt(min, max + 1);
+    return GetRandInt(min, max);
 }
 void Main::SetPastKey(int *i) {
     if (*i >= NUM_SIG_SCANKEYS) {
@@ -204,16 +204,16 @@ void Main::Finalize() {
 FVector2 Main::GetRandFVec(FVector2 min, FVector2 max) {
     return { GetRandFloat(min.x, max.x), GetRandFloat(min.y, max.y) };
 }
-//this is quite slow; not because of the float cast creating a new float obj, but rather the getperformancecounter(). for this reason, if you are on an absolute potato and are calling this function a lot of times in a frame without multithreading for behaviours, store the result at the start of the frame and reuse it (obviously unless you want it to be precise, but that's impractical for, for insance, movement code.)
+//if you are on an absolute potato and are calling this function a lot of times in a frame without multithreading for behaviours, store the result at the start of the frame and reuse it (obviously unless you want it to be precise, but that's impractical for, for insance, movement code.)
 float Main::DeltaTime() {
     return static_cast<float>(SDL_GetPerformanceCounter() - pastTime) / frequency * timeScale;
 }
 float Main::CapDeltaTime(float &maxDT) {
-    return fmaxf(DeltaTime(), maxDT);
+    return fminf(DeltaTime(), maxDT);
 }
-float Main::doubleInvRefreshRate;
+float Main::invRefreshRate;
 float Main::DefCapDeltaTime() {
-    return fmaxf(DeltaTime(), doubleInvRefreshRate);
+    return fminf(DeltaTime(), invRefreshRate);
 }
 static void Close() {
     Physics::Finalize();
@@ -247,7 +247,7 @@ void Main::Start() {
     if (!renderer) {
         ThrowError("renderer couldn't be created");
     }
-    doubleInvRefreshRate = 2.f / Main::DM.refresh_rate;
+    invRefreshRate = 1.f / static_cast<float>(Main::DM.refresh_rate);
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG) {
         ThrowError("couldn't init img: ", IMG_GetError());
     }

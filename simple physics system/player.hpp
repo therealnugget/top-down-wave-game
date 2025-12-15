@@ -63,8 +63,10 @@ public:
 	static inline FVector2 GetPosition() {
 		return player->GetPosition();
 	}
-	static void TakeDamage(void);
+	static void TakeDamage(float);
 	static void IncreaseProgress(float);
+	static void IncreasePickupRange(float);
+	static void IncreaseHealth(float);
 	static void Init(void);
 	static void Finalize(void);
 	static void Update(void);
