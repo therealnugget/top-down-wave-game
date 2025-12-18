@@ -9,13 +9,13 @@
 static const FVector2 bobSize = FVector2(172.f * 2.f, 172.f);
 constexpr static float border = .05f;
 constexpr static float invBorder = 1.f - border;
-SwordGuy::SwordGuy(): damage(1.f), attackDecision(Main::GetRandInt(overhead, swing, dash + 1)), decideAttack(true), Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(numSGAnims, idle, "idle", overhead, "overhead", swing, "swing", death, "death", dash, "dash", hurt, "hurt", run, "run", walk, "walk", jump, "jump"), FVector2(13.f / 128.f, 24.f / 64.f)* Physics::GetDefaultSquareVertVec(), /*Main::halfDisplaySize + FVector2::GetRight() * 350.f*/Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize)* border), Main::DisplaySize* invBorder), bobSize, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2(-bobSize.x * .5f, -bobSize.y * .5f), Main::Tag::enemy, [this](Collision* collision) { CollisionCallback(collision); }, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0, 1.f, true, false, {"right"}, true, 32.f / 128.f * bobSize.x, Main::Layer::enemyLayer)) {
+SwordGuy::SwordGuy(): damage(1.f), attackDecision(Main::GetRandInt(overhead, swing, dash + 1)), decideAttack(true), Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(numSGAnims, idle, "idle", overhead, "overhead", swing, "swing", death, "death", dash, "dash", hurt, "hurt", run, "run", walk, "walk", jump, "jump"), FVector2(13.f / 128.f, 24.f / 64.f)* Physics::GetDefaultSquareVertVec(), /*Main::halfDisplaySize + FVector2::GetRight() * 350.f*/Main::GetRandFVec(static_cast<const FVector2>(static_cast<FVector2>(Main::DisplaySize)* border), Main::DisplaySize* invBorder), bobSize, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2(-bobSize.x * .5f, -bobSize.y * .5f), Main::Tag::enemy, true, [this](Collision* collision) { CollisionCallback(collision); }, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0, 1.f, true, false, {"right"}, true, 32.f / 128.f * bobSize.x, Main::Layer::enemyLayer)) {
     entity->SetAnimation(run);
     for (auto& anim : { hurt, overhead, swing, dash, death }) {
         entity->SetNotLoop(anim);
     }
     SetUpdateNode(Main::Updates += [this]() {Update();});
-    speed = 14000000.f;
+    speed = 19000000.f;
 }
 void SwordGuy::CollisionCallback(Collision* collision) {
     if (!enabled) return;

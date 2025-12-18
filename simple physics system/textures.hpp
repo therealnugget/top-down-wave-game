@@ -7,6 +7,7 @@
 #include "usefulTypedefs.hpp"
 #include <tuple>
 #include "main.hpp"
+#include "debug.hpp"
 class Images {
 public:
 	struct ImageData {
@@ -28,7 +29,6 @@ public:
 	static std::unordered_map<std::string, ImageData *>::const_iterator GetImgLoaded(std::string path) {
 		return loadedImages.find(path);
 	}
-	static SDL_Texture* LoadTexture(std::string path);
 	static SDL_Texture* LoadTexture(const char* path, bool, ImageData *);
 	static inline void Finalize() {
 		for (auto &keyVal: loadedImages){
@@ -74,7 +74,7 @@ private:
 	}
 	friend class Textures;
 public:
-	constexpr static float default_anim_fps = 48.f;
+	constexpr static float default_anim_fps = 30.f;
 	constexpr static float default_anim_time = 1.f / default_anim_fps;
 	constexpr static float neg_anim_time = -default_anim_time;
 	inline void DeActivate() {
@@ -120,5 +120,5 @@ private:
 	static RigidBody *curAnimRB;
 public:
 	//return value: whether an animation was actually created
-	static bool InitAnim(Animator &animator, const char *basePath);
+	static SDL_Texture *InitAnim(const char *basePath, Animator *anim = nullptr);
 };

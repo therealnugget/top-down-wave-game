@@ -2,8 +2,7 @@
 #include "player.hpp"
 TTF_Font* Text::font = nullptr;
 void Text::RenderText(void) {
-	auto originPt = SDL_Point();
-	SDL_RenderCopyEx(Main::renderer, texture, nullptr, rect, .0, &originPt, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(Main::renderer, texture, nullptr, rect, .0, GetPointOfRotationAddr(), SDL_FLIP_NONE);
 }
 void Text::Update(void) {
 	RenderText();
@@ -11,11 +10,11 @@ void Text::Update(void) {
 int Item::selectedItem = -1;
 void Item::Update(void) {
 	Text::Update();
+	SDL_RenderCopyEx(Main::renderer, ItemImg, nullptr, itemRect, .0, GetPointOfRotationAddr(), SDL_FLIP_NONE);
 	if (!Main::leftClickOnFrame) return;
 	if (selectedItem == -1) {
-		auto& mousePos = Main::mousePosition;
 		for (int i = 0; i < numItems; i++) {
-			if (Physics::PointInBounds(Main::mousePosition, itemBounds[i])) {
+			if (Physics::PointInBounds(Main::rawMousePosition, itemBounds[i])) {
 				selectedItem = i;
 				break;
 			}
@@ -32,6 +31,7 @@ void Text::Finalize(void) {
 }
 void MaxHealthAdd::OnSelect(void) {
 	Player::IncreaseHealth(healthIncrease);
+	Player::ReplenishHealth();
 }
 void MaxHealthAdd::Update(void) {
 	Item::Update();

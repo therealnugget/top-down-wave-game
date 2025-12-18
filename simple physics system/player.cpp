@@ -9,6 +9,7 @@
 #include "animations.hpp"
 #include "multicast delegates.hpp"
 #include "Item.hpp"
+#include "camera.hpp"
 //#define IS_DEV
 #define PLAYER_WIDTH 70
 #define PLAYER_HEIGHT 70
@@ -26,6 +27,7 @@ IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGH
 IntVec2 Player::pastInp;
 bool Player::mouseVertical;
 bool Player::colOnFrame = false;
+bool Player::enabled = true;
 rbList* Player::plrNode;
 rbList* Player::plrAttack = nullptr;
 RigidBody *Player::player;
@@ -42,8 +44,10 @@ static IntVec2 playerSize = IntVec2(static_cast<float>(PLAYER_WIDTH), static_cas
 static IntVec2 playerSizeFVec = static_cast<FVector2>(playerSize);
 FVector2 Player::healthBarOffset = { -21.f, -35.f };
 IntVec2 Player::healthBarSize = IntVec2(40, 20);
-FVector2 Player::progressBarPos = { .0, .0f };
+FVector2 Player::progressBarPos = { 0.0f, 0.0f };
 IntVec2 Player::progressBarInitSize = IntVec2(2000, 100);
+IntVec2 Player::plrAttkPos;
+FVector2 Main::defaultPlrPos;
 float Player::maxProgress = 10.f;
 float Player::progressIncrease = 1.5f;
 float Player::progressAmount = .0f;
@@ -73,35 +77,33 @@ void Player::TakeDamage(float damage) {
 	if (PlayingHurtAnim()) return;
 	health -= damage;
 	PlayDirAnim(hit, pastInp);
-	if (health <= .0f) {
-		Main::SetPauseState(true);
-	}
+	if (health > .0f) return;
+	Main::SetPauseState(true);
+	enabled = false;
 }
 void Player::IncreaseHealth(float increaseFactor) {
 	maxHealth *= 1.f + increaseFactor;
+}
+void Player::ReplenishHealth(void) {
+	health = maxHealth;
 }
 void Player::IncreasePickupRange(float increaseFactor) {
 	auto crystalColEnt = crystalColliderRb->GetEntity();
 	crystalColEnt->SetSize(crystalColEnt->GetSize() * (1.f + increaseFactor));
 }
 void Player::Init(void) {
-#define USE_NORMAL_PLAYER_POS
-	FVector2 defaultPlrPos = 
-		#ifdef USE_NORMAL_PLAYER_POS
-		Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSizeFVec * .5f
-		#else
-		FVector2::Zero
-#endif
-		;
-	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * crystalColldierSizeMult * Physics::DefaultSquareVerticesVec, defaultPlrPos);
+	Main::defaultPlrPos = Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSizeFVec * .5f;
+	auto defPlrPos = Main::defaultPlrPos;
+	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * crystalColldierSizeMult * Physics::DefaultSquareVerticesVec, defPlrPos);
 	crystalData.isTrigger = true;
 	crystalData.tag = Main::Tag::playerTrigCrystal;
 	crystalData.createEntity = false;
 	crystalCollider = Physics::SubscribeEntity(&crystalData);
 	crystalColliderRb = crystalCollider->value;
-	plrBehaviour = new Behaviour(SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), static_cast<FVector2>(playerCollider) * Physics::DefaultSquareVerticesVec, defaultPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player));
+	plrBehaviour = new Behaviour(SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), static_cast<FVector2>(playerCollider) * Physics::DefaultSquareVerticesVec, defPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player, true));
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
+	Camera::cameraPosition = IntVec2(player->GetPosition());
 	player->SetTrigger(true);
 	player->updateNode = Main::Updates += Player::Update;
 	Main::LateUpdates += Player::LateUpdate;
@@ -112,15 +114,15 @@ void Player::Init(void) {
 	PlayDirAnim(idle);
 	playerEnt->SetNotLoopDirs(Main::GetAnimOffset(hit));
 	playerEnt->SetRecordAnim(true);
-	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, player->GetPosition() + healthBarOffset, healthBarSize));
-	progressBarPos.x = Main::halfDisplaySize.x * .0f;
-	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
-	progressBarEnt = progressBar->value;
+	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, healthBarOffset, healthBarSize));
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
+	healthBarEnt->GetRectPosition().PrintVec();
+	progressBarPos = -defPlrPos;
+	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
+	progressBarEnt = progressBar->value;
 	constexpr int numShapes = 0;
 	if (!numShapes) return;
-	//player2 = Shapes::CreateShape(Physics::DefaultSquareVerticesAsList, defaultPlrPos, playerSize, 1.f, Shapes::square, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f);
 	constexpr float scaleFact = .1f;
 	FVector2 shapeSize = static_cast<FVector2>(playerSize) * scaleFact;
 	constexpr float border = .05f;
@@ -131,10 +133,12 @@ void Player::Init(void) {
 static constexpr float playerAttackSizeMult = 1.2f;
 static constexpr float playerAttackOut = .2f;
 void Player::LateUpdate(void) {
-	healthBarEnt->SetRectPosition(GetPosition() + healthBarOffset);
-	crystalColliderRb->SetPosition(GetPosition());
+	auto pos = GetPosition();
+	Camera::cameraPosition = IntVec2(pos);
+	crystalColliderRb->SetPosition(pos);
 }
 void Player::Update(void) {
+	if (!enabled) return;
 	colOnFrame = false;
 	player->AddForce(Main::fInputVec * accel);
 	//player2Rb->AddForce(Main::fInputVec2 * accel);
@@ -172,9 +176,9 @@ void Player::Update(void) {
 		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
 		PlayDirAnim(attack, mouseDirection);
 		pastInp = mouseDirection;
-		auto plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
+		plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
 		if (!plrAttack) {
-			auto data = SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, { Main::empty_cc });
+			auto data = SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, { Main::empty_cc });
 			plrAttack = Physics::SubscribeEntity(&data);
 			auto attackRB = plrAttack->value;
 			auto attackEnt = attackRB->GetEntity();

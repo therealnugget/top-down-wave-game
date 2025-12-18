@@ -8,6 +8,7 @@
 #include <intrin.h>
 #include <unordered_map>
 #include <variant>
+#include "camera.hpp"
 rbList *Physics::entityHead = nullptr;
 Node<Entity *> *Physics::standaloneEntityHead = nullptr;
 Node<Text *> *Physics::textHead = nullptr;
@@ -36,8 +37,8 @@ const std::vector<FVector2> Physics::DefaultSquareVerticesVec = {
 	{ -.5f, -.5f },{ -.5f, .5f },{ .5f, .5f },{ .5f, -.5f },
 };
 //imageDimensions is to resize the collider based on how big the contents of the image is in comparison to the image itself
-Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, std::function<void(Collision*)> collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<std::string, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
-	auto data = SubRBData(basePath, animPaths, _narrowPhaseVertices, startPos, size, _centreOfRot, _centreOfRotNPVert, _renderOffset, tag, collisionCallback, imageSizes, isGlobalSize, initVel, angle, mass, moveable, isTrigger, endPaths);
+Node<RigidBody*>* Physics::SubscribeEntity(const std::string& basePath, const std::vector<const char*>& animPaths, std::vector<FVector2> _narrowPhaseVertices, FVector2 startPos, IntVec2 size, std::initializer_list<FVector2> _centreOfRot, FVector2 _centreOfRotNPVert, IntVec2 _renderOffset, int tag, bool affectedByCam, std::function<void(Collision*)> collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>> imageSizes, std::unordered_map<std::string, bool> isGlobalSize, FVector2 initVel, float angle, float mass, bool moveable, bool isTrigger, const std::initializer_list<const char*>& endPaths) {
+	auto data = SubRBData(basePath, animPaths, _narrowPhaseVertices, startPos, size, _centreOfRot, _centreOfRotNPVert, _renderOffset, tag, affectedByCam, collisionCallback, imageSizes, isGlobalSize, initVel, angle, mass, moveable, isTrigger, endPaths);
 	return SubscribeEntity(&data);
 }
 Node<RigidBody*>* Physics::SubscribeEntity(SubRBData *data) {
@@ -74,8 +75,8 @@ void Physics::DeleteRB(rbList* node) {
 	delete node->value;
 	UnSubscribeEntity(node);
 }
-Node<RigidBody*>* Physics::StandaloneRB(IntVec2 size, FVector2 startPos, int tag, CollisionCallback collisionCallback, int_fast64_t layer, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {
-	auto data = SubRBData(Main::empty_string, std::vector<const char*>(), size * Physics::DefaultSquareVerticesVec, startPos, IntVec2::One, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false, .0f, layer);
+Node<RigidBody*>* Physics::StandaloneRB(IntVec2 size, FVector2 startPos, int tag, bool affectedByCam, CollisionCallback collisionCallback, int_fast64_t layer, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {
+	auto data = SubRBData(Main::empty_string, std::vector<const char*>(), size * Physics::DefaultSquareVerticesVec, startPos, IntVec2::One, std::initializer_list<FVector2>(), _centreOfRotNPVert, IntVec2::Zero, tag, affectedByCam, collisionCallback, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), initVel, angle, mass, moveable, isTrigger, std::initializer_list<const char*>(), false, .0f, layer);
 	RigidBody* rb = new RigidBody(&data);
 	return SubscribeEntity(rb);
 }
@@ -445,10 +446,11 @@ static int animFramesPassed;
 void Physics::ProcessTexs() {
 	if (!currentEntity) return;
 	curRect = currentEntity->rect;
+	register bool affectByCam = currentEntity->bAffectedByCam;
 	if (currentRB) {
 		currentRB->position.IntoRectXY(curRect);
-		curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX;
-		curRect->y += currentEntity->renderOffset.y;
+		curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX - Camera::GetCamPosX() * affectByCam + static_cast<int>(Main::defaultPlrPos.x);
+		curRect->y += currentEntity->renderOffset.y - Camera::GetCamPosY() * affectByCam + static_cast<int>(Main::defaultPlrPos.y);
 	}
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
@@ -458,7 +460,7 @@ void Physics::ProcessTexs() {
 			animFramesPassed -= static_cast<int>(currentEntity->animTime / animTime);
 			currentEntity->animTime += animFramesPassed * animTime;
 		}
-		currentEntity->animTime -= Main::DeltaTime() * currentEntity->animSpeed;
+		currentEntity->animTime -= Main::DefCapDeltaTime() * currentEntity->animSpeed;
 		if (currentEntity->animTime <= .0f) {
 			currentEntity->animTime += animTime;
 			animFramesPassed++;
@@ -532,6 +534,7 @@ void Physics::Update(float dt) {
 			}
 			currentRB->broadPhaseAABB = { minNarrowPhase, maxNarrowPhase };
 			currentRB->position += currentRB->difPositionSection;
+			if (moveItrIndex == num_movement_iterations - 1) currentRB->newPosition = currentRB->position;
 			//currentRB->ClearCollidedEntities();
 			Node<RigidBody*>::Advance(&curNode);
 		}
@@ -572,6 +575,7 @@ void Physics::Update(float dt) {
 		sortedCacheNodes.Flush();
 		frameInd = 0;
 	}
+	Main::LateUpdates();
 	curNode = entityHead;
 	while (curNode) {
 		currentRB = curNode->value;
@@ -580,7 +584,6 @@ void Physics::Update(float dt) {
 		//currentRB->ClearCollidedEntities(true);
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
-		currentRB->newPosition = currentRB->pastPosition;
 		if (!frameInd) {
 			currentRB->cacheNodeRef = nullptr;
 		}

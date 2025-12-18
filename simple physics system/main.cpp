@@ -1,3 +1,7 @@
+//#define IS_WINDOW
+#ifdef IS_WINDOW
+#include <Windows.h>
+#endif
 #include "debug.hpp"
 #include "winMgr.hpp"
 #include "textures.hpp"
@@ -5,6 +9,7 @@
 #include "math.hpp"
 #include "EnemySpawner.hpp"
 #include "multicast delegates.hpp"
+#include "camera.hpp"
 #include <sstream>
 #include <iomanip>
 #include <SDL_image.h>
@@ -20,6 +25,7 @@ bool Main::moving;
 bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
 IntVec2 Main::mousePosition;
+IntVec2 Main::rawMousePosition;
 const std::string Main::empty_string = "";
 const char* const Main::empty_cc = "";
 const std::initializer_list<const char*> const Main::empty_cc_init = { empty_cc };
@@ -98,7 +104,8 @@ void Main::RegisterInput() {
             }
             break;
         case SDL_MOUSEMOTION:
-            mousePosition = IntVec2(e.motion.x, e.motion.y);
+            rawMousePosition = IntVec2(e.motion.x, e.motion.y);
+            mousePosition = rawMousePosition + Camera::GetCamPos() - static_cast<IntVec2>(defaultPlrPos);
             break;
         case SDL_MOUSEBUTTONDOWN: {
             auto isLeft = e.button.button == SDL_BUTTON_LEFT;
@@ -189,7 +196,6 @@ void Main::ClearInput() {
 }
 //called after all behaviour scripts because it calls "sdl_renderpresent" and adds more key functionality
 void Main::LateUpdate() {
-    Main::LateUpdates();
     moving = false;
     pastLeftClick = leftClick;
     SDL_RenderPresent(renderer);
@@ -265,7 +271,11 @@ MultiDelegate<void> Main::Updates;
 MultiDelegate<void> Main::LateUpdates;
 MultiDelegate<void> Main::PauseUpdates;
 constexpr static int afk_sleep_time = 16;
+#ifdef IS_WINDOW
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#else
 int main(int argc, char* args[])
+#endif
 {
     {
         srand(SDL_GetPerformanceCounter());

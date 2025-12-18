@@ -17,8 +17,12 @@ private:
 	static float health;
 	static float accel, speed;
 	static float knockBack;
+	static float progressAmount;
+	static float maxProgress;
+	static float progressIncrease;
 	static bool mouseVertical;
 	static bool colOnFrame;
+	static bool enabled;
 	static Node<std::function<void(void)>>* updateNode;
 	static Behaviour* plrBehaviour;
 	static rbList* plrNode;
@@ -36,37 +40,36 @@ private:
 	static FVector2 progressBarPos;
 	static IntVec2 healthBarSize;
 	static IntVec2 progressBarInitSize;
-	static float progressAmount;
-	static float maxProgress;
-	static float progressIncrease;
 	static IntVec2 attackSize;
 	static IntVec2 pastInp;
-	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2::Zero);
+	static IntVec2 plrAttkPos;
+	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2(-1, 0));
 public:
-	static inline float GetHealthFrac() {
+	static inline float GetHealthFrac(void) {
 		return health / maxHealth;
 	}
 	//normal of mouse pos from plr pos
-	static inline FVector2 GetMouseDiff() {
+	static inline FVector2 GetMouseDiff(void) {
 		return mouseDiff;
 	}
-	static inline float GetKnockBack() {
+	static inline float GetKnockBack(void) {
 		return knockBack;
 	}
-	static inline FVector2 GetPlayerRightNorm() {
+	static inline FVector2 GetPlayerRightNorm(void) {
 		return FVector2(cosf(player->GetRotation()), sinf(player->GetRotation()));
 	}
-	static inline FVector2 GetPlayerUpNorm() {
+	static inline FVector2 GetPlayerUpNorm(void) {
 		auto upRotation = player->GetRotation() + 90.f;
 		return FVector2(cosf(upRotation), sinf(upRotation));
 	}
-	static inline FVector2 GetPosition() {
+	static inline FVector2 GetPosition(void) {
 		return player->GetPosition();
 	}
 	static void TakeDamage(float);
 	static void IncreaseProgress(float);
 	static void IncreasePickupRange(float);
 	static void IncreaseHealth(float);
+	static void ReplenishHealth(void);
 	static void Init(void);
 	static void Finalize(void);
 	static void Update(void);

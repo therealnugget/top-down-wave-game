@@ -390,6 +390,7 @@ public:
 	static FVector2 fInputVec2;
 	static IntVec2 iInputVec;
 	static IntVec2 mousePosition;
+	static IntVec2 rawMousePosition;
 	static bool leftClick, pastLeftClick;
 	static bool leftClickOnFrame;
 	static bool moving;
@@ -415,6 +416,7 @@ public:
 	//makes more sense to have this as an fvector for fvector size initializations.
 	static FVector2 DisplaySize;
 	static FVector2 halfDisplaySize;
+	static FVector2 defaultPlrPos;
 	static float DeltaTime();
 	static float CapDeltaTime(float &);
 	static float DefCapDeltaTime();

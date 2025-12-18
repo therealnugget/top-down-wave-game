@@ -16,36 +16,26 @@ using namespace std;
 inline void Assert(bool condition, int num_args, ...) {
 	if (condition) return;
 	LogErrArgs;
-	#ifdef DEBUG_BUILD
 	throw new exception();
-	#endif
 }
 inline void ThrowError(int num_args, ...) {
 	LogErrArgs;
-	#ifdef DEBUG_BUILD
 	throw new exception();
-	#endif
 }
 inline void ThrowError(const char *initErrMessage, const char *append) {
 	cout << "error! broken: " << initErrMessage;
 	cout << append << std::endl;
-	#ifdef DEBUG_BUILD
 	throw new exception();
-	#endif
 }
 inline void ThrowError(const char *initErrMessage, const char *append, const char *append2) {
 	cout << "error! broken: " << initErrMessage;
 	cout << append << std::flush;
 	cout << append2 << std::endl;
-	#ifdef DEBUG_BUILD
 	throw new exception();
-	#endif
 }
 inline void ThrowError(const char *initErrMessage) {
 	cout << "error! broken: " << initErrMessage << std::endl;
-	#ifdef DEBUG_BUILD
 	throw new exception();
-	#endif
 }
 inline void CheckSDLError() {
 	const char* error;

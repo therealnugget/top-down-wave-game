@@ -13,6 +13,7 @@ private:
 	SDL_Rect* rect;
 	Node<std::function<void(void)>>* updateNode;
 	bool bIsPauseText;
+	static constexpr SDL_Point pointOfRotation = {};
 public:
 	struct TextData {
 	private:
@@ -31,6 +32,9 @@ public:
 		friend class Text;
 	};
 protected:
+	const SDL_Point *GetPointOfRotationAddr() {
+		return &pointOfRotation;
+	}
 	inline void SetUpdateNode(Node<std::function<void(void)>>* node) {
 		updateNode = node;
 	}
@@ -75,26 +79,39 @@ private:
 	int itemIndex;
 	bool firstItem;
 	std::function<void(void)> onSelect;
+	static constexpr IntVec2 itemTextSize = IntVec2(400, 175);
+	static constexpr MouseBounds itemBounds[numItems] = { {{756, 643}, {1165, 807}}, {{756, 458}, {1165, 643}}, {{756, 274}, {1165, 458}} };
+	static constexpr int ItemImgOffsetX = -270;
+	static constexpr int itemYSeparation = 190;
+	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the image hashmap
+	SDL_Texture* ItemImg;
+	SDL_Rect* itemRect;
+	enum ItemType {
+		maxHealthAdd,
+		numItemTypes,
+	};
 protected:
 	void SetOnSelect(std::function<void(void)> selectFunc) {
 		onSelect = selectFunc;
 	}
 	void Update(void) override;
-	static constexpr IntVec2 itemTextSize = IntVec2(400, 175);
-	static constexpr MouseBounds itemBounds[numItems] = { {{756, 643}, {1165, 807}}, {{756, 458}, {1165, 643}}, {{756, 274}, {1165, 458}} };
-	static constexpr int itemYSeparation = 190;
-	enum ItemType {
-		maxHealthAdd,
-		numItemTypes,
-	};
 public:
 	static void MakeRandItem(int);
-	Item(int index, const char* message) {
+	Item(int index, const char *path, const char* message, IntVec2 ItemImgSize) {
 		itemIndex = index;
 		selectedItem = -1;
 		firstItem = !index;
-		auto data = Text::TextData(IntVec2::GetOne() * Item::itemTextSize, Main::halfDisplaySize + IntVec2::GetUp() * (index - 1) * itemYSeparation, message, true);
+		auto pos = static_cast<IntVec2>(Main::halfDisplaySize) + IntVec2::GetUp() * (index - 1) * itemYSeparation;
+		itemRect = new SDL_Rect { pos.x + ItemImgOffsetX, pos.y, ItemImgSize.x, ItemImgSize.y };
+		ItemImg = Textures::InitAnim(path);
+#ifdef DEBUG_BUILD
+		if (!ItemImg) ThrowError("couldn't load item with file path \"", path, "\"");
+#endif
+		auto data = Text::TextData(IntVec2::GetOne() * Item::itemTextSize, static_cast<FVector2>(pos), message, true);
 		Init(&data);
+	}
+	virtual ~Item() {
+		delete itemRect;
 	}
 };
 class MaxHealthAdd final : public Item {
@@ -104,7 +121,7 @@ private:
 protected:
 	void Update(void) override;
 public:
-	MaxHealthAdd(int index) : healthIncrease(.1f), Item(index, "increase max\nhealth by 10%") {
+	MaxHealthAdd(int index) : healthIncrease(.1f), Item(index, "main/heart/heart", "increase max\nhealth by 10%", IntVec2(11 * 4, 9 * 4)) {
 		SetOnSelect([this]() {OnSelect(); });
 		SetUpdateNode(Main::PauseUpdates += [this]() { Update(); });
 	}

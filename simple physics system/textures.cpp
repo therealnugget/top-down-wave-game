@@ -11,7 +11,8 @@ static const char *png = "png";
 rbList *Textures::curAnimNode = nullptr;
 RigidBody *Textures::curAnimRB = nullptr;
 std::unordered_map<std::string, Images::ImageData*> Images::loadedImages;
-bool Textures::InitAnim(Animator& anim, const char* basePath) {
+//if anim is not passed, it is assumed only a single image is wanted as the return value.
+SDL_Texture *Textures::InitAnim(const char* basePath, Animator *anim) {
 	struct stat buffer;
 	int i = 0;
 	std::string iStr;
@@ -19,11 +20,11 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 	const size_t endBuffer = 2;
 	const size_t pathLen = strlen(imagesPath.c_str()) + strlen(basePath) + strlen(bmp) + endBuffer;
 	constexpr int maxIndexDigitLen = 10;//therefore max value of i is 9999999999
-	char* filePath = new char[maxIndexDigitLen + pathLen];
+	char* filePath = static_cast<char*>(_malloca(sizeof(char) * (maxIndexDigitLen + pathLen)));
 	Animation* nextAnim = nullptr;
 	const auto GetAnim = [&]() -> Animation * {
 		if (nextAnim != nullptr) return nextAnim;
-		return nextAnim = anim.LoadNextAnim();
+		return nextAnim = anim->LoadNextAnim();
 		};
 	auto FileExists = [&](const char* fileType) -> bool {
 		bool fileFound = !stat((string(filePath) + fileType).c_str(), &buffer);
@@ -46,18 +47,17 @@ bool Textures::InitAnim(Animator& anim, const char* basePath) {
 		if (loadedImg == Images::loadedImages.end()) loadedImg = Images::GetImgLoaded((string(filePath) + png).c_str());
 		isImgLoaded = loadedImg != Images::loadedImages.end();
 		if (!isImgLoaded && (pastImgLoaded && i != 0 || !FileExists(bmp) && !FileExists(png))) {
-			delete[] filePath;
-			if (i == 0) return false;
-			GetAnim()->numOfFrames = i;
-			return true;
+			_freea(filePath);
+			if (i == 0) return nullptr;
+			if (anim) GetAnim()->numOfFrames = i;
+			return (SDL_Texture*)true;
 		}
 		if (isImgLoaded) data = loadedImg->second;
-		GetAnim()->textures.push_back(Images::LoadTexture(filePath, isImgLoaded, data));
+		auto tex = Images::LoadTexture(filePath, isImgLoaded, data);
+		if (anim) GetAnim()->textures.push_back(tex);
+		else return tex;
 		i++;
 	}
-}
-SDL_Texture *Images::LoadTexture(std::string path) {
-	return LoadTexture(path.c_str());
 }
 SDL_Texture *Images::LoadTexture(const char* path, bool imgLoaded, Images::ImageData *data) {
 	const char* errorType;
@@ -95,6 +95,5 @@ SDL_Texture *Images::LoadTexture(const char* path, bool imgLoaded, Images::Image
 		loadedSurface = data->surface;
 		newTexture = data->texture;
 	}
-	//SDL_FreeSurface(loadedSurface);
 	return newTexture;
 }

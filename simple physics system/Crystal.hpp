@@ -24,7 +24,7 @@ private:
 	float progressAmount;
 	Timer *homeTime;
 public:
-	Crystal(FVector2 pos, float _progressAmount = 1.0f): crystalInForce(start_in_speed), home(false), progressAmount(_progressAmount), Behaviour(SubRBData("main/crystal", Animations::MakeAnimStrs(2, idle, "crystal_spin", collect, "crystal_collect"), FVector2::GetOne() * 1.f * Physics::DefaultSquareVerticesVec, pos, crystal_size, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2::Zero, Main::Tag::crystal, [this](Collision* collision) {
+	Crystal(FVector2 pos, float _progressAmount = 1.0f): crystalInForce(start_in_speed), home(false), progressAmount(_progressAmount), Behaviour(SubRBData("main/crystal", Animations::MakeAnimStrs(2, idle, "crystal_spin", collect, "crystal_collect"), FVector2::GetOne() * 1.f * Physics::DefaultSquareVerticesVec, pos, crystal_size, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2::Zero, Main::Tag::crystal, true, [this](Collision* collision) {
 		if (!collision->CompareTag(Main::Tag::playerTrigCrystal) || colOnFrame) return;
 		colOnFrame = true;
 		home = true;
