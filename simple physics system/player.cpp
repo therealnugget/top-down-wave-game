@@ -10,6 +10,7 @@
 #include "multicast delegates.hpp"
 #include "Item.hpp"
 #include "camera.hpp"
+#include "EnemyTurnProjectile.hpp"
 //#define IS_DEV
 #define PLAYER_WIDTH 70
 #define PLAYER_HEIGHT 70
@@ -45,12 +46,14 @@ static IntVec2 playerSizeFVec = static_cast<FVector2>(playerSize);
 FVector2 Player::healthBarOffset = { -21.f, -35.f };
 IntVec2 Player::healthBarSize = IntVec2(40, 20);
 FVector2 Player::progressBarPos = { 0.0f, 0.0f };
-IntVec2 Player::progressBarInitSize = IntVec2(2000, 100);
+IntVec2 Player::progressBarInitSize = IntVec2(2000, 30);
 IntVec2 Player::plrAttkPos;
 FVector2 Main::defaultPlrPos;
 float Player::maxProgress = 10.f;
 float Player::progressIncrease = 1.5f;
 float Player::progressAmount = .0f;
+float Player::projectileSpd = 600.f;
+float Player::damage = 1.f;
 Node<Entity*> *Player::healthbar;
 Entity* Player::healthBarEnt;
 Node<Entity*> *Player::progressBar;
@@ -117,7 +120,6 @@ void Player::Init(void) {
 	healthbar = Physics::SubStandaloneEnt(Entity::MakeEntity("health bar", { "health_bar" }, healthBarOffset, healthBarSize));
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
-	healthBarEnt->GetRectPosition().PrintVec();
 	progressBarPos = -defPlrPos;
 	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
 	progressBarEnt = progressBar->value;
@@ -136,6 +138,16 @@ void Player::LateUpdate(void) {
 	auto pos = GetPosition();
 	Camera::cameraPosition = IntVec2(pos);
 	crystalColliderRb->SetPosition(pos);
+}
+rbList *Player::CreatePlayerProjectile(std::string basePath, const char* endPath, IntVec2 position, IntVec2 size, RigidBody **outRB, Entity ** outEnt, float rotation) {
+	auto data = SubRBData(basePath, { endPath }, Physics::DefaultSquareVerticesVec, position, size, std::initializer_list<FVector2>(), FVector2::Zero, size * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, rotation, 1.f, true, true, { Main::empty_cc });
+	auto node = Physics::SubscribeEntity(&data);
+	if (outRB) *outRB = node->value;
+	if (outEnt) *outEnt = (*outRB)->GetEntity();
+	return node;
+}
+IntVec2 Player::GetProjectilePos(float out, FVector2 mouse) {
+	return plrAttkPos + mouse * out * projectileSpd;
 }
 void Player::Update(void) {
 	if (!enabled) return;
@@ -169,7 +181,7 @@ void Player::Update(void) {
 	if (PlayingHurtAnim()) return;
 	if (Main::leftClick) {
 		auto pos = player->GetPosition();
-		mouseDiff = (static_cast<FVector2>(Main::mousePosition) - pos).Normalized();
+		mouseDiff = GetMouseDiff();
 		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
 		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
 		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
@@ -178,10 +190,9 @@ void Player::Update(void) {
 		pastInp = mouseDirection;
 		plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
 		if (!plrAttack) {
-			auto data = SubRBData("sword slash"s, { "sword_slash" }, Physics::DefaultSquareVerticesVec, plrAttkPos, attackSize, std::initializer_list<FVector2>(), FVector2::Zero, attackSize * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, mouseDiff.Angle(), 1.f, true, true, { Main::empty_cc });
-			plrAttack = Physics::SubscribeEntity(&data);
-			auto attackRB = plrAttack->value;
-			auto attackEnt = attackRB->GetEntity();
+			RigidBody* attackRB;
+			Entity *attackEnt;
+			plrAttack = CreatePlayerProjectile("sword slash"s, "sword_slash", plrAttkPos, attackSize, &attackRB, &attackEnt, mouseDiff.Angle());
 			attackEnt->SetNotLoop(attkSlashAnim);
 			attackRB->SetFricCoef(.0f);
 			attackEnt->SetAnimSpd(attackSlashAnimSpeed);
@@ -194,7 +205,7 @@ void Player::Update(void) {
 		}
 		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f);
 		plrAttkET += Main::DeltaTime();
-		plrAttack->value->SetPosition(plrAttkPos + mouseDiff * plrAttkET * plrAttkOutSpd);
+		plrAttack->value->SetPosition(GetProjectilePos(plrAttkET, mouseDiff));
 		return;
 	}
 	if (Main::moving) {

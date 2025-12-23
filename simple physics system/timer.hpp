@@ -3,8 +3,8 @@
 struct Timer {
 public:
 	Timer(): pastTime(SDL_GetPerformanceCounter()){}
-	//for when you can't initialize because you're allocating on the stack
-	inline void Initialize() {
+	//this is also initialization for when you can't initialize because you're allocating on the stack
+	inline void Reset() {
 		pastTime = SDL_GetPerformanceCounter();
 	}
 	//doesn't account for timeScale.

@@ -13,13 +13,15 @@ Node<SwordGuy*> *EnemySpawner::swordGuys = nullptr;
 int EnemySpawner::waveIndex = 0;
 int EnemySpawner::maxEnemies = 30;
 Text::TextData EnemySpawner::textData;
+float EnemySpawner::minPlrDist = FLT_MAX;
 void EnemySpawner::DestroyWaveText(void) {
 	delete waveTextTimer;
 	waveTextTimer = nullptr;
 	delete waveText->value;
 	Physics::UnSubText(waveText);
 }
-void EnemySpawner::Update(void) {	
+void EnemySpawner::Update(void) {
+	minPlrDist = FLT_MAX;
 	if (waveTextTimer && waveTextTimer->GetElapsedSeconds() > waveTextDisappearTime) DestroyWaveText();
 	auto bIsEndWave = curNumEnemies == 0;
 	if (bIsEndWave && !lastFrameEndWave) {

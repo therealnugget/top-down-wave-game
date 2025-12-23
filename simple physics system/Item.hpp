@@ -3,6 +3,10 @@
 #include "SDL_ttf.h"
 #include "physics.hpp"
 #include "multicast delegates.hpp"
+#include "timer.hpp"
+#include "usefulTypedefs.hpp"
+#include "EnemyTurnProjectile.hpp"
+#include <typeinfo>
 class Text {
 private:
 	static TTF_Font* font;
@@ -80,49 +84,64 @@ private:
 	bool firstItem;
 	std::function<void(void)> onSelect;
 	static constexpr IntVec2 itemTextSize = IntVec2(400, 175);
-	static constexpr MouseBounds itemBounds[numItems] = { {{756, 643}, {1165, 807}}, {{756, 458}, {1165, 643}}, {{756, 274}, {1165, 458}} };
-	static constexpr int ItemImgOffsetX = -270;
+	static constexpr MouseBounds itemBounds[numItems] = { {{756, 274}, {1165, 458}}, {{756, 458}, {1165, 643}}, {{756, 643}, {1165, 807}} };
+	static constexpr IntVec2 ItemImgOffset = IntVec2 (-270, -20);
 	static constexpr int itemYSeparation = 190;
 	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the image hashmap
-	SDL_Texture* ItemImg;
-	SDL_Rect* itemRect;
+	Textures::TextureRect ItemImg;
 	enum ItemType {
 		maxHealthAdd,
+		enemyTurner,
 		numItemTypes,
 	};
+	static constexpr bool itemCanRepeat[numItemTypes] = {
+		true,
+		false,
+	};
+	static std::unordered_set<int> itemTypes;
+	Node<std::function<void(void)>>* renderUpdateNode;
 protected:
-	void SetOnSelect(std::function<void(void)> selectFunc) {
+	inline void SetOnSelect(std::function<void(void)> selectFunc) {
 		onSelect = selectFunc;
 	}
 	void Update(void) override;
 public:
+	static void StaticInit(void);
 	static void MakeRandItem(int);
 	Item(int index, const char *path, const char* message, IntVec2 ItemImgSize) {
+		SetUpdateNode(Main::PauseUpdates += [this]() {Update(); });
 		itemIndex = index;
 		selectedItem = -1;
 		firstItem = !index;
 		auto pos = static_cast<IntVec2>(Main::halfDisplaySize) + IntVec2::GetUp() * (index - 1) * itemYSeparation;
-		itemRect = new SDL_Rect { pos.x + ItemImgOffsetX, pos.y, ItemImgSize.x, ItemImgSize.y };
-		ItemImg = Textures::InitAnim(path);
+		ItemImg = Textures::TextureRect(Textures::InitAnim(path), SDL_Rect{ pos.x + ItemImgOffset.x, pos.y + ItemImgOffset.y, ItemImgSize.x, ItemImgSize.y });
 #ifdef DEBUG_BUILD
-		if (!ItemImg) ThrowError("couldn't load item with file path \"", path, "\"");
+		if (!ItemImg.GetTexture()) ThrowError("couldn't load item with file path \"", path, "\"");
 #endif
 		auto data = Text::TextData(IntVec2::GetOne() * Item::itemTextSize, static_cast<FVector2>(pos), message, true);
 		Init(&data);
 	}
 	virtual ~Item() {
-		delete itemRect;
+
 	}
 };
 class MaxHealthAdd final : public Item {
 private:
 	void OnSelect(void);
 	float healthIncrease;
-protected:
-	void Update(void) override;
 public:
 	MaxHealthAdd(int index) : healthIncrease(.1f), Item(index, "main/heart/heart", "increase max\nhealth by 10%", IntVec2(11 * 4, 9 * 4)) {
 		SetOnSelect([this]() {OnSelect(); });
-		SetUpdateNode(Main::PauseUpdates += [this]() { Update(); });
+	}
+};
+class EnemyTurner final : public Item {
+private:
+	void Update(void) override;
+	static bool playerCollected;
+public:
+	EnemyTurner(int index) : Item(index, "question mark/question mark", "turns enemies\nagainst one another", IntVec2(32 * 2, 32 * 2)) {
+		SetOnSelect([]()-> void {
+			new EnemyTurnProjectile();
+			});
 	}
 };

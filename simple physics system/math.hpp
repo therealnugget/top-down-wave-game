@@ -1,4 +1,6 @@
 #pragma once
+template<typename T>
+struct Vector2;
 //static
 class Math {
 public:
@@ -53,7 +55,7 @@ public:
 	static inline Vector2<T> Round(Vector2<T> v) {
 		return Vector2<T>(roundf(v.x), roundf(v.y));
 	}
-	static inline float Cross(Vector2<float> a, Vector2<float> b) {
-		return a.x * b.y - a.y * b.x;
-	}
+	static float Cross(Vector2<float> a, Vector2<float> b);
+	static constexpr float deg2rad = 3.1415926536f / 180.f;
+	static Vector2<float> GetTurbulentPos(Vector2<float> point, Vector2<float> origin, float rotation = .0f, float turbulencePeriod = .05f, float amplitude = 15.f);
 };

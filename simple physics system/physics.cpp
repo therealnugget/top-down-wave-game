@@ -90,6 +90,8 @@ const FVector2 FVector2::Zero = {};
 const FVector2 FVector2::Right = FVector2(1.f, .0f);
 const FVector2 FVector2::Left = FVector2(-1.f, .0f);
 const FVector2 FVector2::Up = FVector2(.0f, 1.f);
+const FVector2 FVector2::Infinity = FVector2(FLT_MAX, FLT_MAX);
+const FVector2 FVector2::NegInfinity = FVector2(FLT_MIN, FLT_MIN);
 const FVector2 FVector2::Down = FVector2(.0f, -1.f);
 const IntVec2 IntVec2::One = static_cast<IntVec2>(FVector2::One);
 const IntVec2 IntVec2::Zero = static_cast<IntVec2>(FVector2::Zero);
@@ -99,6 +101,8 @@ const IntVec2 IntVec2::Up = static_cast<IntVec2>(FVector2::Up);
 const IntVec2 IntVec2::Down = static_cast<IntVec2>(FVector2::Down);
 const float Physics::fricCoef = 20000.f;
 const FVector2 Physics::frictionVec = (FVector2)FVector2::One * fricCoef;
+FVector2 Physics::maxPos;
+FVector2 Physics::minPos;
 const float Physics::frictionMagnitude = GetFrictionVec().Magnitude();
 static FVector2 curVelSign;
 //should be called after all behaviours' updates are called so transformations from this frame's position and rotation changes, and force calculations can be enacted
@@ -204,25 +208,15 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 			}
 		}
 	ret:;
-		if (colliding/* && !a->GetEntityCollided(collisionIndexAB, collisionIndexBA, true) && !b->GetEntityCollided(collisionIndexAB, collisionIndexBA, true)*/) {
-			//a->SetEntitiesCollided(collisionIndexBA, true);
-			Collision *collisionData = nullptr;
+		if (colliding) {
+			Collision collisionData = Collision(b, dot, triggerCollision, normal);
 			if (a->OnCollision) {
-				collisionData = static_cast<Collision*>(_malloca(sizeof(Collision)));
-				*collisionData = Collision(b, dot, triggerCollision, normal);
-				a->OnCollision(collisionData);
+				a->OnCollision(&collisionData);
 			}
-			if (!b->OnCollision) {
-				_freea(collisionData);
-				goto free_mutex;
+			if (b->OnCollision) {
+				collisionData.SetCollider(a);
+				b->OnCollision(&collisionData);
 			}
-			if (!collisionData) {
-				collisionData = static_cast<Collision*>(_malloca(sizeof(Collision)));
-				*collisionData = Collision(a, dot, triggerCollision, normal);
-			}
-			else collisionData->SetCollider(a);
-			b->OnCollision(collisionData);
-			_freea(collisionData);
 		}
 	}
 	free_mutex:
@@ -428,7 +422,9 @@ void Physics::AdjustColVertices(RigidBody* rb) {
 		currentCentreOfNPVertRot = rb->centreOfNarrowPVertRot;
 		vertexBeforeRotCalc = currentVertexWithoutPos - currentCentreOfNPVertRot;
 		/*
-		(x, y) --> (ycos(B) - ysin(B), xSin(B) + ycos(B))
+		(x, y) --> (xcos(B) - ysin(B), xSin(B) + ycos(B))
+		bill cos(B)
+		bertie(B)
 		*/
 		curVertex->x = vertexBeforeRotCalc.x * cosB - vertexBeforeRotCalc.y * sinB + rb->position.x + currentCentreOfNPVertRot.x;
 		curVertex->y = vertexBeforeRotCalc.x * sinB + vertexBeforeRotCalc.y * cosB + rb->position.y + currentCentreOfNPVertRot.y;
@@ -484,7 +480,6 @@ void Physics::ProcessTexs() {
 			}
 		}
 	}
-	//can only render single-threaded. T-T
 	SDL_RenderCopyEx(Main::renderer, currentEntity->texture, nullptr, curRect, currentEntity->angle, currentEntity->centreOfRotation, currentEntity->flip);
 	if (!currentEntity || !currentEntity->bRecordAnim) return;
 	currentEntity->pastAnimation = currentEntity->currentAnimation;
@@ -515,6 +510,8 @@ void Physics::Update(float dt) {
 		Node<RigidBody*>::Advance(&curNode);
 	}
 	for (moveItrIndex = 0; moveItrIndex < num_movement_iterations; moveItrIndex++) {
+		minPos = FVector2::Infinity;
+		maxPos = FVector2::NegInfinity;
 		curNode = entityHead;
 		while (curNode) {
 			currentRB = curNode->value;
@@ -534,8 +531,12 @@ void Physics::Update(float dt) {
 			}
 			currentRB->broadPhaseAABB = { minNarrowPhase, maxNarrowPhase };
 			currentRB->position += currentRB->difPositionSection;
-			if (moveItrIndex == num_movement_iterations - 1) currentRB->newPosition = currentRB->position;
-			//currentRB->ClearCollidedEntities();
+			auto &pos = currentRB->position;
+			if (pos.x < minPos.x) minPos.x = pos.x;
+			if (pos.y < minPos.y) minPos.y = pos.y;
+			if (pos.x > maxPos.x) maxPos.x = pos.x;
+			if (pos.y > maxPos.y) maxPos.y = pos.y;
+			if (moveItrIndex == num_movement_iterations - 1) currentRB->newPosition = pos;
 			Node<RigidBody*>::Advance(&curNode);
 		}
 		numEntities = 0;
@@ -546,6 +547,7 @@ void Physics::Update(float dt) {
 		unsortedSectionSize = 0;
 		numUnsortedSections = 0;
 		unsortedExcessEntityNo = 0;
+		quadRoot.aabb = AABB(FVector2::Max(static_cast<FVector2>(Camera::GetCamPos()) + initCellAABB.GetMin(), minPos), FVector2::Min(static_cast<FVector2>(Camera::GetCamPos()) + initCellAABB.GetMax(), maxPos));
 		SortEntity(&quadRoot, entityHead);
 #ifdef IS_MULTI_THREADED
 		for (threadIndex = 0; threadIndex < thread_count; threadIndex++) {
@@ -581,7 +583,6 @@ void Physics::Update(float dt) {
 		currentRB = curNode->value;
 		currentEntity = currentRB->entity;
 		ProcessTexs();
-		//currentRB->ClearCollidedEntities(true);
 		currentRB->force = FVector2::Zero;
 		currentRB->pastPosition = currentRB->position;
 		if (!frameInd) {

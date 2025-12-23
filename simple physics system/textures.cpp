@@ -4,13 +4,20 @@
 #include <sys/stat.h>
 #include "player.hpp"
 #include "physics.hpp"
-#include <SDL_image.h>
 static const std::string imagesPath = "images/";
 static const char *bmp = "bmp";
 static const char *png = "png";
 rbList *Textures::curAnimNode = nullptr;
 RigidBody *Textures::curAnimRB = nullptr;
 std::unordered_map<std::string, Images::ImageData*> Images::loadedImages;
+void Textures::TextureRect::SetPosition(IntVec2 position) {
+	rect.x = position.x;
+	rect.y = position.y;
+}
+void Textures::RenderStandaloneTex(Textures::TextureRect& standaloneTexture) {
+	auto originPt = SDL_Point();
+	SDL_RenderCopyEx(Main::renderer, standaloneTexture.GetTexture(), nullptr, standaloneTexture.GetRectAddr(), .0, &originPt, SDL_FLIP_NONE);
+}
 //if anim is not passed, it is assumed only a single image is wanted as the return value.
 SDL_Texture *Textures::InitAnim(const char* basePath, Animator *anim) {
 	struct stat buffer;

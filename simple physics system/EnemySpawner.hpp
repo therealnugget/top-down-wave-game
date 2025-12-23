@@ -7,14 +7,14 @@ class SwordGuy;
 class EnemySpawner final {
 private:
 	static constexpr int spawnFrameInterval = 15;
-	static int maxEnemies;
 	static constexpr float wave_num_enemy_mult = 1.2f;
 	static constexpr float waveTextDisappearTime = 2.f;
+	static int maxEnemies;
 	static int waveIndex;
 	static int numSpawnedEnemies;
 	static int curNumEnemies;
-	static bool lastFrameEndWave;
 	static int frameIndex;
+	static bool lastFrameEndWave;
 	static Node<SwordGuy*>* swordGuys;
 	static Node<Text*> *waveText;
 	static Timer *waveTextTimer;
@@ -22,6 +22,7 @@ private:
 	static constexpr IntVec2 waveTextSizeVec = IntVec2(waveTextSize * 2, waveTextSize);
 	static Text::TextData textData;
 public:
+	static float minPlrDist;
 	static void Init(void);
 	static void DestroyWaveText(void);
 	static void Update(void);

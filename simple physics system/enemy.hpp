@@ -5,7 +5,7 @@
 class SwordGuy;
 class Enemy : public Behaviour {
 protected:
-	int health;
+	float health;
 	Enemy(SubRBData);
 	~Enemy() override;
 	virtual void Update(void);

@@ -122,6 +122,10 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;;SDL2_ttf.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)libs</AdditionalLibraryDirectories>
     </Link>
+    <MASM>
+      <IncludePaths>
+      </IncludePaths>
+    </MASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -142,6 +146,10 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL2.lib;SDL2main.lib;SDL2_image.lib;;SDL2_ttf.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)libs</AdditionalLibraryDirectories>
     </Link>
+    <MASM>
+      <IncludePaths>
+      </IncludePaths>
+    </MASM>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="animations.cpp" />
@@ -150,7 +158,9 @@
     <ClCompile Include="Crystal.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
+    <ClCompile Include="EnemyTurnerProjectile.cpp" />
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="NugMath.cpp" />
     <ClCompile Include="multicast delegates.cpp" />
     <ClCompile Include="bob.cpp" />
     <ClCompile Include="player.cpp" />
@@ -167,6 +177,7 @@
     <ClInclude Include="Crystal.hpp" />
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="EnemySpawner.hpp" />
+    <ClInclude Include="EnemyTurnProjectile.hpp" />
     <ClInclude Include="Item.hpp" />
     <ClInclude Include="main.hpp" />
     <ClInclude Include="math.hpp" />

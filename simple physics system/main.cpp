@@ -24,8 +24,10 @@ bool Main::canChangePause = true;
 bool Main::moving;
 bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
-IntVec2 Main::mousePosition;
 IntVec2 Main::rawMousePosition;
+IntVec2 Main::GetMousePosition(void) {
+    return rawMousePosition + Camera::GetCamPos() - static_cast<IntVec2>(defaultPlrPos);
+}
 const std::string Main::empty_string = "";
 const char* const Main::empty_cc = "";
 const std::initializer_list<const char*> const Main::empty_cc_init = { empty_cc };
@@ -59,8 +61,8 @@ void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
     rb->updateNode = node;
 }
 int Main::GetRandInt(int a, int b, int c) {
-    int min = Math::Min<int>(Math::Min<int>(a, b), c);
-    int max = Math::Max<int>(Math::Max<int>(a, b), c);
+    int min = std::min<int>(std::min<int>(a, b), c);
+    int max = std::max<int>(std::max<int>(a, b), c);
     return GetRandInt(min, max);
 }
 void Main::SetPastKey(int *i) {
@@ -105,7 +107,6 @@ void Main::RegisterInput() {
             break;
         case SDL_MOUSEMOTION:
             rawMousePosition = IntVec2(e.motion.x, e.motion.y);
-            mousePosition = rawMousePosition + Camera::GetCamPos() - static_cast<IntVec2>(defaultPlrPos);
             break;
         case SDL_MOUSEBUTTONDOWN: {
             auto isLeft = e.button.button == SDL_BUTTON_LEFT;
@@ -296,10 +297,11 @@ int main(int argc, char* args[])
     Player::Init();
     EnemySpawner::Init();
     Physics::Init();
+    Item::StaticInit();
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();
-    SDL_GetMouseState(&Main::mousePosition.x, &Main::mousePosition.y);
+    SDL_GetMouseState(&Main::rawMousePosition.x, &Main::rawMousePosition.y);
     do {
         SDL_RenderClear(Main::renderer);
         if (Main::timeScale == .0f) {

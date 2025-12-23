@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include <unordered_map>
 #include <iterator>
@@ -121,4 +122,21 @@ private:
 public:
 	//return value: whether an animation was actually created
 	static SDL_Texture *InitAnim(const char *basePath, Animator *anim = nullptr);
+	struct TextureRect {
+	private:
+		SDL_Texture* texture;
+		SDL_Rect rect;
+	public:
+		inline SDL_Texture* GetTexture(void) {
+			return texture;
+		}
+		inline SDL_Rect *GetRectAddr(void) {
+			return &rect;
+		}
+		void SetPosition(IntVec2 position);
+		TextureRect(SDL_Texture *_texture, SDL_Rect _rect) : texture(_texture), rect(_rect) {}
+		TextureRect() {}
+		~TextureRect() {}
+	};
+	static void RenderStandaloneTex(TextureRect&);
 };

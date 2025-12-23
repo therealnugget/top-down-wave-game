@@ -24,8 +24,8 @@
 using namespace std;
 struct RigidBody;
 extern "C" void ASMSetProjection(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max);
-//every instantiation of this should always be 8 bytes in total - i.e. don't add any more members to this struct
 template<typename T>
+//every instantiation of this should always be 8 bytes in total - i.e. don't add any more members to this struct
 struct Vector2 {
 public:
 	T x, y;
@@ -66,7 +66,7 @@ public:
 		this->y /= b;
 		return *this;
 	}
-	inline Vector2 operator -() {
+	inline Vector2 operator -() const {
 		return Vector2(-x, -y);
 	}
 	inline static Vector2 constexpr ConstNeg(const Vector2<float> &vec) {
@@ -125,6 +125,9 @@ public:
 		return x == b.x && y == b.y;
 	}
 	static constexpr float rad2deg = 180.f / 3.1415926535f;
+	inline Vector2<T> To(Vector2<T> to) {
+		return to - *this;
+	}
 	inline float Angle() {
 		return atan2f(y, x) * rad2deg;
 	}
@@ -133,6 +136,12 @@ public:
 	}
 	inline float SqrMagnitude() {
 		return x * x + y * y;
+	}
+	inline static Vector2 Min(Vector2<T> a, Vector2<T> b) {
+		return Vector2<T>(fminf(a.x, b.x), fminf(a.y, b.y));
+	}
+	inline static Vector2 Max(Vector2<T> a, Vector2<T> b) {
+		return Vector2<T>(fmaxf(a.x, b.x), fmaxf(a.y, b.y));
 	}
 	inline void IntoRectXY(SDL_Rect *rect) {
 		rect->x = x;
@@ -158,12 +167,25 @@ public:
 	inline void Normalize() {
 		*this /= Magnitude();
 	}
+	inline void Rotate(float angle) {
+		auto sin = sinf(angle), cos = cosf(angle);
+		auto origX = x, origY = y;
+		x = x * cos - y * sin;
+		y = origX * sin + origY * cos;
+	}
+	inline Vector2<T> Rotated(float angle) {
+		Vector2<T> rotated = *this;
+		rotated.Rotate(angle);
+		return rotated;
+	}
 	static const Vector2 One;
 	static const Vector2 Zero;
 	static const Vector2 Left;
 	static const Vector2 Right;
 	static const Vector2 Down;
 	static const Vector2 Up;
+	static const Vector2 NegInfinity;
+	static const Vector2 Infinity;
 	//non-const equivalents of the vector primitives
 	inline static Vector2 GetOne(){
 		return One;
@@ -587,6 +609,15 @@ private:
 typedef struct AABB {
 public:
 	constexpr AABB(FVector2 _min, FVector2 _max): minimum(_min), maximum(_max) {}
+	const inline FVector2 GetMin() const {
+		return minimum;
+	}
+	const inline FVector2 GetMax() const {
+		return maximum;
+	}
+	constexpr AABB operator -() const {
+		return AABB(-minimum, -maximum);
+	}
 	AABB(float minX, float minY, float maxX, float maxY) {
 		minimum.x = minX;
 		minimum.y = minY;
@@ -924,6 +955,7 @@ private:
 	static int moveItrIndex;
 	static ushort frameInd;
 	static const FVector2 frictionVec;
+	static FVector2 minPos, maxPos;
 	//a non-constant alternative to frictionVec. don't calculate this magnitude, a compile-time constant already contains it.
 	static FVector2 GetFrictionVec() {
 		return frictionVec;

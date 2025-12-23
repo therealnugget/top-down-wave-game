@@ -353,6 +353,9 @@ public:
 		crystalLayer = 0b0010,
 		enemyLayer = 0b0011,
 	};
+	static inline bool IsPowTwo(unsigned long long check) {
+		return (((check - 1) | check) + 1) == (check << 1);
+	}
 	//whether the key was pressed this frame regardless of it's state last frame
 	static inline bool GetKey(int key) {
 		return pressingKey[key];
@@ -385,12 +388,13 @@ public:
 		playerAttack = 2,
 		crystal = 3,
 		playerTrigCrystal = 4,
+		enemyTurner = 5,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
 	static IntVec2 iInputVec;
-	static IntVec2 mousePosition;
 	static IntVec2 rawMousePosition;
+	static IntVec2 GetMousePosition(void);
 	static bool leftClick, pastLeftClick;
 	static bool leftClickOnFrame;
 	static bool moving;
@@ -498,7 +502,7 @@ public:
 	static void AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//min inclusive, max exclusive
 	static inline int GetRandInt(int min, int max) {
-		return static_cast<int>(ceilf(static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * static_cast<float>(max - min)) + min - 1);
+		return static_cast<int>(ceilf(static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * static_cast<float>(max - min))) + min - 1;
 	}
 	static int GetRandInt(int a, int b, int c);
 	static inline float GetRandFloat(float min, float max) {

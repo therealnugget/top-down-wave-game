@@ -7,7 +7,7 @@ class Player final {
 private:
 	static constexpr float rotationSpd = 500.f;
 	static constexpr float attackSlashAnimSpeed = 1.2f;
-	static constexpr float plrAttkOutSpd = 600.f;
+	static float projectileSpd;
 	static constexpr int attkSlashAnim = 0;
 	static constexpr int healthBarAnim = 0;
 	static const FVector2 playerCollider;
@@ -17,6 +17,7 @@ private:
 	static float health;
 	static float accel, speed;
 	static float knockBack;
+	static float damage;
 	static float progressAmount;
 	static float maxProgress;
 	static float progressIncrease;
@@ -45,12 +46,17 @@ private:
 	static IntVec2 plrAttkPos;
 	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2(-1, 0));
 public:
+	static inline float GetDamage(void) {
+		return damage;
+	}
+	static IntVec2 GetProjectilePos(float, FVector2);
+	static rbList *CreatePlayerProjectile(std::string basePath, const char *endPath, IntVec2 position, IntVec2 size, RigidBody ** outRb = nullptr, Entity ** outEnt = nullptr, float rotation = .0f);
 	static inline float GetHealthFrac(void) {
 		return health / maxHealth;
 	}
 	//normal of mouse pos from plr pos
 	static inline FVector2 GetMouseDiff(void) {
-		return mouseDiff;
+		return (static_cast<FVector2>(Main::GetMousePosition()) - GetPosition()).Normalized();
 	}
 	static inline float GetKnockBack(void) {
 		return knockBack;
