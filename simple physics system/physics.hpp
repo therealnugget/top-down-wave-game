@@ -984,8 +984,9 @@ public:
 	static Node<Entity*>* UnsubStandaloneEnt(Node<Entity*>*);
 	static void DeleteRB(rbList*);
 	static Node<RigidBody*>* StandaloneRB(IntVec2 size = IntVec2::One, FVector2 startPos = FVector2::Zero, int tag = -1, bool affectedByCam = true, CollisionCallback collisionCallback = nullptr, int_fast64_t layer = Main::Layer::playerLayer, bool isTrigger = true, float mass = 1.f, bool moveable = true, FVector2 _centreOfRotNPVert = FVector2::Zero, FVector2 initVel = FVector2::Zero, float angle = .0f);
-	static void Finalize();
-	static void ProcessTexs();
+	static void Finalize(void);
+	static void SetRealPos(SDL_Rect* rect, Entity*, FVector2 origPos, bool = true);
+	static void ProcessTexs(void);
 	static void Update(float dt);
 	static void OuterBroadPhase(bool searchSorted = false);
 	static void SortEntity(QuadNode<RigidBody *>*, Node<RigidBody*>* entities, int currentDepth = 0);

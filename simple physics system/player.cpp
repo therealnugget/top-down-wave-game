@@ -49,6 +49,7 @@ FVector2 Player::progressBarPos = { 0.0f, 0.0f };
 IntVec2 Player::progressBarInitSize = IntVec2(2000, 30);
 IntVec2 Player::plrAttkPos;
 FVector2 Main::defaultPlrPos;
+IntVec2 Main::defaultPlrPosI;
 float Player::maxProgress = 10.f;
 float Player::progressIncrease = 1.5f;
 float Player::progressAmount = .0f;
@@ -96,9 +97,11 @@ void Player::IncreasePickupRange(float increaseFactor) {
 }
 void Player::Init(void) {
 	Main::defaultPlrPos = Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSizeFVec * .5f;
+	Main::defaultPlrPosI = static_cast<IntVec2>(Main::defaultPlrPos);
 	auto defPlrPos = Main::defaultPlrPos;
 	auto crystalData = SubRBData("", std::vector<const char*>(), playerSizeFVec * crystalColldierSizeMult * Physics::DefaultSquareVerticesVec, defPlrPos);
 	crystalData.isTrigger = true;
+	crystalData.layer = Main::Layer::crystalLayer;
 	crystalData.tag = Main::Tag::playerTrigCrystal;
 	crystalData.createEntity = false;
 	crystalCollider = Physics::SubscribeEntity(&crystalData);
@@ -121,6 +124,7 @@ void Player::Init(void) {
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
 	progressBarPos = -defPlrPos;
+	new EnemyTurnProjectile();
 	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
 	progressBarEnt = progressBar->value;
 	constexpr int numShapes = 0;

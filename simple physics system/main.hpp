@@ -347,11 +347,12 @@ template<>
 class MultiDelegate<void>;
 class Main {
 public:
-	//first bit assigned for whether the collider will collide with itself
+	//least significant bit assigned for whether the collider will collide with itself
 	static enum Layer {
-		playerLayer = 0b0010,
+		playerLayer = 0b0110,
 		crystalLayer = 0b0010,
-		enemyLayer = 0b0011,
+		enemyLayer = 0b10101,
+		playerProjLayer = 0b10000,
 	};
 	static inline bool IsPowTwo(unsigned long long check) {
 		return (((check - 1) | check) + 1) == (check << 1);
@@ -389,6 +390,7 @@ public:
 		crystal = 3,
 		playerTrigCrystal = 4,
 		enemyTurner = 5,
+		enemyTurned = 6,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -421,6 +423,7 @@ public:
 	static FVector2 DisplaySize;
 	static FVector2 halfDisplaySize;
 	static FVector2 defaultPlrPos;
+	static IntVec2 defaultPlrPosI;
 	static float DeltaTime();
 	static float CapDeltaTime(float &);
 	static float DefCapDeltaTime();

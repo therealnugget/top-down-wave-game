@@ -136,6 +136,7 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 		;
 	{
 		std::lock_guard<std::mutex> lockOuterMutex(outerMutex);
+		if (!(a->layer & b->layer) || !(a->layer & 1) && a->layer == b->layer) return;
 		a->checkColliding.lock();
 		b->checkColliding.lock();
 	}
@@ -184,9 +185,7 @@ void Physics::NarrowPhase(RigidBody* a, RigidBody *b
 			FVector2 aPos = a->position, bPos = b->position;
 			if ((FVector2::FromTo(aPos, bPos) ^ normal) < .0f) normal *= -1.f;
 			bool aMoveable = a->bMoveable, bMoveable = b->bMoveable;
-			constexpr int last_bit_offset = 63;
 			if (triggerCollision) goto ret;
-			if (!(a->layer & b->layer) || a->layer == b->layer && (!(a->layer << last_bit_offset) || !(b->layer << last_bit_offset))) goto free_mutex;
 
 			{
 				FVector2 offset = normal * depth * .5f;
@@ -438,16 +437,16 @@ void Main::AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditional
 	AssignIfLess(check.x, assignConditionally.x);
 	AssignIfLess(check.y, assignConditionally.y);
 }
+void Physics::SetRealPos(SDL_Rect* rect, Entity* entity, FVector2 origPos, bool useRenderOffset) {
+	register bool affectByCam = entity->bAffectedByCam;
+	rect->x = static_cast<int>(origPos.x) + entity->renderOffset.x + entity->renderOffsetChangeX * useRenderOffset - Camera::GetCamPosX() * affectByCam + Main::defaultPlrPosI.x;
+	rect->y = static_cast<int>(origPos.y) + entity->renderOffset.y - Camera::GetCamPosY() * affectByCam + Main::defaultPlrPosI.y;
+}
 static int animFramesPassed;
-void Physics::ProcessTexs() {
+void Physics::ProcessTexs(void) {
 	if (!currentEntity) return;
 	curRect = currentEntity->rect;
-	register bool affectByCam = currentEntity->bAffectedByCam;
-	if (currentRB) {
-		currentRB->position.IntoRectXY(curRect);
-		curRect->x += currentEntity->renderOffset.x + currentEntity->renderOffsetChangeX - Camera::GetCamPosX() * affectByCam + static_cast<int>(Main::defaultPlrPos.x);
-		curRect->y += currentEntity->renderOffset.y - Camera::GetCamPosY() * affectByCam + static_cast<int>(Main::defaultPlrPos.y);
-	}
+	if (currentRB) SetRealPos(curRect, currentEntity, currentRB->position);
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
 		auto animTime = Animator::default_anim_time / currentEntity->animSpeed;
@@ -612,7 +611,7 @@ void Physics::Update(float dt) {
 	SDL_SetRenderDrawColor(Main::renderer, std::get<0>(Main::renderDrawColor), std::get<1>(Main::renderDrawColor), std::get<2>(Main::renderDrawColor), 255);
 #endif
 }
-void Physics::Finalize() {
+void Physics::Finalize(void) {
 	curNode = entityHead;
 	threadIndex = 0;
 	rbList* nextNode;

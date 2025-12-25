@@ -6,61 +6,37 @@
 #include "camera.hpp"
 //named this enemy bob for character efficency
 //static const FVector2 bobSize = FVector2(86.f * 2.f, 86.f);//minimum size for 500 entites on screen
-static const FVector2 bobSize = FVector2(172.f * 2.f, 172.f);
+static constexpr FVector2 bobSize = FVector2(172.f * 2.f, 172.f);
 constexpr static float border = .1f;
-SwordGuy::SwordGuy(): lateUpdateNode(nullptr), selfDamage(.5f), damage(1.f), attackDecision(Main::GetRandInt(overhead, swing, dash)), decideAttack(true), Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(numSGAnims, idle, "idle", overhead, "overhead", swing, "swing", death, "death", dash, "dash", hurt, "hurt", run, "run", walk, "walk", jump, "jump"), FVector2(13.f / 128.f, 24.f / 64.f)* Physics::GetDefaultSquareVertVec(), /*Main::halfDisplaySize + FVector2::GetRight() * 350.f*/Main::GetRandFVec(static_cast<FVector2>(Camera::GetCamExtentWorld(1.f)) - Main::halfDisplaySize * border, static_cast<FVector2>(Camera::GetCamExtentWorld(-1.f)) + Main::halfDisplaySize * border), bobSize, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2(-bobSize.x * .5f, -bobSize.y * .5f), Main::Tag::enemy, true, [this](Collision* collision) { CollisionCallback(collision); }, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0, 1.f, true, false, {"right"}, true, 32.f / 128.f * bobSize.x, Main::Layer::enemyLayer)) {
+SwordGuy::SwordGuy(void) : attackDecide(false), attackDecision(Main::GetRandInt(overhead, swing, dash)), Enemy(SubRBData("sword guy", Animations::MakeAnimStrs(numSGAnims, idle, "idle", overhead, "overhead", swing, "swing", death, "death", dash, "dash", hurt, "hurt", run, "run", walk, "walk", jump, "jump"), FVector2(13.f / 128.f, 24.f / 64.f)* Physics::GetDefaultSquareVertVec(), /*Main::halfDisplaySize + FVector2::GetRight() * 350.f*/Main::GetRandFVec(static_cast<FVector2>(Camera::GetCamExtentWorld(1.f)) - Main::halfDisplaySize * border, static_cast<FVector2>(Camera::GetCamExtentWorld(-1.f)) + Main::halfDisplaySize * border), bobSize, std::initializer_list<FVector2>(), FVector2::Zero, IntVec2(-bobSize.x * .5f, -bobSize.y * .5f), Main::Tag::enemy, true, [this](Collision* collision) { CollisionCallback(collision); }, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0, 1.f, true, false, { "right" }, true, 32.f / 128.f * bobSize.x, Main::Layer::enemyLayer)) {
     entity->SetAnimation(run);
     for (auto& anim : { hurt, overhead, swing, dash, death }) {
         entity->SetNotLoop(anim);
     }
     SetUpdateNode(Main::Updates += [this]() {Update();});
-    speed = 19000000.f;
 }
-void SwordGuy::TakeDamage(float damage) {
+void SwordGuy::TakeDamage(float damageAmount) {
+    Enemy::TakeDamage(damageAmount);
     if (curAnim != dash || entity->FirstFrame()) ResetIfAttkFin(hurt);
-    health -= damage;
 }
 void SwordGuy::EnactDamage(void) {
     if (!turned) {
         Player::TakeDamage(damage);
         return;
     }
-    if (!closestEnemyBehav) return;
+    auto closestEnemyBehav = EnemySpawner::closestEnemy;
+    if (!closestEnemyBehav || closestEnemyBehav == this) return;
     closestEnemyBehav->TakeDamage(selfDamage);
-}
-void SwordGuy::LateUpdate(void) {
-    confusedTex.SetPosition(GetConfusedPos());
-    Textures::RenderStandaloneTex(confusedTex);
-}
-void SwordGuy::CollisionCallback(Collision* collision) {
-    if (!enabled) return;
-    if (!plrColOnFrm && collision->CompareTag(Main::Tag::player)) {
-        Player::TakeDamage(damage);
-        plrColOnFrm = true;
-    }
-    if (!colOnFrame && collision->CompareTag(Main::Tag::enemyTurner)) {
-        if (!turned) {
-            auto confusedPos = GetConfusedPos();
-            confusedTex = Textures::TextureRect(Textures::InitAnim(confusedPath), SDL_Rect{ confusedPos.x, confusedPos.y, confusedSize.x, confusedSize.y });
-            lateUpdateNode = (Main::LateUpdates += [this]() {LateUpdate(); });
-        }
-        turned = true;
-        rb->tag = Main::Tag::playerAttack;
-    }
-    if (colOnFrame || entity->GetCurAnim() == hurt && !entity->AnimFinished() || !collision->CompareTag(Main::Tag::playerAttack)) return;
-    colOnFrame = true;
-    TakeDamage(Player::GetDamage());
-    rb->AddVelocity(collision->GetNormal() * Player::GetMouseDiff());
 }
 void SwordGuy::ResetIfAttkFin(int animation) {
     if (animFinished) {
         if (curAnim == dash) {
-            Player::TakeDamage(damage);
+            EnactDamage();
             rb->newPosition.x += dashPositionAdd * Math::Sign(toPlr.x);
         }
         if (curAnim == overhead || curAnim == swing) {
-            Player::TakeDamage(damage);
-            decideAttack = true;
+            EnactDamage();
+            attackDecide = true;
         }
         entity->ResetAnim(animation);
         return;
@@ -68,10 +44,14 @@ void SwordGuy::ResetIfAttkFin(int animation) {
     entity->SetAnimation(animation);
 }
 static constexpr float yDiffDash = 30.f;
-FVector2 SwordGuy::closestEnemyPos = {};
-SwordGuy *SwordGuy::closestEnemyBehav = nullptr;
 void SwordGuy::SetPlayerDist(void) {
     plrDistSqr = toPlr.SqrMagnitude();
+}
+void SwordGuy::CheckResetAttackDecision(void) {
+    if (!attackDecide) return;
+    attackDecide = false;
+    register auto inc = (attackDecision + 1) % (dash + 1);
+    attackDecision = inc + overhead * (inc == 0);
 }
 void SwordGuy::Update(void) {
     Enemy::Update();
@@ -84,31 +64,31 @@ void SwordGuy::Update(void) {
         }
         return;
     }
-    plrColOnFrm = false;
+    for (auto& col : colsOnFrame) col.second = false;
     curAnim = entity->GetCurAnim();
     animFinished = entity->AnimFinished();
     toPlr = rb->GetPosition().To(Player::GetPosition());
     SetPlayerDist();
     if (plrDistSqr < EnemySpawner::minPlrDist) {
         EnemySpawner::minPlrDist = plrDistSqr;
-        closestEnemyPos = GetPosition();
-        closestEnemyBehav = this;
+        EnemySpawner::closestEnemy = this;
+    }
+    if (isSingleEnemy && turned) {
+        Main::LateUpdates -= lateUpdateNode;
+        lateUpdateNode = nullptr;
+        turned = false;
     }
     if (turned) {
-        toPlr = GetPosition().To(closestEnemyPos);
+        toPlr = GetPosition().To(EnemySpawner::closestEnemy->GetPosition());
         SetPlayerDist();
     }
     if (curAnim == hurt && !animFinished) return;
     if (curAnim == dash) {
         if (!animFinished) return;
-        decideAttack = true;
+        attackDecide = true;
     }
     if (plrDistSqr < dashDistSqr) {
-        if (decideAttack) {
-            auto inc = (attackDecision + 1) % (dash + 1);
-            attackDecision = inc + overhead * (inc == 0);
-            decideAttack = false;
-        }
+        CheckResetAttackDecision();
         if (attackDecision == dash) {
             if (Math::abs(toPlr.y) < yDiffDash) {
                 ResetIfAttkFin(attackDecision);
@@ -116,12 +96,18 @@ void SwordGuy::Update(void) {
             }
         }
         else if (plrDistSqr < attackDistSqr) {
+        attack:
             ResetIfAttkFin(attackDecision);
             goto ret;
         }
     }
+    else if (touchingEnemy) {
+        CheckResetAttackDecision();
+        goto attack;
+    }
     ResetIfAttkFin(run);
     rb->AddForce(toPlr.Normalized() * speed * Main::DefCapDeltaTime());
 ret:
+    touchingEnemy = false;
     entity->SetFlip(toPlr.x < .0f);
 }

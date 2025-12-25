@@ -295,6 +295,7 @@ int main(int argc, char* args[])
         Main::frequency = static_cast<float>(SDL_GetPerformanceFrequency());
     }
     Player::Init();
+    //this needs to be called after player init so that the player update will be called after enemy spawner update, so that the closest enemy can be assigned after the enemy spawner update assigns it to null
     EnemySpawner::Init();
     Physics::Init();
     Item::StaticInit();
@@ -320,7 +321,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-//#define SHOW_FPS
+#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());

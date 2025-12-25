@@ -10,8 +10,8 @@ void EnemyTurnProjectile::DestroyProjectile(void) {
 	if (!projectileNodes[0]) return;
 	for (auto& projectileNode : projectileNodes) {
 		Physics::DeleteRB(projectileNode);
-		projectileNode = nullptr;
 	}
+	projectileNodes[0] = nullptr;
 }
 void EnemyTurnProjectile::Update(void) {
 	if (!Main::leftClick) {
@@ -34,7 +34,7 @@ void EnemyTurnProjectile::Update(void) {
 		for (int i = 0; i < num_projectiles; i++) {
 			projectileNodes[i] = Player::CreatePlayerProjectile("question mark"s, "question mark", static_cast<IntVec2>(GetProjectilePos(i)), projectileSize, &projectileRBs[i]);
 			projectileRBs[i]->tag = Main::Tag::enemyTurner;
-			projectileRBs[i]->SetLayer(Main::Layer::playerLayer);
+			projectileRBs[i]->SetLayer(Main::Layer::playerProjLayer);
 		}
 	}
 }

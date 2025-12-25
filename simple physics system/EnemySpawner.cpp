@@ -14,6 +14,7 @@ int EnemySpawner::waveIndex = 0;
 int EnemySpawner::maxEnemies = 30;
 Text::TextData EnemySpawner::textData;
 float EnemySpawner::minPlrDist = FLT_MAX;
+Enemy* EnemySpawner::closestEnemy;
 void EnemySpawner::DestroyWaveText(void) {
 	delete waveTextTimer;
 	waveTextTimer = nullptr;
@@ -22,6 +23,7 @@ void EnemySpawner::DestroyWaveText(void) {
 }
 void EnemySpawner::Update(void) {
 	minPlrDist = FLT_MAX;
+	closestEnemy = nullptr;
 	if (waveTextTimer && waveTextTimer->GetElapsedSeconds() > waveTextDisappearTime) DestroyWaveText();
 	auto bIsEndWave = curNumEnemies == 0;
 	if (bIsEndWave && !lastFrameEndWave) {
@@ -46,6 +48,6 @@ void EnemySpawner::DestroySwordGuy(Node<SwordGuy *> *guy) {
 	Node<SwordGuy*>::Remove(&swordGuys, guy);
 }
 void EnemySpawner::Init(void) {
-	textData = Text::TextData(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) - waveTextSizeVec * .1f - IntVec2::Up * waveTextSizeVec * .3f, "broken");
+	textData = Text::TextData(waveTextSizeVec, -waveTextSizeVec * .1f - IntVec2::Up * waveTextSizeVec * .3f, "broken");
 	Main::Updates += EnemySpawner::Update;
 }

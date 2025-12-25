@@ -2,6 +2,7 @@
 #include "main.hpp"
 #include "timer.hpp"
 #include "Item.hpp"
+#include "enemy.hpp"
 class SwordGuy;
 //static
 class EnemySpawner final {
@@ -23,6 +24,7 @@ private:
 	static Text::TextData textData;
 public:
 	static float minPlrDist;
+	static Enemy* closestEnemy;
 	static void Init(void);
 	static void DestroyWaveText(void);
 	static void Update(void);
