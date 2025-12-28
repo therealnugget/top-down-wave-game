@@ -124,7 +124,6 @@ void Player::Init(void) {
 	healthBarEnt = healthbar->value;
 	healthBarEnt->SetNotLoop(healthBarAnim);
 	progressBarPos = -defPlrPos;
-	new EnemyTurnProjectile();
 	progressBar = Physics::SubStandaloneEnt(Entity::MakeEntity(Main::empty_string, { "progress_bar" }, progressBarPos, progressBarInitSize * IntVec2::GetUp()));
 	progressBarEnt = progressBar->value;
 	constexpr int numShapes = 0;
@@ -147,7 +146,12 @@ rbList *Player::CreatePlayerProjectile(std::string basePath, const char* endPath
 	auto data = SubRBData(basePath, { endPath }, Physics::DefaultSquareVerticesVec, position, size, std::initializer_list<FVector2>(), FVector2::Zero, size * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, rotation, 1.f, true, true, { Main::empty_cc });
 	auto node = Physics::SubscribeEntity(&data);
 	if (outRB) *outRB = node->value;
-	if (outEnt) *outEnt = (*outRB)->GetEntity();
+	if (outEnt) {
+#ifdef DEBUG_BUILD
+		if (!outRB) ThrowError("cannot pass outEnt without passing in outrb");
+#endif
+		*outEnt = (*outRB)->GetEntity();
+	}
 	return node;
 }
 IntVec2 Player::GetProjectilePos(float out, FVector2 mouse) {

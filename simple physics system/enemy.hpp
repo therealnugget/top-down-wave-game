@@ -27,7 +27,7 @@ protected:
 	static int numEnemies;
 	static bool isSingleEnemy;
 	virtual void SetPlayerDist(void) = 0;
-	virtual void EnactDamage(void) = 0;
+	void EnactDamage(void);
 	virtual void CollisionCallback(Collision*);
 	Enemy(SubRBData, float = 1.f, float = .5f, float = 19000000.f, int = 2);
 	~Enemy() override;
@@ -44,6 +44,7 @@ protected:
 		jump,
 		numEnemyAnims,
 	};
+	std::function<void(float)> derivedTakeDamage;
 public:
 	virtual void TakeDamage(float damageAmount);
 	Node<SwordGuy*>* enemySpawnNode;

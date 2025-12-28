@@ -1,6 +1,7 @@
 #include "enemy.hpp"
 #include "multicast delegates.hpp"
 #include "player.hpp"
+#include "EnemySpawner.hpp"
 static constexpr int default_max_health = 3;
 static constexpr float default_immune_time = .6f;
 int Enemy::numEnemies = 0;
@@ -24,6 +25,15 @@ Enemy::~Enemy() {
 // or 2: if we don't care about showing the enemy for the single frame in which he is, in this example, dead, then we can simply destroy the enemy at the start of the next frame as we've done here.
 void Enemy::Update(void) {
     Behaviour::Update();
+}
+void Enemy::EnactDamage(void) {
+    if (!turned) {
+        Player::TakeDamage(damage);
+        return;
+    }
+    auto closestEnemyBehav = EnemySpawner::closestEnemy;
+    if (!closestEnemyBehav || closestEnemyBehav == this) return;
+    closestEnemyBehav->TakeDamage(selfDamage);
 }
 void Enemy::LateUpdate(void) {
 	Physics::SetRealPos(confusedTex.GetRectAddr(), entity, GetPosition(), false);
@@ -61,6 +71,9 @@ void Enemy::CollisionCallback(Collision* collision) {
     auto isPlr = collision->CompareTag(Main::Tag::playerAttack);
     if ((!isPlr && !collision->CompareTag(Main::Tag::enemyTurned))) return;
     colOnFrame = true;
-    TakeDamage(Player::GetDamage());
+#ifdef DEBUG_BUILD
+    if (!derivedTakeDamage) ThrowError("derivedTakeDamage of enemy base class has not been assigned in the derived class. please assign it to the base function of TakeDamage(float).");
+#endif
+    derivedTakeDamage(Player::GetDamage());
     rb->AddVelocity(collision->GetNormal() * (isPlr * Player::GetKnockBack() + !isPlr * knockBack));
 }

@@ -6,9 +6,9 @@
 class EnemyTurnProjectile final {
 private:
 	static constexpr int projectile_frame_wait = 32;
-	static constexpr int num_projectiles = 8;
+	static constexpr int num_projectiles = 6;
 	static constexpr IntVec2 projectileSize = IntVec2(20, 20);
-	static constexpr float randRotationOffset = 10.f * Math::deg2rad;
+	static constexpr float randRotationOffset = 25.f * Math::deg2rad;
 	static constexpr float baseSpeed = .5f;
 	FVector2 mouseDiff;
 	FVector2 GetProjectilePos(int);

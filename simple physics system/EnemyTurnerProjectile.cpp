@@ -32,7 +32,7 @@ void EnemyTurnProjectile::Update(void) {
 	mouseDiff = Player::GetMouseDiff();
 	if (!projectileNodes[0]) {
 		for (int i = 0; i < num_projectiles; i++) {
-			projectileNodes[i] = Player::CreatePlayerProjectile("question mark"s, "question mark", static_cast<IntVec2>(GetProjectilePos(i)), projectileSize, &projectileRBs[i]);
+			projectileNodes[i] = Player::CreatePlayerProjectile("question mark"s, "question mark", Player::GetPosition(), projectileSize, &projectileRBs[i]);
 			projectileRBs[i]->tag = Main::Tag::enemyTurner;
 			projectileRBs[i]->SetLayer(Main::Layer::playerProjLayer);
 		}

@@ -14,19 +14,11 @@ SwordGuy::SwordGuy(void) : attackDecide(false), attackDecision(Main::GetRandInt(
         entity->SetNotLoop(anim);
     }
     SetUpdateNode(Main::Updates += [this]() {Update();});
+    derivedTakeDamage = [this](float damageAmount) { TakeDamage(damageAmount); };
 }
 void SwordGuy::TakeDamage(float damageAmount) {
     Enemy::TakeDamage(damageAmount);
     if (curAnim != dash || entity->FirstFrame()) ResetIfAttkFin(hurt);
-}
-void SwordGuy::EnactDamage(void) {
-    if (!turned) {
-        Player::TakeDamage(damage);
-        return;
-    }
-    auto closestEnemyBehav = EnemySpawner::closestEnemy;
-    if (!closestEnemyBehav || closestEnemyBehav == this) return;
-    closestEnemyBehav->TakeDamage(selfDamage);
 }
 void SwordGuy::ResetIfAttkFin(int animation) {
     if (animFinished) {
