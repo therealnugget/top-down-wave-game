@@ -46,6 +46,7 @@ protected:
 	void Init(TextData* data) {
 		rect = new SDL_Rect();
 		bIsPauseText = data->bIsPauseText;
+		if (!bIsPauseText) SetUpdateNode(Main::Updates += [this]() {Update(); });
 		auto& size = data->size;
 		size.IntoRectWH(rect);
 		(data->position - size * .5f).IntoRectXY(rect);
@@ -66,7 +67,10 @@ public:
 		SDL_FreeSurface(surface);
 		SDL_DestroyTexture(texture);
 		delete rect;
-		if (!bIsPauseText) return;
+		if (!bIsPauseText) {
+			Main::Updates -= updateNode;
+			return;
+		}
 		Main::PauseUpdates -= updateNode;
 	}
 	void RenderText(void);
@@ -130,7 +134,7 @@ private:
 	void OnSelect(void);
 	float healthIncrease;
 public:
-	MaxHealthAdd(int index) : healthIncrease(.1f), Item(index, "main/heart/heart", "increase max\nhealth by 10%", IntVec2(11 * 4, 9 * 4)) {
+	MaxHealthAdd(int index) : healthIncrease(.04f), Item(index, "main/heart/heart", "increase max\nhealth by 4%", IntVec2(11 * 4, 9 * 4)) {
 		SetOnSelect([this]() {OnSelect(); });
 	}
 };

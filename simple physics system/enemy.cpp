@@ -7,13 +7,12 @@ static constexpr float default_immune_time = .6f;
 int Enemy::numEnemies = 0;
 bool Enemy::isSingleEnemy = true;
 float Enemy::knockBack = 1400.f;
-Enemy::Enemy(SubRBData data, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(default_max_health), enabled(true), Behaviour(&data) {
+Enemy::Enemy(SubRBData data, IntVec2 confusedOffset, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): confusedImgOffset(confusedOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(default_max_health), enabled(true), Behaviour(&data) {
 	colsOnFrame.reserve(numColsOnFrame);
 	colsOnFrame.emplace(Main::Tag::player, false);
 	colsOnFrame.emplace(Main::Tag::enemy, false);
 	numEnemies++;
 	isSingleEnemy = numEnemies == 1;
-	confusedImgOffset = IntVec2(155, 20);
 }
 Enemy::~Enemy() {
 	numEnemies--;
@@ -25,6 +24,9 @@ Enemy::~Enemy() {
 // or 2: if we don't care about showing the enemy for the single frame in which he is, in this example, dead, then we can simply destroy the enemy at the start of the next frame as we've done here.
 void Enemy::Update(void) {
     Behaviour::Update();
+}
+void Enemy::SetPlayerDist(void) {
+    plrDistSqr = toPlr.SqrMagnitude();
 }
 void Enemy::EnactDamage(void) {
     if (!turned) {

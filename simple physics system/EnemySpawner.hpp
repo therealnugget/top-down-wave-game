@@ -16,7 +16,16 @@ private:
 	static int curNumEnemies;
 	static int frameIndex;
 	static bool lastFrameEndWave;
-	static Node<SwordGuy*>* swordGuys;
+	//there can be a maximum of 64 enemies, but this can be increased down the line if need be
+	enum EnemyType {
+		bob = 1,
+		bat = 2,
+		numEnemyTypes = 2,
+	};
+	inline static Enemy* SpawnEnemy(int type);
+	static const std::vector<int> enemyTypeProgression;
+	static int progressionIndex;
+	static Node<Enemy*>* enemies;
 	static Node<Text*> *waveText;
 	static Timer *waveTextTimer;
 	static constexpr int waveTextSize = 140;
@@ -28,5 +37,5 @@ public:
 	static void Init(void);
 	static void DestroyWaveText(void);
 	static void Update(void);
-	static void DestroySwordGuy(Node<SwordGuy*>* guy);
+	static void DestroyEnemy(Node<Enemy*>* guy);
 };

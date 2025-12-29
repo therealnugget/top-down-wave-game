@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="animations.cpp" />
+    <ClCompile Include="bat.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="create shapes.cpp" />
     <ClCompile Include="Crystal.cpp" />
@@ -172,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="animations.hpp" />
     <ClInclude Include="array.hpp" />
+    <ClInclude Include="bat.hpp" />
     <ClInclude Include="camera.hpp" />
     <ClInclude Include="create shapes.hpp" />
     <ClInclude Include="Crystal.hpp" />

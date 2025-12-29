@@ -26,11 +26,10 @@ protected:
 	int curAnim;
 	static int numEnemies;
 	static bool isSingleEnemy;
-	virtual void SetPlayerDist(void) = 0;
+	void SetPlayerDist(void);
 	void EnactDamage(void);
 	virtual void CollisionCallback(Collision*);
-	Enemy(SubRBData, float = 1.f, float = .5f, float = 19000000.f, int = 2);
-	~Enemy() override;
+	Enemy(SubRBData, IntVec2 = IntVec2(155, 20), float = 1.f, float = .5f, float = 19000000.f, int = 2);
 	virtual void Update(void);
 	virtual void LateUpdate(void);
 	Node<std::function<void(void)>>* lateUpdateNode;
@@ -44,10 +43,12 @@ protected:
 		jump,
 		numEnemyAnims,
 	};
+	//strange, isn't it? a function that calls from the most derived to the base class. eù_e
 	std::function<void(float)> derivedTakeDamage;
 public:
+	~Enemy() override;
 	virtual void TakeDamage(float damageAmount);
-	Node<SwordGuy*>* enemySpawnNode;
+	Node<Enemy*>* enemySpawnNode;
 	inline FVector2 GetPosition() {
 		return rb->newPosition;
 	}

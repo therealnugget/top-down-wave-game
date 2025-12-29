@@ -36,9 +36,6 @@ void SwordGuy::ResetIfAttkFin(int animation) {
     entity->SetAnimation(animation);
 }
 static constexpr float yDiffDash = 30.f;
-void SwordGuy::SetPlayerDist(void) {
-    plrDistSqr = toPlr.SqrMagnitude();
-}
 void SwordGuy::CheckResetAttackDecision(void) {
     if (!attackDecide) return;
     attackDecide = false;
@@ -52,7 +49,7 @@ void SwordGuy::Update(void) {
         entity->SetAnimation(death);
         enabled = false;
         if (entity->AnimFinished()) {
-            EnemySpawner::DestroySwordGuy(enemySpawnNode);
+            EnemySpawner::DestroyEnemy(enemySpawnNode);
         }
         return;
     }

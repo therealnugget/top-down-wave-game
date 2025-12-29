@@ -6,8 +6,6 @@
 class SwordGuy final: public Enemy {
 private:
 	void CheckResetAttackDecision(void);
-	void SetPlayerDist(void) override;
-	void EnactDamage(void) override;
 	void TakeDamage(float damageAmount) override;
 	void Update(void) override;
 	enum SGAnimation {
