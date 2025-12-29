@@ -20,7 +20,7 @@ private:
 	constexpr static float max_home_seconds = 2.5f;
 	constexpr static float max_alive_seconds = 20.f;
 	constexpr static float start_in_speed = 40000000.f;
-	bool home, pastHome;
+	bool home;
 	float crystalInForce;
 	float progressAmount;
 	Timer *homeTime;
@@ -30,12 +30,7 @@ public:
 		if (!collision->CompareTag(Main::Tag::playerTrigCrystal) || colOnFrame) return;
 		colOnFrame = true;
 		home = true;
-		homeTime = static_cast<Timer *>(_malloca(sizeof(Timer)));
-		homeTime->Reset();
-#ifdef DEBUG_BUILD
-		Assert(homeTime, "couldn't allocate stack memory for variable \"homeTime\"");
-#endif
-		aliveTime.Reset();
+		homeTime = new Timer();
 		rb->SetVelocity(collision->GetNormal().Normalized() * crystal_out_force);
 		}, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0, 1.0f, false, true, Main::empty_cc_init)) {
 		entity->SetNotLoop(collect);

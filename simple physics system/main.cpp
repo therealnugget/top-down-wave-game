@@ -1,4 +1,4 @@
-//#define IS_WINDOW
+#define IS_WINDOW
 #ifdef IS_WINDOW
 #include <Windows.h>
 #endif
@@ -321,7 +321,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DeltaTime());
-#define SHOW_FPS
+//#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());

@@ -107,8 +107,8 @@ public:
 	inline int GetCurAnim() {
 		return currentAnimation;
 	}
-	inline bool AnimFinished() {
-		return animFrameIndex == -1;
+	inline bool AnimFinished(int animation = -1) {
+		return animFrameIndex == -1 && (animation == -1 || GetCurAnim() == animation);
 	}
 	inline bool FirstFrame() {
 		return animFrameIndex == 0;

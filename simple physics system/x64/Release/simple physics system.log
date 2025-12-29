@@ -1,111 +1,143 @@
-﻿  Item.cpp
+﻿  Assembling math.asm...
+  main.cpp
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(343,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
-  (compiling source file 'Item.cpp')
+  (compiling source file 'main.cpp')
   
 C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(351,14): warning C4091: 'static ': ignored on left of 'Main::Layer' when no variable is declared
-  (compiling source file 'Item.cpp')
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(377,14): warning C4091: 'static ': ignored on left of 'Main::direction' when no variable is declared
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(378,14): warning C4091: 'static ': ignored on left of 'Main::direction' when no variable is declared
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(385,14): warning C4091: 'static ': ignored on left of 'Main::Tag' when no variable is declared
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(386,14): warning C4091: 'static ': ignored on left of 'Main::Tag' when no variable is declared
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(520,51): warning C4114: same type qualifier used more than once
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(524,51): warning C4114: same type qualifier used more than once
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(523,14): warning C4091: 'static ': ignored on left of 'Main::inpDirection' when no variable is declared
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.hpp(527,14): warning C4091: 'static ': ignored on left of 'Main::inpDirection' when no variable is declared
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(238,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(252,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(238,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(252,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(305,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(319,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(309,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(323,18): warning C4244: 'return': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(314,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(328,12): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(593,15): warning C4099: 'RigidBody': type name first seen using 'struct' now seen using 'class'
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(607,15): warning C4099: 'RigidBody': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'main.cpp')
       C:\Users\drago\source\repos\top-down-wave-game\simple physics system\usefulTypedefs.hpp(8,8):
       see declaration of 'RigidBody'
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(465,3): warning C5033: 'register' is no longer a supported storage class
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(479,3): warning C5033: 'register' is no longer a supported storage class
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(472,5): warning C5033: 'register' is no longer a supported storage class
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(486,5): warning C5033: 'register' is no longer a supported storage class
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(499,7): warning C4101: 'j': unreferenced local variable
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(513,7): warning C4101: 'j': unreferenced local variable
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(595,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(609,16): warning C4091: 'typedef ': ignored on left of 'AABB' when no variable is declared
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(622,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
-  (compiling source file 'Item.cpp')
-      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(622,15):
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(636,15): warning C4091: 'typedef ': ignored on left of 'QuadNode<T>::TypeOfNode' when no variable is declared
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(636,15):
       the template instantiation context (the oldest one first) is
-          C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(617,8):
+          C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(631,8):
           while compiling class template 'QuadNode'
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(710,146): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(724,146): warning C4267: 'initializing': conversion from 'size_t' to 'const uint', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(789,19): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(803,19): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(1065,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(1080,102): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(83,14): warning C4091: 'static ': ignored on left of 'Player::PlrAnim' when no variable is declared
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(87,14): warning C4091: 'static ': ignored on left of 'Player::PlrAnim' when no variable is declared
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(61,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(65,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(61,72): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(65,72): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(65,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(69,24): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(65,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\player.hpp(69,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file 'main.cpp')
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13): warning C4244:         with
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13): warning C4244:         [
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13): warning C4244:             T=float
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13): warning C4244:         ]
-  (compiling source file 'Item.cpp')
-      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(144,13):
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\enemy.hpp(55,15): warning C4099: 'SubRBData': type name first seen using 'struct' now seen using 'class'
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(407,8):
+      see declaration of 'SubRBData'
+  
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(33,42): warning C4114: same type qualifier used more than once
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(140,5): warning C5033: 'register' is no longer a supported storage class
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(253,109): warning C4244: 'argument': conversion from 'float' to 'Uint8', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(253,79): warning C4244: 'argument': conversion from 'float' to 'Uint8', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(253,49): warning C4244: 'argument': conversion from 'float' to 'Uint8', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(282,40): warning C4244: 'argument': conversion from 'Uint64' to 'unsigned int', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13): warning C4244:         with
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13): warning C4244:         [
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13): warning C4244:             T=float
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(147,13):
       the template instantiation context (the oldest one first) is
           C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(29,8):
           while compiling class template 'Vector2'
           C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(73,23):
           see reference to class template instantiation 'Vector2<float>' being compiled
-          C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(143,14):
+          C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(146,14):
           while compiling class template member function 'void Vector2<float>::IntoRectXY(SDL_Rect *)'
-              C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(464,28):
+              C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(478,28):
               see the first reference to 'Vector2<float>::IntoRectXY' in 'Entity::Entity'
   
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(145,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(145,13): warning C4244:         with
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(145,13): warning C4244:         [
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(145,13): warning C4244:             T=float
-C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(145,13): warning C4244:         ]
-  (compiling source file 'Item.cpp')
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(148,13): warning C4244: '=': conversion from 'T' to 'int', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(148,13): warning C4244:         with
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(148,13): warning C4244:         [
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(148,13): warning C4244:             T=float
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(148,13): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36): warning C4244: 'initializing': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36): warning C4244:         with
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36): warning C4244:         [
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36): warning C4244:             T=float
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,36):
+      the template instantiation context (the oldest one first) is
+          C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,2):
+          while compiling class template member function 'Vector2<float>::Vector2(SDL_DisplayMode &)'
+              C:\Users\drago\source\repos\top-down-wave-game\simple physics system\main.cpp(243,17):
+              see the first reference to 'Vector2<float>::Vector2' in 'Main::Start'
+  
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,47): warning C4244: 'initializing': conversion from 'int' to 'T', possible loss of data
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,47): warning C4244:         with
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,47): warning C4244:         [
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,47): warning C4244:             T=float
+C:\Users\drago\source\repos\top-down-wave-game\simple physics system\physics.hpp(34,47): warning C4244:         ]
+  (compiling source file 'main.cpp')
   
   Generating code
-  10 of 1717 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+  1 of 2220 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     1 functions were new in current compilation
     5 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
