@@ -2,19 +2,36 @@
 #include "main.hpp"
 #include "physics.hpp"
 #include "timer.hpp"
+#include <unordered_map>
 class SwordGuy;
 class Enemy : public Behaviour {
+private:
+	static constexpr int default_max_health = 3;
+	static const std::unordered_map<int, const char*> debuffPaths;
+	int debuffIndex;
+	std::unordered_map<int, Textures::TextureRect*> debuffTexes;
+	void AddDebuffTex(int debuff);
+	inline IntVec2 GetDebuffPos(float index) {
+		return entity->GetRectPosition() + static_cast<FVector2>(debugImgOffset) * index;
+	}
+	IntVec2 debugImgOffset;
+	//don't access this directly. use the "GetDebuffActive(int)" and "SetDebuffActive(int)" functions.
+	int _debuffActive;
 protected:
-	static constexpr const char* confusedPath = "question mark/question mark";
+	bool animFinished;
 	static constexpr IntVec2 confusedSize = { 40, 40 };
 	static float knockBack;
 	float health;
-	IntVec2 confusedImgOffset;
-	Textures::TextureRect confusedTex;
-	inline IntVec2 GetConfusedPos(void) {
-		return entity->GetRectPosition() + confusedImgOffset;
+	enum debuffType {
+		confused = 1,
+		poisoned = 2,
+	};
+	inline bool GetDebuffActive(int debuff) {
+		return _debuffActive & debuff;
 	}
-	bool turned;
+	inline void SetDebuffActive(int bitIndex, bool value = true) {
+		_debuffActive = (_debuffActive | bitIndex) * value + (_debuffActive & ~bitIndex) * !value;
+	}
 	bool touchingEnemy;
 	int numColsOnFrame;
 	std::unordered_map<int, bool> colsOnFrame;
@@ -29,7 +46,7 @@ protected:
 	void SetPlayerDist(void);
 	void EnactDamage(void);
 	virtual void CollisionCallback(Collision*);
-	Enemy(SubRBData, IntVec2 = IntVec2(155, 20), float = 1.f, float = .5f, float = 19000000.f, int = 2);
+	Enemy(SubRBData, IntVec2 = IntVec2(155, 20), int max_health = default_max_health, float damage = 1.f, float selfDamage = .5f, float speed = 19000000.f, int numColsOnFrame = 2);
 	virtual void Update(void);
 	virtual void LateUpdate(void);
 	Node<std::function<void(void)>>* lateUpdateNode;

@@ -5,7 +5,7 @@
 #include "multicast delegates.hpp"
 #include "timer.hpp"
 #include "usefulTypedefs.hpp"
-#include "EnemyTurnProjectile.hpp"
+#include "PlayerProjectile.hpp"
 #include <typeinfo>
 class Text {
 private:
@@ -96,11 +96,13 @@ private:
 	enum ItemType {
 		maxHealthAdd,
 		enemyTurner,
+		pickupRange,
 		numItemTypes,
 	};
 	static constexpr bool itemCanRepeat[numItemTypes] = {
 		true,
 		false,
+		true,
 	};
 	static std::unordered_set<int> itemTypes;
 	Node<std::function<void(void)>>* renderUpdateNode;
@@ -138,14 +140,26 @@ public:
 		SetOnSelect([this]() {OnSelect(); });
 	}
 };
+class PickupRange final : public Item {
+private:
+	void OnSelect(void);
+	float pickupIncrease;
+public:
+	PickupRange(int index) : pickupIncrease(.3f), Item(index, "increase_pickup_range", "increase pickup\nrange by 30%", IntVec2(11 * 4, 11 * 4)) {
+		SetOnSelect([this]() {OnSelect(); });
+	}
+};
 class EnemyTurner final : public Item {
 private:
 	void Update(void) override;
 	static bool playerCollected;
+	static const std::string startPath;
+	static const char *endPath;
+	static const std::string fullPath;
 public:
-	EnemyTurner(int index) : Item(index, "question mark/question mark", "turns enemies\nagainst one another", IntVec2(32 * 2, 32 * 2)) {
+	EnemyTurner(int index) : Item(index, fullPath.c_str(), "turns enemies\nagainst one another", IntVec2(32 * 2, 32 * 2)) {
 		SetOnSelect([]()-> void {
-			new EnemyTurnProjectile();
+			new PlayerProjectile(startPath, endPath);
 			});
 	}
 };

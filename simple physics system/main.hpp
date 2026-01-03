@@ -391,6 +391,7 @@ public:
 		playerTrigCrystal = 4,
 		enemyTurner = 5,
 		enemyTurned = 6,
+		poison = 7,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;

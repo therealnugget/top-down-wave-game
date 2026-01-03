@@ -26,7 +26,6 @@ private:
 	//dash + 1 for yet to decide
 	int attackDecision;
 	bool attackDecide;
-	bool animFinished;
 	float signAtDash;
 	void ResetIfAttkFin(int animation);
 public:

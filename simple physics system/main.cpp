@@ -1,4 +1,4 @@
-#define IS_WINDOW
+//#define IS_WINDOW
 #ifdef IS_WINDOW
 #include <Windows.h>
 #endif

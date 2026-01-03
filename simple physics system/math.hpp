@@ -58,4 +58,11 @@ public:
 	static float Cross(Vector2<float> a, Vector2<float> b);
 	static constexpr float deg2rad = 3.1415926536f / 180.f;
 	static Vector2<float> GetTurbulentPos(Vector2<float> point, Vector2<float> origin, float rotation = .0f, float turbulencePeriod = .05f, float amplitude = 15.f);
+	static inline void EnactBitMask(std::function<void(int)> func, int bitMask) {
+		int onBit = 1;
+		while (onBit != 0) {
+			if (bitMask & onBit) func(onBit);
+			onBit <<= 1;
+		}
+	}
 };

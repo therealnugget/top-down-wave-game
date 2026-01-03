@@ -36,7 +36,13 @@ void MaxHealthAdd::OnSelect(void) {
 	Player::IncreaseHealth(healthIncrease);
 	Player::ReplenishHealth();
 }
+void PickupRange::OnSelect(void) {
+	Player::IncreasePickupRange(pickupIncrease);
+}
 bool EnemyTurner::playerCollected = false;
+const std::string EnemyTurner::startPath = "question mark";
+const char *EnemyTurner::endPath = "question mark";
+const std::string EnemyTurner::fullPath = EnemyTurner::startPath + '/' + EnemyTurner::endPath;
 void EnemyTurner::Update(void) {
 	Item::Update();
 }
@@ -55,6 +61,9 @@ void Item::MakeRandItem(int index) {
 			break;
 		case enemyTurner:
 			new EnemyTurner(index);
+			break;
+		case pickupRange:
+			new PickupRange(index);
 			break;
 		default:
 			ThrowError("case not supported");

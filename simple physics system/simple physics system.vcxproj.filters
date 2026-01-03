@@ -63,10 +63,10 @@
     <ClCompile Include="NugMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyTurnerProjectile.cpp">
+    <ClCompile Include="bat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bat.cpp">
+    <ClCompile Include="PlayerProjectile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -128,13 +128,13 @@
     <ClInclude Include="camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyTurnProjectile.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="types.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bat.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerProjectile.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -784,6 +784,9 @@ public:
 	inline AABB &GetBroadPAABB() {
 		return broadPhaseAABB;
 	}
+	inline void ScaleNarrowPVert(float scale) {
+		for (int i = 0; i < numNarrowPhaseVertices; i++) origNarrowPVertices[i] *= scale;
+	}
 	inline FVector2* GetNarrowPhaseVertices() {
 		return verticesNarrowP;
 	}

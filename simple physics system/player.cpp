@@ -10,7 +10,7 @@
 #include "multicast delegates.hpp"
 #include "Item.hpp"
 #include "camera.hpp"
-#include "EnemyTurnProjectile.hpp"
+#include "PlayerProjectile.hpp"
 //#define IS_DEV
 #define PLAYER_WIDTH 70
 #define PLAYER_HEIGHT 70
@@ -92,8 +92,7 @@ void Player::ReplenishHealth(void) {
 	health = maxHealth;
 }
 void Player::IncreasePickupRange(float increaseFactor) {
-	auto crystalColEnt = crystalColliderRb->GetEntity();
-	crystalColEnt->SetSize(crystalColEnt->GetSize() * (1.f + increaseFactor));
+	crystalColliderRb->ScaleNarrowPVert(1.f + increaseFactor);
 }
 void Player::Init(void) {
 	Main::defaultPlrPos = Main::halfDisplaySize + (static_cast<FVector2>(FVector2::Down) + FVector2::Left) * playerSizeFVec * .5f;

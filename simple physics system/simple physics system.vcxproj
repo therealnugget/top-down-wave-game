@@ -117,7 +117,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;;SDL2_ttf.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)libs</AdditionalLibraryDirectories>
@@ -139,7 +139,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -159,13 +159,13 @@
     <ClCompile Include="Crystal.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
-    <ClCompile Include="EnemyTurnerProjectile.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="NugMath.cpp" />
     <ClCompile Include="multicast delegates.cpp" />
     <ClCompile Include="bob.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="physics.cpp" />
+    <ClCompile Include="PlayerProjectile.cpp" />
     <ClCompile Include="textures.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="winMgr.cpp" />
@@ -179,7 +179,6 @@
     <ClInclude Include="Crystal.hpp" />
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="EnemySpawner.hpp" />
-    <ClInclude Include="EnemyTurnProjectile.hpp" />
     <ClInclude Include="Item.hpp" />
     <ClInclude Include="main.hpp" />
     <ClInclude Include="math.hpp" />
@@ -187,6 +186,7 @@
     <ClInclude Include="bob.hpp" />
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="player.hpp" />
+    <ClInclude Include="PlayerProjectile.hpp" />
     <ClInclude Include="textures.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="timer.hpp" />

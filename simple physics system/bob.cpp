@@ -53,24 +53,6 @@ void SwordGuy::Update(void) {
         }
         return;
     }
-    for (auto& col : colsOnFrame) col.second = false;
-    curAnim = entity->GetCurAnim();
-    animFinished = entity->AnimFinished();
-    toPlr = rb->GetPosition().To(Player::GetPosition());
-    SetPlayerDist();
-    if (plrDistSqr < EnemySpawner::minPlrDist) {
-        EnemySpawner::minPlrDist = plrDistSqr;
-        EnemySpawner::closestEnemy = this;
-    }
-    if (isSingleEnemy && turned) {
-        Main::LateUpdates -= lateUpdateNode;
-        lateUpdateNode = nullptr;
-        turned = false;
-    }
-    if (turned) {
-        toPlr = GetPosition().To(EnemySpawner::closestEnemy->GetPosition());
-        SetPlayerDist();
-    }
     if (curAnim == hurt && !animFinished) return;
     if (curAnim == dash) {
         if (!animFinished) return;
