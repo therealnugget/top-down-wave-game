@@ -54,7 +54,13 @@ float Player::maxProgress = 10.f;
 float Player::progressIncrease = 1.5f;
 float Player::progressAmount = .0f;
 float Player::projectileSpd = 600.f;
-float Player::damage = 1.f;
+float Player::damage = 
+#ifdef IS_DEV
+1000.f
+#else
+1.f
+#endif
+;
 Node<Entity*> *Player::healthbar;
 Entity* Player::healthBarEnt;
 Node<Entity*> *Player::progressBar;
@@ -223,5 +229,7 @@ void Player::Update(void) {
 	Player::PlayDirAnim(idle, pastInp);
 }
 void Player::PlayDirAnim(int animation, IntVec2 direction) {
+	bool isHit = animation == hit;
+	playerEnt->SetAnimSpd(hurtAnimSpeed * isHit + 1.f * !isHit);
 	playerEnt->SetAnimation(IntVec2::VecToDir(direction) + Main::GetAnimOffset(animation));
 }

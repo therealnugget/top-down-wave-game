@@ -8,6 +8,8 @@ void Text::Update(void) {
 	RenderText();
 }
 int Item::selectedItem = -1;
+int Item::itemTypes[Item::numItems];
+int Item::itemIndices[Item::numItems];
 void Item::Update(void) {
 	Text::Update();
 	Textures::RenderStandaloneTex(ItemImg);
@@ -24,6 +26,12 @@ void Item::Update(void) {
 selected:
 	if (selectedItem == itemIndex && onSelect) {
 		onSelect();
+		if (!itemCanRepeat[itemTypes[itemIndex]]) {
+			for (int i = itemIndices[itemIndex]; i < availableItemTypes.size() - 1; i++) {
+				availableItemTypes[i] = availableItemTypes[i + 1];
+			}
+			availableItemTypes.resize(availableItemTypes.size() - 1);
+		}
 	}
 	Main::canChangePause = true;
 	Main::SetPauseState(false);
@@ -39,37 +47,44 @@ void MaxHealthAdd::OnSelect(void) {
 void PickupRange::OnSelect(void) {
 	Player::IncreasePickupRange(pickupIncrease);
 }
-bool EnemyTurner::playerCollected = false;
 const std::string EnemyTurner::startPath = "question mark";
 const char *EnemyTurner::endPath = "question mark";
 const std::string EnemyTurner::fullPath = EnemyTurner::startPath + '/' + EnemyTurner::endPath;
+const std::string Poison::startPath = "poison";
+const char *Poison::endPath = "poison";
+const std::string Poison::fullPath = Poison::startPath + '/' + Poison::endPath;
 void EnemyTurner::Update(void) {
 	Item::Update();
 }
-unordered_set<int> Item::itemTypes;
-void Item::StaticInit(void) {
-	itemTypes.reserve(numItemTypes);
-	for (int i = numItemTypes - 1; i >= 0; i--) itemTypes.insert(i);
+void Poison::Update(void) {
+	Item::Update();
 }
+vector<int> Item::availableItemTypes;
+void Item::StaticInit(void) {
+	availableItemTypes.resize(numItemTypes);
+	for (int i = 0; i < numItemTypes; i++) availableItemTypes[i] = i;
+}
+//functions like these, and other parts of the code, are incredibly repetitive. i could use parameterized definitions to cut down the maintainability and character count of the code, but the problem with parameterized definitions is that they destroy the readability of the code. it is never easy to understand what is happening inside the definition. for this reason, i stopped using them a while ago.
 void Item::MakeRandItem(int index) {
-	auto randInd = Main::GetRandInt(0, itemTypes.size());
-	int i = 0;
-	for (auto itemType : itemTypes) if (i++ == randInd) {
-		switch (itemType) {
-		case maxHealthAdd:
-			new MaxHealthAdd(index);
-			break;
-		case enemyTurner:
-			new EnemyTurner(index);
-			break;
-		case pickupRange:
-			new PickupRange(index);
-			break;
-		default:
-			ThrowError("case not supported");
-			break;
-		}
-		if (!itemCanRepeat[itemType]) itemTypes.erase(itemType);
-		return;
+	auto randInd = Main::GetRandInt(0, availableItemTypes.size());
+	auto randType = availableItemTypes[randInd];
+	switch (randType) {
+	case maxHealthAdd:
+		new MaxHealthAdd(index);
+		break;
+	case enemyTurner:
+		new EnemyTurner(index);
+		break;
+	case poison:
+		new Poison(index);
+		break;
+	case pickupRange:
+		new PickupRange(index);
+		break;
+	default:
+		ThrowError("case not supported");
+		break;
 	}
+	itemTypes[index] = randType;
+	itemIndices[index] = randInd;
 }

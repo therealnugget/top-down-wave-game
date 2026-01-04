@@ -13,7 +13,6 @@ private:
 	static int maxEnemies;
 	static int waveIndex;
 	static int numSpawnedEnemies;
-	static int curNumEnemies;
 	static int frameIndex;
 	static bool lastFrameEndWave;
 	//there can be a maximum of 64 enemies, but this can be increased down the line if need be
@@ -30,6 +29,7 @@ private:
 	static Timer *waveTextTimer;
 	static constexpr int waveTextSize = 140;
 	static constexpr IntVec2 waveTextSizeVec = IntVec2(waveTextSize * 2, waveTextSize);
+	static constexpr IntVec2 waveTextOffset = IntVec2(0, 0);
 	static Text::TextData textData;
 public:
 	static float minPlrDist;

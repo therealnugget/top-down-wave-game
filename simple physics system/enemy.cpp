@@ -6,8 +6,8 @@ static constexpr float default_immune_time = .6f;
 int Enemy::numEnemies = 0;
 bool Enemy::isSingleEnemy = true;
 float Enemy::knockBack = 1400.f;
-const std::unordered_map<int, const char*> Enemy::debuffPaths = { {confused, "question mark/question mark"}, {poisoned, "poison/poision"} };
-Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): _debuffActive(0), debugImgOffset(debugOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(max_health), enabled(true), Behaviour(&data) {
+const std::unordered_map<int, const char*> Enemy::debuffPaths = { {confused, "question mark/question mark"}, {poisoned, "poison/poison debuff"} };
+Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): frameIndex(0), _debuffActive(0), debugImgOffset(debugOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(max_health), enabled(true), Behaviour(&data) {
 	colsOnFrame.reserve(numColsOnFrame);
 	colsOnFrame.emplace(Main::Tag::player, false);
 	colsOnFrame.emplace(Main::Tag::enemy, false);
@@ -32,20 +32,23 @@ void Enemy::EnactDamage(void) {
 }
 void Enemy::LateUpdate(void) {
     for (auto& texRect : debuffTexes) {
-        auto& confusedTex = *texRect.second;
-        Physics::SetRealPos(confusedTex.GetRectAddr(), entity, GetPosition(), false);
-        confusedTex.GetRectAddr()->x += debugImgOffset.x;
-        confusedTex.GetRectAddr()->y += debugImgOffset.y;
+        auto& confusedTex = texRect.second.texture;
+        Physics::SetRealPos(confusedTex.GetRectAddr(), entity, GetPosition() + static_cast<FVector2>(GetDebuffPos(texRect.second.index)), false);
         Textures::RenderStandaloneTex(confusedTex);
     }
 }
 void Enemy::TakeDamage(float damageAmount) {
 	health -= damageAmount;
 }
+IntVec2 Enemy::GetDebuffPos(int index) {
+    return IntVec2(debugImgOffset.x + debuffSeparation * index * ((index & 1) * 2 - 1), debugImgOffset.y);
+}
 void Enemy::AddDebuffTex(int debuff) {
-    debuffIndex++;
-    auto debuffPos = GetDebuffPos(static_cast<float>(debuffIndex) - static_cast<float>(debuffTexes.size() - 1) * .5f);
-    debuffTexes.emplace(debuff, new Textures::TextureRect(Textures::InitAnim(debuffPaths.at(debuff)), SDL_Rect{ debuffPos.x, debuffPos.y, confusedSize.x, confusedSize.y }));
+    if (!lateUpdateNode) lateUpdateNode = (Main::LateUpdates += [this]() {LateUpdate(); });
+    SetDebuffActive(debuff);
+    int debuffTexSize = debuffTexes.size();
+    auto debuffPos = GetDebuffPos(debuffTexSize);
+    debuffTexes.emplace(debuff, Debuff(Textures::TextureRect(Textures::InitAnim(debuffPaths.at(debuff)), SDL_Rect{ debuffPos.x, debuffPos.y, debuffSize.x, debuffSize.y }), debuffTexSize));
 }
 void Enemy::CollisionCallback(Collision* collision) {
     if (!enabled) return;
@@ -62,15 +65,13 @@ void Enemy::CollisionCallback(Collision* collision) {
         curCol = true;
     }
     if (!colOnFrame) {
-        if (collision->CompareTag(Main::Tag::poison)) {
+        if (collision->CompareTag(Main::Tag::poison) && !GetDebuffActive(poisoned)) {
             colOnFrame = true;
             AddDebuffTex(poisoned);
         }
         if (!isSingleEnemy && !GetDebuffActive(confused) && collision->CompareTag(Main::Tag::enemyTurner)) {
             colOnFrame = true;
             AddDebuffTex(confused);
-            lateUpdateNode = (Main::LateUpdates += [this]() {LateUpdate(); });
-            SetDebuffActive(confused);
             rb->tag = Main::Tag::enemyTurned;
         }
         if (entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
@@ -107,5 +108,8 @@ void Enemy::Update(void) {
     if (GetDebuffActive(confused)) {
         toPlr = GetPosition().To(EnemySpawner::closestEnemy->GetPosition());
         SetPlayerDist();
+    }
+    if (GetDebuffActive(poisoned) && (frameIndex++ % Poison::damageFrameWait) == 0) {
+        derivedTakeDamage(Poison::damageAmount);
     }
 }

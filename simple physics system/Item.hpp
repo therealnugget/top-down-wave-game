@@ -23,14 +23,14 @@ public:
 	private:
 		IntVec2 size;
 		IntVec2 position;
-		const char* text;
+		std::string text;
 		bool bIsPauseText;
 	public:
 		TextData(){}
-		TextData(IntVec2 _size, IntVec2 startPos, const char* textDisplay, bool isPauseText = false) : size(_size), position(startPos), text(textDisplay), bIsPauseText(isPauseText) {
+		TextData(IntVec2 _size, IntVec2 startPos, std::string textDisplay, bool isPauseText = false) : size(_size), position(startPos), text(textDisplay), bIsPauseText(isPauseText) {
 
 		}
-		inline void SetText(const char* newText) {
+		inline void SetText(std::string newText) {
 			text = newText;
 		}
 		friend class Text;
@@ -55,7 +55,7 @@ protected:
 			font = TTF_OpenFont(fontPath, defaultTextSize);
 			if (!font) ThrowError(4, "couldn't load font at path ", fontPath, "error: ", TTF_GetError());
 		}
-		surface = TTF_RenderText_Solid_Wrapped(font, data->text, SDL_Color(), 0);
+		surface = TTF_RenderText_Solid_Wrapped(font, data->text.c_str(), SDL_Color(), 0);
 		texture = SDL_CreateTextureFromSurface(Main::renderer, surface);
 	}
 public:
@@ -93,19 +93,24 @@ private:
 	static constexpr int itemYSeparation = 190;
 	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the image hashmap
 	Textures::TextureRect ItemImg;
+	//leave these in counting order so they can be indexed using GetRandInt(int, int).
 	enum ItemType {
 		maxHealthAdd,
 		enemyTurner,
+		poison,
 		pickupRange,
 		numItemTypes,
 	};
 	static constexpr bool itemCanRepeat[numItemTypes] = {
 		true,
 		false,
+		false,
 		true,
 	};
-	static std::unordered_set<int> itemTypes;
+	static std::vector<int> availableItemTypes;
 	Node<std::function<void(void)>>* renderUpdateNode;
+	static int itemTypes[numItems];
+	static int itemIndices[numItems];
 protected:
 	inline void SetOnSelect(std::function<void(void)> selectFunc) {
 		onSelect = selectFunc;
@@ -152,14 +157,30 @@ public:
 class EnemyTurner final : public Item {
 private:
 	void Update(void) override;
-	static bool playerCollected;
 	static const std::string startPath;
 	static const char *endPath;
 	static const std::string fullPath;
+	static constexpr int num_projectiles = 3;
 public:
 	EnemyTurner(int index) : Item(index, fullPath.c_str(), "turns enemies\nagainst one another", IntVec2(32 * 2, 32 * 2)) {
 		SetOnSelect([]()-> void {
-			new PlayerProjectile(startPath, endPath);
+			new PlayerProjectile(startPath, endPath, num_projectiles);
+			});
+	}
+};
+class Poison final : public Item {
+private:
+	void Update(void) override;
+	static const std::string startPath;
+	static const char *endPath;
+	static const std::string fullPath;
+	static constexpr int num_projectiles = 6;
+public:
+	static constexpr int damageFrameWait = 60;
+	static constexpr float damageAmount = .3f;
+	Poison(int index) : Item(index, fullPath.c_str(), "poisons       \nenemies       ", IntVec2(32 * 2, 32 * 2)) {
+		SetOnSelect([]()-> void {
+			new PlayerProjectile(startPath, endPath, num_projectiles, Main::Tag::poison, 64);
 			});
 	}
 };

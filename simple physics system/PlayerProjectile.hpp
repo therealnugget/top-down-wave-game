@@ -24,7 +24,7 @@ private:
 	void DestroyProjectile(void);
 	int tag;
 public:
-	PlayerProjectile(std::string _basePath, const char* _endPath, IntVec2 _projectileSize = IntVec2(20, 20), int _tag = Main::Tag::enemyTurner, int _numProjectiles = 6, int _projectileFrameWait = 32, float _randRotationOffset = 25.f * Math::deg2rad, float _baseSpeed = .5f) : projectileFrameWait(_projectileFrameWait), projectileSize(_projectileSize), randRotationOffset(_randRotationOffset), baseSpeed(_baseSpeed), numProjectiles(_numProjectiles), makeNewSeeds(std::vector<bool>(numProjectiles)), randRots(std::vector<float>(numProjectiles)), projectileNodes(std::vector<rbList*>(numProjectiles)), projectileRBs(std::vector<RigidBody*>(numProjectiles)), basePath(_basePath), endPath(_endPath), currentProjectileFrame(0) {
+	PlayerProjectile(std::string _basePath, const char* _endPath, int _numProjectiles = 6, int _tag = Main::Tag::enemyTurner, int _projectileFrameWait = 32, IntVec2 _projectileSize = IntVec2(20, 20), float _randRotationOffset = 25.f * Math::deg2rad, float _baseSpeed = .5f) : projectileFrameWait(_projectileFrameWait), projectileSize(_projectileSize), randRotationOffset(_randRotationOffset), baseSpeed(_baseSpeed), numProjectiles(_numProjectiles), makeNewSeeds(std::vector<bool>(numProjectiles)), randRots(std::vector<float>(numProjectiles)), projectileNodes(std::vector<rbList*>(numProjectiles)), projectileRBs(std::vector<RigidBody*>(numProjectiles)), basePath(_basePath), endPath(_endPath), currentProjectileFrame(0) {
 		tag = _tag;
 #ifdef DEBUG_BUILD
 		Assert(Main::IsPowTwo(projectileFrameWait), "projectile_frame_wait should be a power of two");

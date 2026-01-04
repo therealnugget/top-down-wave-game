@@ -8,18 +8,23 @@ class Enemy : public Behaviour {
 private:
 	static constexpr int default_max_health = 3;
 	static const std::unordered_map<int, const char*> debuffPaths;
-	int debuffIndex;
-	std::unordered_map<int, Textures::TextureRect*> debuffTexes;
+	struct Debuff {
+	public:
+		Debuff(Textures::TextureRect _texture, int _index) : texture(_texture), index(_index) {}
+		Textures::TextureRect texture;
+		int index;
+	};
+	std::unordered_map<int, Debuff> debuffTexes;
+	IntVec2 GetDebuffPos(int index);
 	void AddDebuffTex(int debuff);
-	inline IntVec2 GetDebuffPos(float index) {
-		return entity->GetRectPosition() + static_cast<FVector2>(debugImgOffset) * index;
-	}
 	IntVec2 debugImgOffset;
 	//don't access this directly. use the "GetDebuffActive(int)" and "SetDebuffActive(int)" functions.
 	int _debuffActive;
+	int frameIndex;
 protected:
 	bool animFinished;
-	static constexpr IntVec2 confusedSize = { 40, 40 };
+	static constexpr IntVec2 debuffSize = { 40, 40 };
+	static constexpr int debuffSeparation = 25;
 	static float knockBack;
 	float health;
 	enum debuffType {
@@ -63,7 +68,10 @@ protected:
 	//strange, isn't it? a function that calls from the most derived to the base class. eù_e
 	std::function<void(float)> derivedTakeDamage;
 public:
-	~Enemy() override;
+	inline static int GetNumEnemies(void){
+		return numEnemies;
+	}
+	virtual ~Enemy();
 	virtual void TakeDamage(float damageAmount);
 	Node<Enemy*>* enemySpawnNode;
 	inline FVector2 GetPosition() {

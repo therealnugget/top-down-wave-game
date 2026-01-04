@@ -510,15 +510,7 @@ public:
 		}
 	}
 	~Entity() {
-		int j;
-		Animation& curAnim = anims[0];
-		bool imageSizesEmpty = !imageSizes;
-		for (int i = 0; i < numAnims; i++) {
-			curAnim = anims[i];/*
-			for (j = 0; j < curAnim.numOfFrames; j++) {
-				SDL_DestroyTexture(curAnim.textures[j]);
-			}*/
-			if (imageSizesEmpty) continue;
+		if (imageSizes) for (int i = 0; i < numAnims; i++) {
 			delete std::get<IntVec2*>(imageSizes[i]);
 		}
 		delete imageSizes;

@@ -7,7 +7,6 @@
 #include "types.hpp"
 int EnemySpawner::frameIndex;
 int EnemySpawner::numSpawnedEnemies = 0;
-int EnemySpawner::curNumEnemies = 0;
 bool EnemySpawner::lastFrameEndWave = false;
 Node<Text*> *EnemySpawner::waveText = nullptr;
 Timer* EnemySpawner::waveTextTimer = nullptr;
@@ -37,13 +36,13 @@ void EnemySpawner::Update(void) {
 	minPlrDist = FLT_MAX;
 	closestEnemy = nullptr;
 	if (waveTextTimer && waveTextTimer->GetElapsedSeconds() > waveTextDisappearTime) DestroyWaveText();
-	auto bIsEndWave = curNumEnemies == 0;
+	auto bIsEndWave = Enemy::GetNumEnemies() == 0;
 	if (bIsEndWave && !lastFrameEndWave) {
 		maxEnemies *= wave_num_enemy_mult;
 		progressionIndex = (progressionIndex + 1) % enemyTypeProgression.size();
 		numSpawnedEnemies = 0;
 		if (waveTextTimer) DestroyWaveText();
-		textData.SetText(("Wave " + std::to_string(++waveIndex)).c_str());
+		textData.SetText("Wave " + std::to_string(++waveIndex));
 		waveText = Physics::SubText(new Text(&textData));
 		waveTextTimer = new Timer();
 	}
@@ -55,18 +54,16 @@ void EnemySpawner::Update(void) {
 			auto guy = SpawnEnemy(bitIndex);
 			guy->enemySpawnNode = Node<Enemy*>::AddAtHeadByVal(guy, &enemies);
 			numSpawnedEnemies++;
-			curNumEnemies++;
 		}
 		bitIndex <<= 1;
 	}
 }
 void EnemySpawner::DestroyEnemy(Node<Enemy*> *guy) {
 	auto c = new Crystal(guy->value->GetPosition());
-	curNumEnemies--;
  	delete guy->value;
 	Node<Enemy*>::Remove(&enemies, guy);
 }
 void EnemySpawner::Init(void) {
-	textData = Text::TextData(waveTextSizeVec, -waveTextSizeVec * .1f - IntVec2::Up * waveTextSizeVec * .3f, "broken");
+	textData = Text::TextData(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) + waveTextOffset, "broken");
 	Main::Updates += EnemySpawner::Update;
 }

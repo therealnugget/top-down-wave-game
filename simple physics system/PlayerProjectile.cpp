@@ -32,7 +32,7 @@ void PlayerProjectile::Update(void) {
 	mouseDiff = Player::GetMouseDiff();
 	if (!projectileNodes[0]) {
 		for (int i = 0; i < numProjectiles; i++) {
-			projectileNodes[i] = Player::CreatePlayerProjectile("question mark"s, "question mark", static_cast<IntVec2>(Player::GetPosition()), projectileSize, &projectileRBs[i]);
+			projectileNodes[i] = Player::CreatePlayerProjectile(basePath, endPath, static_cast<IntVec2>(Player::GetPosition()), projectileSize, &projectileRBs[i]);
 			projectileRBs[i]->tag = tag;
 			projectileRBs[i]->SetLayer(Main::Layer::playerProjLayer);
 		}
