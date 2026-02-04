@@ -14,7 +14,7 @@ ASMDot proc
 	addss xmm0, xmm1
 	ret
 ASMDot endp
-;			rcx					rdx				r8			r9			rbp+48 (after push rbx)
+;			rcx					rdx				r8			r9			rbp+48 (after push rbp)
 ;(FVector2 *vertices, FVector2 *axis, uint numVertices, float *min, float *max)<---- signature
 ASMSetProjection proc
 	push rbp
@@ -23,7 +23,7 @@ ASMSetProjection proc
 	mov rbx, rcx; we're using rbx for first arg cuz loop uses rcx for counter
 	call ASMDot
 	movss real4 ptr[r9], xmm0; min = projection
-	mov rax, qword ptr [rbp + 48]; init rax to max from stack (32 for shadow stack, add 8 for sizeof float ptr operand, add another 8 for pushed rbp)
+	mov rax, qword ptr [rbp + 48]; init rax to max from stack (32 for shadow stack, add 8 for 16 bit alignment, add another 8 for pushed rbp)
 	movss real4 ptr [rax], xmm0; max = projection
 	mov ecx, r8d; initialize counter to numVertices from r8d
 loopHead:
