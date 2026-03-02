@@ -402,7 +402,8 @@ private:
 	}
 };
 struct MouseBounds {
-	IntVec2 min, max;
+public:
+	FVector2 min, max;
 };
 struct SubRBData {
 private:

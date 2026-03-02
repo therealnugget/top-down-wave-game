@@ -88,7 +88,7 @@ private:
 	bool firstItem;
 	std::function<void(void)> onSelect;
 	static constexpr IntVec2 itemTextSize = IntVec2(400, 175);
-	static constexpr MouseBounds itemBounds[numItems] = { {{756, 274}, {1165, 458}}, {{756, 458}, {1165, 643}}, {{756, 643}, {1165, 807}} };
+	static MouseBounds itemBounds[numItems];
 	static constexpr IntVec2 ItemImgOffset = IntVec2 (-270, -20);
 	static constexpr int itemYSeparation = 190;
 	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the image hashmap
@@ -135,6 +135,7 @@ public:
 	virtual ~Item() {
 
 	}
+	friend class Main;
 };
 class MaxHealthAdd final : public Item {
 private:

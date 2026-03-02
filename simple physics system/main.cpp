@@ -13,6 +13,7 @@
 #include <sstream>
 #include <iomanip>
 #include <SDL_image.h>
+#include "Item.hpp"
 #define SHIFT_INDEX 0
 #define ALT_INDEX 1
 #define CONTROL_INDEX 2
@@ -241,6 +242,10 @@ std::vector<const char*> Main::dirPaths;
 void Main::Start() {
     SDL_GetCurrentDisplayMode(0, &DM);//if we start using multiple windows, this needs to be changed
     DisplaySize = FVector2(DM);
+    for (auto &bounds : Item::itemBounds) {
+        bounds.min *= DisplaySize;
+        bounds.max *= DisplaySize;
+    }
     halfDisplaySize = DisplaySize / 2.f;
     WindowManager::window = SDL_CreateWindow("Hello. My name is Kevin, I have changnesia.", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Main::DM.w, Main::DM.h, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
     if (!WindowManager::window) {
@@ -320,7 +325,7 @@ int main(int argc, char* args[])
         Main::EarlyUpdate();
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
-        Main::dtUpdates(Main::DeltaTime());
+        Main::dtUpdates(Main::DefCapDeltaTime());
 //#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';

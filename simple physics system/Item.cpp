@@ -1,6 +1,7 @@
 #include "Item.hpp"
 #include "player.hpp"
 TTF_Font* Text::font = nullptr;
+MouseBounds Item::itemBounds[Item::numItems] = { {{756.f / 1920.f, 274.f / 1080.f}, {1165.f / 1920.f, 458.f / 1080.f}}, {{756.f / 1920.f, 458.f / 1080.f}, {1165.f / 1920.f, 643.f / 1080.f}}, {{756.f / 1920.f, 643.f / 1080.f}, {1165.f / 1920.f, 807.f / 1080.f}} };
 void Text::RenderText(void) {
 	SDL_RenderCopyEx(Main::renderer, texture, nullptr, rect, .0, GetPointOfRotationAddr(), SDL_FLIP_NONE);
 }
@@ -15,7 +16,9 @@ void Item::Update(void) {
 	Textures::RenderStandaloneTex(ItemImg);
 	if (!Main::leftClickOnFrame) return;
 	if (selectedItem == -1) {
-		for (int i = 0; i < numItems; i++) {
+		for (int i = 0; i < numItems; i++) {/*
+			cout << "mouse position is currently: \n";
+			Main::rawMousePosition.PrintVec();*/
 			if (Physics::PointInBounds(Main::rawMousePosition, itemBounds[i])) {
 				selectedItem = i;
 				goto selected;
