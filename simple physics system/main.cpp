@@ -221,7 +221,7 @@ float Main::CapDeltaTime(float &maxDT) {
 }
 float Main::invRefreshRate;
 float Main::DefCapDeltaTime() {
-    return fminf(DeltaTime(), invRefreshRate);
+    return fminf(DeltaTime(), invRefreshRate * defCapMultiplier);
 }
 static void Close() {
     Physics::Finalize();
@@ -260,6 +260,7 @@ void Main::Start() {
         ThrowError("renderer couldn't be created");
     }
     invRefreshRate = 1.f / static_cast<float>(Main::DM.refresh_rate);
+    cout << "inverse refresh rate is " << invRefreshRate << '\n';
     if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG) {
         ThrowError("couldn't init img: ", IMG_GetError());
     }

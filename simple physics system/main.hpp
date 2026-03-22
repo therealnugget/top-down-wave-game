@@ -555,6 +555,7 @@ private:
 	static bool pressingModKey[];
 	static bool pressedModKey[];
 	static float invRefreshRate;
+	static constexpr float defCapMultiplier = .4f;
 	static void SetPastKey(int*);
 	static inline void SetLClickState(bool state) {
 	}
