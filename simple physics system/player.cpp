@@ -22,9 +22,11 @@ float Player::maxHealth = 35.f;
 float Player::health = Player::maxHealth;
 float Player::crystalColldierSizeMult = 1.4f;
 FVector2 Player::mouseDiff;
-static constexpr float attackSizeMult = 1.2f;
 const FVector2 Player::playerCollider = FVector2(.375f, .5f);
-IntVec2 Player::attackSize = IntVec2(PLAYER_WIDTH * attackSizeMult, PLAYER_HEIGHT * attackSizeMult);
+static constexpr float swordSizeMult = 1.2f;
+IntVec2 Player::swordSize = IntVec2(PLAYER_WIDTH * swordSizeMult, PLAYER_HEIGHT * swordSizeMult);
+static constexpr float spearSizeMult = .4f;
+IntVec2 Player::spearSize = IntVec2(PLAYER_WIDTH * spearSizeMult, PLAYER_HEIGHT * spearSizeMult);
 IntVec2 Player::pastInp;
 bool Player::mouseVertical;
 bool Player::colOnFrame = false;
@@ -146,6 +148,35 @@ void Player::LateUpdate(void) {
 	auto pos = GetPosition();
 	Camera::cameraPosition = IntVec2(pos);
 	crystalColliderRb->SetPosition(pos);
+	if (Main::leftClick) {
+		mouseDiff = GetMouseDiff();
+		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
+		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
+		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
+		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
+		PlayDirAnim(attack, mouseDirection);
+		pastInp = mouseDirection;
+		plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
+		if (!plrAttack) {
+			RigidBody* attackRB;
+			Entity* attackEnt;
+			//plrAttack = CreatePlayerProjectile("sword slash"s, "sword_slash", plrAttkPos, swordSize, &attackRB, &attackEnt, mouseDiff.Angle());
+			plrAttack = CreatePlayerProjectile("spear"s, "spear", plrAttkPos, swordSize, &attackRB, &attackEnt, mouseDiff.Angle());
+			attackEnt->SetNotLoop(attkSlashAnim);
+			attackRB->SetFricCoef(.0f);
+			attackEnt->SetAnimSpd(attackSlashAnimSpeed);
+			plrAttkET = .0f;
+		}
+		auto attackEnt = plrAttack->value->GetEntity();
+		if (attackEnt->AnimFinished()) {
+			attackEnt->ResetAnim(attkSlashAnim);
+			plrAttkET = .0f;
+		}
+		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f + spearRotationOffset);
+		plrAttkET += Main::DeltaTime();
+		plrAttack->value->SetPosition(GetProjectilePos(plrAttkET, mouseDiff));
+		return;
+	}
 }
 rbList *Player::CreatePlayerProjectile(std::string basePath, const char* endPath, IntVec2 position, IntVec2 size, RigidBody **outRB, Entity ** outEnt, float rotation) {
 	auto data = SubRBData(basePath, { endPath }, Physics::DefaultSquareVerticesVec, position, size, std::initializer_list<FVector2>(), FVector2::Zero, size * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, rotation, 1.f, true, true, { Main::empty_cc });
@@ -191,36 +222,7 @@ void Player::Update(void) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
-	if (PlayingHurtAnim()) return;
-	if (Main::leftClick) {
-		auto pos = player->GetPosition();
-		mouseDiff = GetMouseDiff();
-		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
-		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
-		mouseVertical = mouseRightDot < .5f && mouseRightDot > -.5f;
-		auto mouseDirection = IntVec2(!mouseVertical * ((mouseRightDot >= .0f) * 2 - 1), mouseVertical * (mouseUp * 2 - 1));
-		PlayDirAnim(attack, mouseDirection);
-		pastInp = mouseDirection;
-		plrAttkPos = pos + static_cast<FVector2>(mouseDiff * playerSize.x * playerAttackOut);
-		if (!plrAttack) {
-			RigidBody* attackRB;
-			Entity *attackEnt;
-			plrAttack = CreatePlayerProjectile("sword slash"s, "sword_slash", plrAttkPos, attackSize, &attackRB, &attackEnt, mouseDiff.Angle());
-			attackEnt->SetNotLoop(attkSlashAnim);
-			attackRB->SetFricCoef(.0f);
-			attackEnt->SetAnimSpd(attackSlashAnimSpeed);
-			plrAttkET = .0f;
-		}
-		auto attackEnt = plrAttack->value->GetEntity();
-		if (attackEnt->AnimFinished()) {
-			attackEnt->ResetAnim(attkSlashAnim);
-			plrAttkET = .0f;
-		}
-		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f);
-		plrAttkET += Main::DeltaTime();
-		plrAttack->value->SetPosition(GetProjectilePos(plrAttkET, mouseDiff));
-		return;
-	}
+	if (PlayingHurtAnim() || Main::leftClick) return;
 	if (Main::moving) {
 		Player::PlayDirAnim(run, Main::iInputVec);
 		pastInp = Main::iInputVec;

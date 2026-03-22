@@ -8,6 +8,7 @@ private:
 	static constexpr float rotationSpd = 500.f;
 	static constexpr float attackSlashAnimSpeed = 1.2f;
 	static constexpr float hurtAnimSpeed = 2.f;
+	static constexpr float spearRotationOffset = 225.f;
 	static float projectileSpd;
 	static constexpr int attkSlashAnim = 0;
 	static constexpr int healthBarAnim = 0;
@@ -42,8 +43,8 @@ private:
 	static FVector2 progressBarPos;
 	static IntVec2 healthBarSize;
 	static IntVec2 progressBarInitSize;
-	static IntVec2 attackSize;
 	static IntVec2 pastInp;
+	static IntVec2 swordSize, spearSize;
 	static IntVec2 plrAttkPos;
 	static void PlayDirAnim(int animation = -1, IntVec2 = IntVec2(-1, 0));
 public:
