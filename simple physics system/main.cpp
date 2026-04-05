@@ -23,8 +23,11 @@
 SDL_Event Main::e;
 bool Main::canChangePause = true;
 bool Main::moving;
+bool Main::clicking;
 bool Main::leftClick = false, Main::pastLeftClick = false;
 bool Main::leftClickOnFrame;
+bool Main::rightClick = false, Main::pastRightClick = false;
+bool Main::rightClickOnFrame;
 IntVec2 Main::rawMousePosition;
 IntVec2 Main::GetMousePosition(void) {
     return rawMousePosition + Camera::GetCamPos() - static_cast<IntVec2>(defaultPlrPos);
@@ -88,6 +91,10 @@ int Main::cancelOpKey[num_inp_dirs];
 bool Main::keyDownHorizon, Main::keyDownVert;
 bool Main::cancelH, Main::cancelV;
 bool Main::focusLostPauseState = false;
+bool Main::IsDirClick(bool right, Uint8 button) {
+    constexpr int right_offset = 2;
+    return button == SDL_BUTTON_LEFT + right_offset * right;
+}
 void Main::RegisterInput() {
     while (SDL_PollEvent(&e) > 0) {
         switch (e.type) {
@@ -110,13 +117,19 @@ void Main::RegisterInput() {
             rawMousePosition = IntVec2(e.motion.x, e.motion.y);
             break;
         case SDL_MOUSEBUTTONDOWN: {
-            auto isLeft = e.button.button == SDL_BUTTON_LEFT;
-            leftClick |= isLeft;
+            auto button = e.button.button;
+            leftClick |= IsDirClick(false, button);
+            rightClick |= IsDirClick(true, button);
+            SetClicking();
             break;
         }
-        case SDL_MOUSEBUTTONUP:
-            leftClick &= e.button.button != SDL_BUTTON_LEFT;
+        case SDL_MOUSEBUTTONUP: {
+            auto button = e.button.button;
+            leftClick &= !IsDirClick(false, button);
+            rightClick &= !IsDirClick(true, button);
+            SetClicking();
             break;
+        }
         case SDL_KEYUP:
         case SDL_KEYDOWN:
             currentMod = e.key.keysym.mod;
@@ -136,6 +149,7 @@ void Main::RegisterInput() {
         }
     }
     leftClickOnFrame = leftClick && !pastLeftClick;
+    rightClickOnFrame = rightClick && !pastRightClick;
 }
 void Main::AssignDirKeyFromInfo(bool *assign, int dir, int key1, int key2, bool (*keyInfo)(int)) {
     register bool keyPress = keyInfo(key1) || keyInfo(key2);
@@ -200,6 +214,7 @@ void Main::ClearInput() {
 void Main::LateUpdate() {
     moving = false;
     pastLeftClick = leftClick;
+    pastRightClick = rightClick;
     SDL_RenderPresent(renderer);
     ClearInput();
 }
@@ -220,6 +235,7 @@ float Main::CapDeltaTime(float &maxDT) {
     return fminf(DeltaTime(), maxDT);
 }
 float Main::invRefreshRate;
+const static float defCapMultiplier = 3.f;
 float Main::DefCapDeltaTime() {
     return fminf(DeltaTime(), invRefreshRate * defCapMultiplier);
 }
@@ -327,7 +343,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DefCapDeltaTime());
-//#define SHOW_FPS
+#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());
@@ -336,7 +352,7 @@ int main(int argc, char* args[])
 #endif
         Main::LateUpdate();
         Main::StartDTCounter();
-        SDL_Delay(1);
+        SDL_Delay(16);
     } while (!quit);
 #ifdef SHOW_FPS
     float averageDT = tempDTCumulative / static_cast<double>(tempDTIndex);

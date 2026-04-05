@@ -399,7 +399,10 @@ public:
 	static IntVec2 rawMousePosition;
 	static IntVec2 GetMousePosition(void);
 	static bool leftClick, pastLeftClick;
+	static bool clicking;
 	static bool leftClickOnFrame;
+	static bool rightClick, pastRightClick;
+	static bool rightClickOnFrame;
 	static bool moving;
 	static bool canChangePause;
 	static inline bool GetModKey(int key) {
@@ -418,6 +421,9 @@ public:
 	static inline bool ModKeyHeld(int key) {
 		return ModKeyBP && PressedModKeyLastFrm(key);
 	}
+	static inline void SetClicking(void) {
+		clicking = leftClick || rightClick;
+	}
 	static SDL_Renderer* renderer;
 	static SDL_DisplayMode DM;//not direct messages XD
 	//makes more sense to have this as an fvector for fvector size initializations.
@@ -434,17 +440,18 @@ public:
 	inline static void StartDTCounter() {
 		pastTime = SDL_GetPerformanceCounter();
 	}
-	static bool CheckPauseState();
-	static void RegisterInput();
-	static void ClearInput();
-	static void EarlyUpdate();
+	static bool CheckPauseState(void);
+	static bool IsDirClick(bool right, Uint8);
+	static void RegisterInput(void);
+	static void ClearInput(void);
+	static void EarlyUpdate(void);
 	static MultiDelegate<float> dtUpdates;
 	static MultiDelegate<void> Updates;
 	static MultiDelegate<void> LateUpdates;
 	static MultiDelegate<void> PauseUpdates;
-	static void LateUpdate();
-	static void Start();
-	static void Finalize();
+	static void LateUpdate(void);
+	static void Start(void);
+	static void Finalize(void);
 	static FVector3 renderDrawColor;
 	template<typename T>
 	static inline void Swap(T& a, T& b) {
@@ -555,7 +562,7 @@ private:
 	static bool pressingModKey[];
 	static bool pressedModKey[];
 	static float invRefreshRate;
-	static constexpr float defCapMultiplier = .4f;
+	//static constexpr float defCapMultiplier = .1f;
 	static void SetPastKey(int*);
 	static inline void SetLClickState(bool state) {
 	}

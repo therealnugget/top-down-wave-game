@@ -25,7 +25,7 @@ FVector2 Player::mouseDiff;
 const FVector2 Player::playerCollider = FVector2(.375f, .5f);
 static constexpr float swordSizeMult = 1.2f;
 IntVec2 Player::swordSize = IntVec2(PLAYER_WIDTH * swordSizeMult, PLAYER_HEIGHT * swordSizeMult);
-static constexpr float spearSizeMult = .4f;
+static constexpr float spearSizeMult = .9f;
 IntVec2 Player::spearSize = IntVec2(PLAYER_WIDTH * spearSizeMult, PLAYER_HEIGHT * spearSizeMult);
 IntVec2 Player::pastInp;
 bool Player::mouseVertical;
@@ -148,7 +148,7 @@ void Player::LateUpdate(void) {
 	auto pos = GetPosition();
 	Camera::cameraPosition = IntVec2(pos);
 	crystalColliderRb->SetPosition(pos);
-	if (Main::leftClick) {
+	if (Main::clicking) {
 		mouseDiff = GetMouseDiff();
 		auto mouseRightDot = GetPlayerRightNorm() ^ mouseDiff;
 		auto mouseUp = (GetPlayerUpNorm() ^ mouseDiff) >= .0f;
@@ -160,8 +160,7 @@ void Player::LateUpdate(void) {
 		if (!plrAttack) {
 			RigidBody* attackRB;
 			Entity* attackEnt;
-			//plrAttack = CreatePlayerProjectile("sword slash"s, "sword_slash", plrAttkPos, swordSize, &attackRB, &attackEnt, mouseDiff.Angle());
-			plrAttack = CreatePlayerProjectile("spear"s, "spear", plrAttkPos, swordSize, &attackRB, &attackEnt, mouseDiff.Angle());
+			plrAttack = CreatePlayerProjectile(Main::rightClick ? "spear"s : "sword slash"s, Main::rightClick ? "spear" : "sword_slash", plrAttkPos, spearSize * Main::rightClick + swordSize * Main::leftClick, &attackRB, &attackEnt, mouseDiff.Angle());
 			attackEnt->SetNotLoop(attkSlashAnim);
 			attackRB->SetFricCoef(.0f);
 			attackEnt->SetAnimSpd(attackSlashAnimSpeed);
@@ -172,7 +171,7 @@ void Player::LateUpdate(void) {
 			attackEnt->ResetAnim(attkSlashAnim);
 			plrAttkET = .0f;
 		}
-		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f + spearRotationOffset);
+		plrAttack->value->SetRotation(static_cast<double>(mouseDiff.Angle()) + 180.f + spearRotationOffset * Main::rightClick);
 		plrAttkET += Main::DeltaTime();
 		plrAttack->value->SetPosition(GetProjectilePos(plrAttkET, mouseDiff));
 		return;
@@ -218,11 +217,11 @@ void Player::Update(void) {
 #endif
 	healthBarEnt->SetAnimFrame(static_cast<int>(floorf(GetHealthFrac() * static_cast<float>(healthBarEnt->GetNumAnimFrames() - 1))));
 	if (Main::GetKey(SDL_SCANCODE_O)) player->SetRotation(player->GetRotation() + rotationSpd * Main::DeltaTime());
-	if (!Main::leftClick && plrAttack) {
+	if (!Main::clicking && plrAttack) {
 		Physics::DeleteRB(plrAttack);
 		plrAttack = nullptr;
 	}
-	if (PlayingHurtAnim() || Main::leftClick) return;
+	if (PlayingHurtAnim() || Main::clicking) return;
 	if (Main::moving) {
 		Player::PlayDirAnim(run, Main::iInputVec);
 		pastInp = Main::iInputVec;

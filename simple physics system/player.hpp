@@ -7,7 +7,7 @@ class Player final {
 private:
 	static constexpr float rotationSpd = 500.f;
 	static constexpr float attackSlashAnimSpeed = 1.2f;
-	static constexpr float hurtAnimSpeed = 2.f;
+	static constexpr float hurtAnimSpeed = 1.f;
 	static constexpr float spearRotationOffset = 225.f;
 	static float projectileSpd;
 	static constexpr int attkSlashAnim = 0;
