@@ -2,6 +2,7 @@
 #include "debug.hpp"
 #include "physics.hpp"
 #include <SDL.h>
+#include "timer.hpp"
 //static, therefore can't inherit from behaviour.
 class Player final {
 private:
@@ -9,6 +10,7 @@ private:
 	static constexpr float attackSlashAnimSpeed = 1.2f;
 	static constexpr float hurtAnimSpeed = 1.f;
 	static constexpr float spearRotationOffset = 225.f;
+	static constexpr float immuneTime = .13f;
 	static float projectileSpd;
 	static constexpr int attkSlashAnim = 0;
 	static constexpr int healthBarAnim = 0;
@@ -27,6 +29,7 @@ private:
 	static bool colOnFrame;
 	static bool enabled;
 	static Node<std::function<void(void)>>* updateNode;
+	static Timer immuneTimer;
 	static Behaviour* plrBehaviour;
 	static rbList* plrNode;
 	static rbList* plrAttack;

@@ -449,18 +449,21 @@ void Physics::ProcessTexs(void) {
 	if (currentRB) SetRealPos(curRect, currentEntity, currentRB->position);
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
-		auto animTime = Animator::default_anim_time / currentEntity->animSpeed;
+		auto absSpd = fabsf(currentEntity->animSpeed);
+		auto animTime = Animator::default_anim_time / absSpd;
+		auto speedSign = Math::Sign(currentEntity->animSpeed);
 		if (currentEntity->animTime <= Animator::neg_anim_time / currentEntity->animSpeed) {
 			//-= because the int cast returns a negative value
-			animFramesPassed -= static_cast<int>(currentEntity->animTime / animTime);
+			animFramesPassed -= static_cast<int>(currentEntity->animTime / animTime) * speedSign;
 			currentEntity->animTime += animFramesPassed * animTime;
 		}
-		currentEntity->animTime -= Main::DefCapDeltaTime() * currentEntity->animSpeed;
+		currentEntity->animTime -= Main::DefCapDeltaTime() * absSpd;
 		if (currentEntity->animTime <= .0f) {
 			currentEntity->animTime += animTime;
-			animFramesPassed++;
+			animFramesPassed += static_cast<int>(speedSign);
 		}
-		if (!currentEntity->GetLooping() && (currentEntity->GetAnimFrame() + animFramesPassed >= currentEntity->GetNumAnimFrames() || currentEntity->animFrameIndex == -1)) {
+		auto numAnimFrames = currentEntity->GetNumAnimFrames();
+		if (!currentEntity->GetLooping() && (currentEntity->GetAnimFrame() + animFramesPassed >= numAnimFrames || currentEntity->GetAnimFrame() == -1)) {
 			currentEntity->animFrameIndex = -1;
 		}
 		else if (animFramesPassed && currentEntity->anims.size() > 0) {

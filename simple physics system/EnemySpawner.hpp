@@ -19,7 +19,9 @@ private:
 	enum EnemyType {
 		bob = 1,
 		bat = 2,
-		numEnemyTypes = 2,
+		ghost = 4,
+		spider = 8,
+		numEnemyTypes = 4,
 	};
 	inline static Enemy* SpawnEnemy(int type);
 	static const std::vector<int> enemyTypeProgression;

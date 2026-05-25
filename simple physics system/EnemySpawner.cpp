@@ -1,10 +1,12 @@
 #include "EnemySpawner.hpp"
 #include "bob.hpp"
 #include "bat.hpp"
+#include "ghost.hpp"
 #include "multicast delegates.hpp"
 #include "Item.hpp"
 #include "Crystal.hpp"
 #include "types.hpp"
+#include "spider.hpp"
 int EnemySpawner::frameIndex;
 int EnemySpawner::numSpawnedEnemies = 0;
 bool EnemySpawner::lastFrameEndWave = false;
@@ -17,7 +19,7 @@ int EnemySpawner::progressionIndex = -1;
 Text::TextData EnemySpawner::textData;
 float EnemySpawner::minPlrDist = FLT_MAX;
 Enemy* EnemySpawner::closestEnemy;
-const std::vector<int> EnemySpawner::enemyTypeProgression = { bob, bob | bat, bat };
+const std::vector<int> EnemySpawner::enemyTypeProgression = { bob, bat, bob | bat, ghost, spider };
 void EnemySpawner::DestroyWaveText(void) {
 	delete waveTextTimer;
 	waveTextTimer = nullptr;
@@ -30,6 +32,10 @@ Enemy *EnemySpawner::SpawnEnemy(int type) {
 		return new SwordGuy();
 	case bat:
 		return new Bat();
+	case ghost:
+		return new Ghost();
+	case spider:
+		return new Spider();
 	}
 }
 void EnemySpawner::Update(void) {

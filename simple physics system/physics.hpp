@@ -554,7 +554,17 @@ public:
 	}
 	inline void SetNextAnimTex(int inc) {
 		Animation& curAnim = anims[currentAnimation];
-		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + inc) % curAnim.numOfFrames))]);
+		auto numAnimFrames = curAnim.numOfFrames;
+		if (inc < 0) {
+			auto newInc = -abs(inc % -numAnimFrames);
+			if (newInc + animFrameIndex < 0) inc = numAnimFrames - animFrameIndex - 1;
+			else inc = newInc;
+			if (animFrameIndex == 1 && !curAnim.bLoop) {
+				animFrameIndex = -1;
+				return;
+			}
+		}
+		SetTexture(curAnim.textures[(animFrameIndex = ((animFrameIndex + inc) % numAnimFrames))]);
 	}
 	inline void SetAnimation(int anim) {
 		currentAnimation = anim;

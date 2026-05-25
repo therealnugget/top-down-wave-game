@@ -28,6 +28,7 @@ IntVec2 Player::swordSize = IntVec2(PLAYER_WIDTH * swordSizeMult, PLAYER_HEIGHT 
 static constexpr float spearSizeMult = .9f;
 IntVec2 Player::spearSize = IntVec2(PLAYER_WIDTH * spearSizeMult, PLAYER_HEIGHT * spearSizeMult);
 IntVec2 Player::pastInp;
+Timer Player::immuneTimer;
 bool Player::mouseVertical;
 bool Player::colOnFrame = false;
 bool Player::enabled = true;
@@ -86,9 +87,10 @@ void Player::TakeDamage(float damage) {
 #ifdef IS_DEV
 	return;
 #endif
-	if (PlayingHurtAnim()) return;
+	if (immuneTimer.GetElapsedSeconds() < immuneTime) return;
 	health -= damage;
 	PlayDirAnim(hit, pastInp);
+	immuneTimer.Reset();
 	if (health > .0f) return;
 	Main::SetPauseState(true);
 	enabled = false;
@@ -116,6 +118,7 @@ void Player::Init(void) {
 	plrBehaviour = new Behaviour(SubRBData("main/Char_Sprites", Animations::MakeAnimStrs(numAnims, idle, "idle", run, "run", attack, "attack", hit, "hit"), static_cast<FVector2>(playerCollider) * Physics::DefaultSquareVerticesVec, defPlrPos, playerSize, std::initializer_list<FVector2>(), FVector2::Zero, -playerSize * .5f, Main::Tag::player, true));
 	plrNode = plrBehaviour->rbNode;
 	player = plrNode->value;
+	immuneTimer = Timer();
 	Camera::cameraPosition = IntVec2(player->GetPosition());
 	player->SetTrigger(true);
 	player->updateNode = Main::Updates += Player::Update;
@@ -183,7 +186,7 @@ rbList *Player::CreatePlayerProjectile(std::string basePath, const char* endPath
 	if (outRB) *outRB = node->value;
 	if (outEnt) {
 #ifdef DEBUG_BUILD
-		if (!outRB) ThrowError("cannot pass outEnt without passing in outrb");
+		if (!outRB) ThrowError("cannot pass outEnt without passing in outRB");
 #endif
 		*outEnt = (*outRB)->GetEntity();
 	}

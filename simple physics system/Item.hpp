@@ -185,3 +185,20 @@ public:
 			});
 	}
 };
+class WhirlPool final : public Item {
+private:
+	void Update(void) override;
+	static const std::string startPath;
+	static const char* endPath;
+	static const std::string fullPath;
+	static constexpr int num_projectiles = 6;
+public:
+	static constexpr int damageFrameWait = 60;
+	static constexpr float damageAmount = .3f;
+	WhirlPool(int index) : Item(index, fullPath.c_str(), "Pulls in enemies\nand damages them", IntVec2(32 * 2, 32 * 2)) {
+		SetOnSelect([]()-> void {
+			auto data = SubRBData(basePath, { endPath }, Physics::DefaultSquareVerticesVec, position, size, std::initializer_list<FVector2>(), FVector2::Zero, size * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, rotation, 1.f, true, true, { Main::empty_cc });
+			auto node = Physics::SubscribeEntity(&data);
+			});
+	}
+};

@@ -343,7 +343,7 @@ int main(int argc, char* args[])
         if (Main::CheckPauseState()) goto pause_screen;
         Main::Updates();
         Main::dtUpdates(Main::DefCapDeltaTime());
-#define SHOW_FPS
+//#define SHOW_FPS
 #ifdef SHOW_FPS
         //cout << 1.f / Main::DeltaTime() << '\n';
         printf("fps: %f\n", 1.f / Main::DeltaTime());
@@ -352,7 +352,7 @@ int main(int argc, char* args[])
 #endif
         Main::LateUpdate();
         Main::StartDTCounter();
-        SDL_Delay(16);
+        SDL_Delay(1);
     } while (!quit);
 #ifdef SHOW_FPS
     float averageDT = tempDTCumulative / static_cast<double>(tempDTIndex);

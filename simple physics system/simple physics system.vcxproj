@@ -159,6 +159,7 @@
     <ClCompile Include="Crystal.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
+    <ClCompile Include="ghost.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="NugMath.cpp" />
     <ClCompile Include="multicast delegates.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="player.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="PlayerProjectile.cpp" />
+    <ClCompile Include="spider.cpp" />
     <ClCompile Include="textures.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="winMgr.cpp" />
@@ -179,6 +181,7 @@
     <ClInclude Include="Crystal.hpp" />
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="EnemySpawner.hpp" />
+    <ClInclude Include="ghost.hpp" />
     <ClInclude Include="Item.hpp" />
     <ClInclude Include="main.hpp" />
     <ClInclude Include="math.hpp" />
@@ -187,6 +190,7 @@
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="player.hpp" />
     <ClInclude Include="PlayerProjectile.hpp" />
+    <ClInclude Include="spider.hpp" />
     <ClInclude Include="textures.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="timer.hpp" />

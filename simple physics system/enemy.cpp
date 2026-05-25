@@ -90,7 +90,6 @@ void Enemy::CollisionCallback(Collision* collision) {
 // or 2: if we don't care about showing the enemy for the single frame in which he is, in this example, dead, then we can simply destroy the enemy at the start of the next frame as we've done here.
 void Enemy::Update(void) {
     if (!enabled) return;
-    Behaviour::Update();
     for (auto& col : colsOnFrame) col.second = false;
     curAnim = entity->GetCurAnim();
     animFinished = entity->AnimFinished();
@@ -112,4 +111,5 @@ void Enemy::Update(void) {
     if (GetDebuffActive(poisoned) && (frameIndex++ % Poison::damageFrameWait) == 0) {
         derivedTakeDamage(Poison::damageAmount);
     }
+    Behaviour::Update();
 }
