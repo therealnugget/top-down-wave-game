@@ -7,6 +7,7 @@
 #include "usefulTypedefs.hpp"
 #include "PlayerProjectile.hpp"
 #include <typeinfo>
+#include "WhirlpoolEquipped.hpp"
 class Text {
 private:
 	static TTF_Font* font;
@@ -91,7 +92,7 @@ private:
 	static MouseBounds itemBounds[numItems];
 	static constexpr IntVec2 ItemImgOffset = IntVec2 (-270, -20);
 	static constexpr int itemYSeparation = 190;
-	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the image hashmap
+	//don't worry about freeing. it doesn't actually belong to "Item", it's just stored in the global image hashmap
 	Textures::TextureRect ItemImg;
 	//leave these in counting order so they can be indexed using GetRandInt(int, int).
 	enum ItemType {
@@ -99,6 +100,7 @@ private:
 		enemyTurner,
 		poison,
 		pickupRange,
+		whirlPool,
 		numItemTypes,
 	};
 	static constexpr bool itemCanRepeat[numItemTypes] = {
@@ -106,6 +108,7 @@ private:
 		false,
 		false,
 		true,
+		false,
 	};
 	static std::vector<int> availableItemTypes;
 	Node<std::function<void(void)>>* renderUpdateNode;
@@ -124,7 +127,7 @@ public:
 		itemIndex = index;
 		selectedItem = -1;
 		firstItem = !index;
-		auto pos = static_cast<IntVec2>(Main::halfDisplaySize) + IntVec2::GetUp() * (index - 1) * itemYSeparation;
+		auto pos = Main::halfDisplaySizeI + IntVec2::GetUp() * (index - 1) * itemYSeparation;
 		ItemImg = Textures::TextureRect(Textures::InitAnim(path), SDL_Rect{ pos.x + ItemImgOffset.x, pos.y + ItemImgOffset.y, ItemImgSize.x, ItemImgSize.y });
 #ifdef DEBUG_BUILD
 		if (!ItemImg.GetTexture()) ThrowError("couldn't load item with file path \"", path, "\"");
@@ -187,18 +190,16 @@ public:
 };
 class WhirlPool final : public Item {
 private:
-	void Update(void) override;
 	static const std::string startPath;
-	static const char* endPath;
-	static const std::string fullPath;
-	static constexpr int num_projectiles = 6;
+	static const char *endPath;
+	static const std::string previewPath;
 public:
 	static constexpr int damageFrameWait = 60;
 	static constexpr float damageAmount = .3f;
-	WhirlPool(int index) : Item(index, fullPath.c_str(), "Pulls in enemies\nand damages them", IntVec2(32 * 2, 32 * 2)) {
-		SetOnSelect([]()-> void {
-			auto data = SubRBData(basePath, { endPath }, Physics::DefaultSquareVerticesVec, position, size, std::initializer_list<FVector2>(), FVector2::Zero, size * -.5f, Main::Tag::playerAttack, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, rotation, 1.f, true, true, { Main::empty_cc });
-			auto node = Physics::SubscribeEntity(&data);
+	WhirlPool(int index) : Item(index, previewPath.c_str(), "pulls in enemies\nand damages them", IntVec2(32 * 2, 32 * 2)) {
+		SetOnSelect([this]()-> void {
+			new WhirlPoolEquipped();
 			});
 	}
+	friend class WhirlPoolEquipped;
 };

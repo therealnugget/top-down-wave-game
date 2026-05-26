@@ -253,6 +253,7 @@ SDL_Renderer* Main::renderer = nullptr;
 SDL_DisplayMode Main::DM;
 FVector2 Main::DisplaySize;
 FVector2 Main::halfDisplaySize;
+IntVec2 Main::halfDisplaySizeI;
 FVector3 Main::renderDrawColor = FVector3(163.f, 215.f, 245.f);
 std::vector<const char*> Main::dirPaths;
 void Main::Start() {
@@ -263,6 +264,7 @@ void Main::Start() {
         bounds.max *= DisplaySize;
     }
     halfDisplaySize = DisplaySize / 2.f;
+    halfDisplaySizeI = IntVec2(halfDisplaySize);
     WindowManager::window = SDL_CreateWindow("Hello. My name is Kevin, I have changnesia.", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Main::DM.w, Main::DM.h, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
     if (!WindowManager::window) {
         ThrowError("window could not initialize: ", SDL_GetError());

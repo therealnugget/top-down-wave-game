@@ -56,6 +56,9 @@ const std::string EnemyTurner::fullPath = EnemyTurner::startPath + '/' + EnemyTu
 const std::string Poison::startPath = "poison";
 const char *Poison::endPath = "poison";
 const std::string Poison::fullPath = Poison::startPath + '/' + Poison::endPath;
+const std::string WhirlPool::startPath = "whirlpool";
+const char* WhirlPool::endPath = "whirlpool";
+const std::string WhirlPool::previewPath = WhirlPool::startPath + '/' + WhirlPool::endPath + "_preview";
 void EnemyTurner::Update(void) {
 	Item::Update();
 }
@@ -83,6 +86,9 @@ void Item::MakeRandItem(int index) {
 		break;
 	case pickupRange:
 		new PickupRange(index);
+		break;
+	case whirlPool:
+		new WhirlPool(index);
 		break;
 	default:
 		ThrowError("case not supported");

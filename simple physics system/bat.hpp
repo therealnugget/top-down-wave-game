@@ -14,7 +14,7 @@ private:
 		run,
 		numBatAnims,
 	};
-	static constexpr float attackDistSqr = 8000.f;
+	static constexpr float attackDistSqr = 5500.f;
 public:
 	Bat(void);
 	~Bat(void) override {

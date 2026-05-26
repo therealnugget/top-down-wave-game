@@ -392,6 +392,7 @@ public:
 		enemyTurner = 5,
 		enemyTurned = 6,
 		poison = 7,
+		whirlPool = 8,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -429,6 +430,7 @@ public:
 	//makes more sense to have this as an fvector for fvector size initializations.
 	static FVector2 DisplaySize;
 	static FVector2 halfDisplaySize;
+	static IntVec2 halfDisplaySizeI;
 	static FVector2 defaultPlrPos;
 	static IntVec2 defaultPlrPosI;
 	static float DeltaTime();

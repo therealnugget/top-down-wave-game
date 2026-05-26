@@ -170,6 +170,7 @@
     <ClCompile Include="spider.cpp" />
     <ClCompile Include="textures.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WhirlpoolEquipped.cpp" />
     <ClCompile Include="winMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +197,7 @@
     <ClInclude Include="timer.hpp" />
     <ClInclude Include="types.hpp" />
     <ClInclude Include="usefulTypedefs.hpp" />
+    <ClInclude Include="WhirlpoolEquipped.hpp" />
     <ClInclude Include="winMgr.hpp" />
   </ItemGroup>
   <ItemGroup>

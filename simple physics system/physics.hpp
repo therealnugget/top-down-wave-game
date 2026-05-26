@@ -597,6 +597,9 @@ public:
 	inline IntVec2 GetRenderOffset() {
 		return renderOffset;
 	}
+	inline void SetRenderOfffset(IntVec2& offset) {
+		renderOffset = offset;
+	}
 private:
 	SDL_Rect* rect;
 	//per-direction.
@@ -859,8 +862,10 @@ public:
 	inline rbList* GetCacheNodeRef() {
 		return cacheNodeRef;
 	}
-	inline void SetSize(IntVec2 size) {
+	inline void SetSize(IntVec2 size, bool setRenderOffset = false) {
 		size.IntoRectWH(entity->rect);
+		if (!setRenderOffset) return;
+		entity->renderOffset = size * -.5f;
 	}
 	inline void SetSizeX(int sizeX) {
 		entity->rect->w = sizeX;

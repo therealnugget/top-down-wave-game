@@ -75,6 +75,9 @@
     <ClCompile Include="spider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WhirlpoolEquipped.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="physics.hpp">
@@ -147,6 +150,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="spider.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WhirlpoolEquipped.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

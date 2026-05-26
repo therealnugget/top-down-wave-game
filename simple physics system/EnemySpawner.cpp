@@ -70,6 +70,6 @@ void EnemySpawner::DestroyEnemy(Node<Enemy*> *guy) {
 	Node<Enemy*>::Remove(&enemies, guy);
 }
 void EnemySpawner::Init(void) {
-	textData = Text::TextData(waveTextSizeVec, static_cast<IntVec2>(Main::halfDisplaySize) + waveTextOffset, "broken");
+	textData = Text::TextData(waveTextSizeVec, Main::halfDisplaySizeI + waveTextOffset, "broken");
 	Main::Updates += EnemySpawner::Update;
 }

@@ -11,6 +11,7 @@ Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage,
 	colsOnFrame.reserve(numColsOnFrame);
 	colsOnFrame.emplace(Main::Tag::player, false);
 	colsOnFrame.emplace(Main::Tag::enemy, false);
+	colsOnFrame.emplace(Main::Tag::whirlPool, false);
 	isSingleEnemy = ++numEnemies == 1;
 }
 Enemy::~Enemy() {
@@ -58,6 +59,13 @@ void Enemy::CollisionCallback(Collision* collision) {
         EnactDamage();
         curCol = true;
     }
+    curCol = colsOnFrame[Main::Tag::whirlPool];
+    if (!curCol) {
+        curCol = true;
+        auto toPlr = FVector2::FromTo(GetPosition(), Player::GetPosition());
+        rb->AddForce(toPlr * WhirlPoolEquipped::GetPullForce());
+        if (toPlr.SqrMagnitude() < WhirlPoolEquipped::GetDamageDstSqr()) TakeDamage(WhirlPoolEquipped::GetDamage());
+    }
     register auto enemyTag = Main::Tag::enemy;
     curCol = colsOnFrame[enemyTag];
     if (GetDebuffActive(confused) && !curCol && collision->CompareTag(enemyTag)) {
@@ -76,7 +84,7 @@ void Enemy::CollisionCallback(Collision* collision) {
         }
         if (entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
         auto isPlr = collision->CompareTag(Main::Tag::playerAttack);
-        if ((!isPlr && !collision->CompareTag(Main::Tag::enemyTurned))) return;
+        if (!isPlr && !collision->CompareTag(Main::Tag::enemyTurned)) return;
         colOnFrame = true;
 #ifdef DEBUG_BUILD
         if (!derivedTakeDamage) ThrowError("derivedTakeDamage of enemy base class has not been assigned in the derived class. please assign it to the base function of TakeDamage(float).");

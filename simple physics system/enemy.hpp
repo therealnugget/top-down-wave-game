@@ -25,6 +25,7 @@ protected:
 	bool animFinished;
 	static constexpr IntVec2 debuffSize = { 40, 40 };
 	static constexpr int debuffSeparation = 25;
+	static constexpr int default_num_cols_on_frame = 3;
 	static float knockBack;
 	float health;
 	enum debuffType {
@@ -51,7 +52,7 @@ protected:
 	void SetPlayerDist(void);
 	void EnactDamage(void);
 	virtual void CollisionCallback(Collision*);
-	Enemy(SubRBData, IntVec2 = IntVec2(155, 20), int max_health = default_max_health, float damage = 1.f, float selfDamage = .5f, float speed = 19000000.f, int numColsOnFrame = 2);
+	Enemy(SubRBData, IntVec2 = IntVec2(155, 20), int max_health = default_max_health, float damage = 1.f, float selfDamage = .5f, float speed = 19000000.f, int numColsOnFrame = default_num_cols_on_frame);
 	virtual void Update(void);
 	virtual void LateUpdate(void);
 	Node<std::function<void(void)>>* lateUpdateNode;
