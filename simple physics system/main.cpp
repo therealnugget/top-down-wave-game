@@ -43,20 +43,18 @@ static int currentKeyPressed;
 static bool quit;
 Node<int>* Main::setPressed;
 Behaviour::~Behaviour() {
-    if (rb->updateNode) Main::Updates -= rb->updateNode;
-    if (rb->GetCacheNodeRef()) Physics::RemoveCacheNodeRef(rb->GetCacheNodeRef());
     Physics::DeleteRB(rbNode);
 }
 void Behaviour::Update() {
     colOnFrame = false;
 }
 //debugging: remember this is not the only constructor of behaviour
-Behaviour::Behaviour(SubRBData data): colOnFrame(false) {
+Behaviour::Behaviour(SubRBData data): colOnFrame(false), enabled(true) {
     rbNode = Physics::SubscribeEntity(&data);
     rb = rbNode->value;
     entity = rb->GetEntity();
 }
-Behaviour::Behaviour(SubRBData *data): colOnFrame(false) {
+Behaviour::Behaviour(SubRBData *data): colOnFrame(false), enabled(true) {
     rbNode = Physics::SubscribeEntity(data);
     rb = rbNode->value;
     entity = rb->GetEntity();

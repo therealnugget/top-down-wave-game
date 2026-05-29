@@ -72,7 +72,10 @@ void Physics::UnSubscribeEntity(rbList* node) {
 }
 //don't delete rigidbodies directly; use this func instead
 void Physics::DeleteRB(rbList* node) {
-	delete node->value;
+	auto &val = node->value;
+	if (val->updateNode) Main::Updates -= val->updateNode;
+	if (val->GetCacheNodeRef()) Physics::RemoveCacheNodeRef(val->GetCacheNodeRef());
+	delete val;
 	UnSubscribeEntity(node);
 }
 Node<RigidBody*>* Physics::StandaloneRB(IntVec2 size, FVector2 startPos, int tag, bool affectedByCam, CollisionCallback collisionCallback, int_fast64_t layer, bool isTrigger, float mass, bool moveable, FVector2 _centreOfRotNPVert, FVector2 initVel, float angle) {

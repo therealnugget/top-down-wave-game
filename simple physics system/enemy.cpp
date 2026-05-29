@@ -7,7 +7,7 @@ int Enemy::numEnemies = 0;
 bool Enemy::isSingleEnemy = true;
 float Enemy::knockBack = 1400.f;
 const std::unordered_map<int, const char*> Enemy::debuffPaths = { {confused, "question mark/question mark"}, {poisoned, "poison/poison debuff"} };
-Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): frameIndex(0), _debuffActive(0), debugImgOffset(debugOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(max_health), enabled(true), Behaviour(&data) {
+Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): frameIndex(0), _debuffActive(0), debugImgOffset(debugOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(max_health), Behaviour(&data) {
 	colsOnFrame.reserve(numColsOnFrame);
 	colsOnFrame.emplace(Main::Tag::player, false);
 	colsOnFrame.emplace(Main::Tag::enemy, false);
@@ -51,22 +51,35 @@ void Enemy::AddDebuffTex(int debuff) {
     auto debuffPos = GetDebuffPos(debuffTexSize);
     debuffTexes.emplace(debuff, Debuff(Textures::TextureRect(Textures::InitAnim(debuffPaths.at(debuff)), SDL_Rect{ debuffPos.x, debuffPos.y, debuffSize.x, debuffSize.y }), debuffTexSize));
 }
+void Enemy::OnDamaged(float damageAmount, FVector2 velocityChange) {
+    if (entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
+#ifdef DEBUG_BUILD
+    if (!derivedTakeDamage) ThrowError("derivedTakeDamage of enemy base class has not been assigned in the derived class. please assign it to the base function of TakeDamage(float).");
+#endif
+    derivedTakeDamage(damageAmount);
+    rb->AddVelocity(velocityChange);
+}
 void Enemy::CollisionCallback(Collision* collision) {
     if (!enabled) return;
-    register auto plrTag = Main::Tag::player;
+    auto plrTag = Main::Tag::player;
     auto& curCol = colsOnFrame[plrTag];
     if (!curCol && collision->CompareTag(plrTag)) {
         EnactDamage();
         curCol = true;
     }
-    curCol = colsOnFrame[Main::Tag::whirlPool];
+    constexpr auto whirlTag = Main::Tag::whirlPool;
+    curCol = colsOnFrame[whirlTag];
     if (!curCol) {
-        curCol = true;
-        auto toPlr = FVector2::FromTo(GetPosition(), Player::GetPosition());
-        rb->AddForce(toPlr * WhirlPoolEquipped::GetPullForce());
-        if (toPlr.SqrMagnitude() < WhirlPoolEquipped::GetDamageDstSqr()) TakeDamage(WhirlPoolEquipped::GetDamage());
+        bool isWhirlpoolcol = collision->CompareTag(whirlTag);
+#ifdef DEBUG_BUILD
+        if (isWhirlpoolcol && !WhirlPoolEquipped::IsInstantiated()) ThrowError("enemy shuold not be colliding with colldier of tag whirlpool as whirlpool has not been instantiated");
+#endif
+        if (isWhirlpoolcol){
+            OnDamaged(WhirlPoolEquipped::GetDamage(), FVector2::Zero);
+            curCol = true;
+        }
     }
-    register auto enemyTag = Main::Tag::enemy;
+    auto enemyTag = Main::Tag::enemy;
     curCol = colsOnFrame[enemyTag];
     if (GetDebuffActive(confused) && !curCol && collision->CompareTag(enemyTag)) {
         touchingEnemy = true;
@@ -82,15 +95,10 @@ void Enemy::CollisionCallback(Collision* collision) {
             AddDebuffTex(confused);
             rb->tag = Main::Tag::enemyTurned;
         }
-        if (entity->GetCurAnim() == hurt && !entity->AnimFinished()) return;
         auto isPlr = collision->CompareTag(Main::Tag::playerAttack);
         if (!isPlr && !collision->CompareTag(Main::Tag::enemyTurned)) return;
         colOnFrame = true;
-#ifdef DEBUG_BUILD
-        if (!derivedTakeDamage) ThrowError("derivedTakeDamage of enemy base class has not been assigned in the derived class. please assign it to the base function of TakeDamage(float).");
-#endif
-        derivedTakeDamage(isPlr * Player::GetDamage() + !isPlr * selfDamage);
-        rb->AddVelocity(collision->GetNormal() * (isPlr * Player::GetKnockBack() + !isPlr * knockBack));
+        OnDamaged(isPlr * Player::GetDamage() + !isPlr * selfDamage, collision->GetNormal() * (isPlr * Player::GetKnockBack() + !isPlr * knockBack));
     }
 }
 //it's not as simple as deleting the enemy as soon as the collision callback is called. if you think about it, the collision callback is in the middle of the physics update. so we will be deleting a rigidbody in the middle of the narrow phase function, then trying to access it later on in that same function, and then again in the physics update. so the closest thing we can do is:
@@ -103,6 +111,7 @@ void Enemy::Update(void) {
     animFinished = entity->AnimFinished();
     toPlr = rb->GetPosition().To(Player::GetPosition());
     SetPlayerDist();
+    if (WhirlPoolEquipped::GetPulling() && plrDistSqr < WhirlPoolEquipped::GetPullDstSqr()) rb->AddForce(toPlr.Normalized() * WhirlPoolEquipped::GetPullForce());
     if (plrDistSqr < EnemySpawner::minPlrDist) {
         EnemySpawner::minPlrDist = plrDistSqr;
         EnemySpawner::closestEnemy = this;

@@ -8,6 +8,7 @@
 #include "PlayerProjectile.hpp"
 #include <typeinfo>
 #include "WhirlpoolEquipped.hpp"
+#include "player.hpp"
 class Text {
 private:
 	static TTF_Font* font;
@@ -196,9 +197,11 @@ private:
 public:
 	static constexpr int damageFrameWait = 60;
 	static constexpr float damageAmount = .3f;
-	WhirlPool(int index) : Item(index, previewPath.c_str(), "pulls in enemies\nand damages them", IntVec2(32 * 2, 32 * 2)) {
+	WhirlPool(int index) : Item(index, previewPath.c_str(), "pulls in enemies\nand damages them periodically", IntVec2(32 * 2, 32 * 2)) {
 		SetOnSelect([this]()-> void {
-			new WhirlPoolEquipped();
+			auto effectSize = WhirlPoolEquipped::effectSize;
+			auto data = SubRBData(WhirlPool::startPath, { WhirlPool::endPath }, Physics::DefaultSquareVerticesVec, Player::GetPosition(), effectSize, std::initializer_list<FVector2>(), FVector2::Zero, effectSize * -.5f, Main::Tag::whirlPool, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0f, 1.f, true, true, {Main::empty_cc});
+			new WhirlPoolEquipped(&data);
 			});
 	}
 	friend class WhirlPoolEquipped;

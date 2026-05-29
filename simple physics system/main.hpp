@@ -21,6 +21,7 @@ private:
 	rbList* rbNode;
 	float origRenderOffsetX;
 protected:
+	bool enabled;
 	virtual void Update();
 	bool colOnFrame;
 	RigidBody* rb;

@@ -56,7 +56,6 @@ protected:
 	virtual void Update(void);
 	virtual void LateUpdate(void);
 	Node<std::function<void(void)>>* lateUpdateNode;
-	bool enabled;
 	enum EnemyAnimation {
 		idle,
 		death,
@@ -74,6 +73,7 @@ public:
 	}
 	virtual ~Enemy();
 	virtual void TakeDamage(float damageAmount);
+	void OnDamaged(float, FVector2);
 	Node<Enemy*>* enemySpawnNode;
 	inline FVector2 GetPosition() {
 		return rb->newPosition;

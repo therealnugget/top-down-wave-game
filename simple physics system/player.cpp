@@ -18,7 +18,7 @@ float Player::accel = 700000.f;
 float Player::speed = 2000.f;
 float Player::knockBack = 600.f;
 float Player::plrAttkET = .0f;
-float Player::maxHealth = 35.f;
+float Player::maxHealth = 50.f;
 float Player::health = Player::maxHealth;
 float Player::crystalColldierSizeMult = 1.4f;
 FVector2 Player::mouseDiff;
