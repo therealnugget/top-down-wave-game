@@ -7,7 +7,7 @@
 #include "usefulTypedefs.hpp"
 #include "PlayerProjectile.hpp"
 #include <typeinfo>
-#include "WhirlpoolEquipped.hpp"
+#include "InsigniaEquipped.hpp"
 #include "player.hpp"
 class Text {
 private:
@@ -102,6 +102,7 @@ private:
 		poison,
 		pickupRange,
 		whirlPool,
+		wrath,
 		numItemTypes,
 	};
 	static constexpr bool itemCanRepeat[numItemTypes] = {
@@ -189,20 +190,25 @@ public:
 			});
 	}
 };
-class WhirlPool final : public Item {
-private:
-	static const std::string startPath;
-	static const char *endPath;
-	static const std::string previewPath;
+class Insignia final : public Item {
+	std::string startPath;
+	const char* endPath;
+	float noEffectTime;
+	float effectTime;
+	float damageAmount;
+	int effectTag;
+	float effectSizeDilation;
+	float effectDilationSpeed;
+	float effectDistSqrd;
+	IntVec2 effectSize;
+	static constexpr const char* defaultPreviewPath = "whirlpool/whirlpool_preview";
+	static constexpr const char* defaultStartPath = "whirlpool";
 public:
-	static constexpr int damageFrameWait = 60;
-	static constexpr float damageAmount = .3f;
-	WhirlPool(int index) : Item(index, previewPath.c_str(), "pulls in enemies\nand damages them periodically", IntVec2(32 * 2, 32 * 2)) {
+	Insignia(int index, std::string _startPath = defaultStartPath, const char* _endPath = "whirlpool", const char* tooltip = "pulls in enemies\nand damages them periodically", float _noEffectTime = 3.f, float _effectTime = 1.f, float _damageAmount = .3f, int _effectTag = Main::Tag::whirlPool, float _effectSizeDilation = 50.f, float _effectDilationSpeed = 10.f, float _effectDistSqrd = 19000.f, IntVec2 _effectSize = IntVec2::GetOne() * 170, IntVec2 previewSize = IntVec2::GetOne() * 64, std::string previewPath = defaultPreviewPath) : startPath(_startPath), endPath(_endPath), noEffectTime(_noEffectTime), effectTime(_effectTime), damageAmount(_damageAmount), effectTag(_effectTag), effectSizeDilation(_effectSizeDilation), effectDilationSpeed(_effectDilationSpeed), effectDistSqrd(_effectDistSqrd), effectSize(_effectSize), Item(index, previewPath.c_str(), tooltip, previewSize) {
 		SetOnSelect([this]()-> void {
-			auto effectSize = WhirlPoolEquipped::effectSize;
-			auto data = SubRBData(WhirlPool::startPath, { WhirlPool::endPath }, Physics::DefaultSquareVerticesVec, Player::GetPosition(), effectSize, std::initializer_list<FVector2>(), FVector2::Zero, effectSize * -.5f, Main::Tag::whirlPool, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0f, 1.f, true, true, {Main::empty_cc});
-			new WhirlPoolEquipped(&data);
+			auto data = SubRBData(startPath, { endPath }, Physics::DefaultSquareVerticesVec, Player::GetPosition(), effectSize, std::initializer_list<FVector2>(), FVector2::Zero, effectSize * -.5f, effectTag, true, nullptr, std::unordered_map<std::string, std::variant<FVector2, FVector2*>>(), std::unordered_map<std::string, bool>(), FVector2::Zero, .0f, 1.f, true, true, {Main::empty_cc});
+			new InsigniaEquipped(&data, noEffectTime, effectTime, damageAmount, effectSizeDilation, effectDilationSpeed, effectDistSqrd);
 			});
 	}
-	friend class WhirlPoolEquipped;
+	friend class InsigniaEquipped;
 };

@@ -1,5 +1,6 @@
 #include "Item.hpp"
 #include "player.hpp"
+#include "types.hpp"
 TTF_Font* Text::font = nullptr;
 MouseBounds Item::itemBounds[Item::numItems] = { {{756.f / 1920.f, 274.f / 1080.f}, {1165.f / 1920.f, 458.f / 1080.f}}, {{756.f / 1920.f, 458.f / 1080.f}, {1165.f / 1920.f, 643.f / 1080.f}}, {{756.f / 1920.f, 643.f / 1080.f}, {1165.f / 1920.f, 807.f / 1080.f}} };
 void Text::RenderText(void) {
@@ -16,9 +17,7 @@ void Item::Update(void) {
 	Textures::RenderStandaloneTex(ItemImg);
 	if (!Main::leftClickOnFrame) return;
 	if (selectedItem == -1) {
-		for (int i = 0; i < numItems; i++) {/*
-			cout << "mouse position is currently: \n";
-			Main::rawMousePosition.PrintVec();*/
+		for (int i = 0; i < numItems; i++) {
 			if (Physics::PointInBounds(Main::rawMousePosition, itemBounds[i])) {
 				selectedItem = i;
 				goto selected;
@@ -56,9 +55,6 @@ const std::string EnemyTurner::fullPath = EnemyTurner::startPath + '/' + EnemyTu
 const std::string Poison::startPath = "poison";
 const char *Poison::endPath = "poison";
 const std::string Poison::fullPath = Poison::startPath + '/' + Poison::endPath;
-const std::string WhirlPool::startPath = "whirlpool";
-const char* WhirlPool::endPath = "whirlpool";
-const std::string WhirlPool::previewPath = WhirlPool::startPath + '/' + WhirlPool::endPath + "_preview";
 void EnemyTurner::Update(void) {
 	Item::Update();
 }
@@ -88,7 +84,10 @@ void Item::MakeRandItem(int index) {
 		new PickupRange(index);
 		break;
 	case whirlPool:
-		new WhirlPool(index);
+		new Insignia(index);
+		break;
+	case wrath:
+		new Insignia(index, "wrath", "wrath", "Fire insignia that burns you\nbut burns enemies more", 3.f, 1.f, .4f, );//TODO: this is where you left off. wrath and whirlpool insignias should inherit from the base "insignia" class.
 		break;
 	default:
 		ThrowError("case not supported");

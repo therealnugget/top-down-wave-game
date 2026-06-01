@@ -21,11 +21,12 @@ private:
 	//don't access this directly. use the "GetDebuffActive(int)" and "SetDebuffActive(int)" functions.
 	int _debuffActive;
 	int frameIndex;
+	static std::vector<int> insigniaTagList;
 protected:
 	bool animFinished;
 	static constexpr IntVec2 debuffSize = { 40, 40 };
 	static constexpr int debuffSeparation = 25;
-	static constexpr int default_num_cols_on_frame = 3;
+	static constexpr int default_num_cols_on_frame = 4;
 	static float knockBack;
 	float health;
 	enum debuffType {
@@ -77,6 +78,9 @@ public:
 	Node<Enemy*>* enemySpawnNode;
 	inline FVector2 GetPosition() {
 		return rb->newPosition;
+	}
+	inline static void AddInsigniaTag(int tag) {
+		insigniaTagList.emplace(insigniaTagList.begin(), tag);
 	}
 	friend class SubRBData;
 };

@@ -6,6 +6,7 @@ static constexpr float default_immune_time = .6f;
 int Enemy::numEnemies = 0;
 bool Enemy::isSingleEnemy = true;
 float Enemy::knockBack = 1400.f;
+std::vector<int> Enemy::insigniaTagList;
 const std::unordered_map<int, const char*> Enemy::debuffPaths = { {confused, "question mark/question mark"}, {poisoned, "poison/poison debuff"} };
 Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage, float _selfDamage, float _speed, int _numColsOnFrame): frameIndex(0), _debuffActive(0), debugImgOffset(debugOffset), numColsOnFrame(_numColsOnFrame), speed(_speed), damage(_damage), selfDamage(_selfDamage), lateUpdateNode(nullptr), health(max_health), Behaviour(&data) {
 	colsOnFrame.reserve(numColsOnFrame);
@@ -49,6 +50,9 @@ void Enemy::AddDebuffTex(int debuff) {
     SetDebuffActive(debuff);
     int debuffTexSize = debuffTexes.size();
     auto debuffPos = GetDebuffPos(debuffTexSize);
+#ifdef DEBUG_BUILD
+    if (!debuffPaths.contains(debuff)) ThrowError("please add the enumerator and file path to \"debuffPaths\" at the top of ", __FILE__, ".");
+#endif
     debuffTexes.emplace(debuff, Debuff(Textures::TextureRect(Textures::InitAnim(debuffPaths.at(debuff)), SDL_Rect{ debuffPos.x, debuffPos.y, debuffSize.x, debuffSize.y }), debuffTexSize));
 }
 void Enemy::OnDamaged(float damageAmount, FVector2 velocityChange) {
@@ -67,16 +71,13 @@ void Enemy::CollisionCallback(Collision* collision) {
         EnactDamage();
         curCol = true;
     }
-    constexpr auto whirlTag = Main::Tag::whirlPool;
-    curCol = colsOnFrame[whirlTag];
-    if (!curCol) {
-        bool isWhirlpoolcol = collision->CompareTag(whirlTag);
-#ifdef DEBUG_BUILD
-        if (isWhirlpoolcol && !WhirlPoolEquipped::IsInstantiated()) ThrowError("enemy shuold not be colliding with colldier of tag whirlpool as whirlpool has not been instantiated");
-#endif
-        if (isWhirlpoolcol){
-            OnDamaged(WhirlPoolEquipped::GetDamage(), FVector2::Zero);
-            curCol = true;
+    for (int tag : insigniaTagList) {
+        if (!colsOnFrame[tag]) {
+            bool isWhirlpoolcol = collision->CompareTag(tag);
+            if (isWhirlpoolcol) {
+                OnDamaged(InsigniaEquipped::GetDamage(tag), FVector2::Zero);
+                curCol = true;
+            }
         }
     }
     auto enemyTag = Main::Tag::enemy;
@@ -111,7 +112,7 @@ void Enemy::Update(void) {
     animFinished = entity->AnimFinished();
     toPlr = rb->GetPosition().To(Player::GetPosition());
     SetPlayerDist();
-    if (WhirlPoolEquipped::GetPulling() && plrDistSqr < WhirlPoolEquipped::GetPullDstSqr()) rb->AddForce(toPlr.Normalized() * WhirlPoolEquipped::GetPullForce());
+    if (InsigniaEquipped::GetWhirlPoolActive() && plrDistSqr < InsigniaEquipped::GetPullDstSqr()) rb->AddForce(toPlr.Normalized() * InsigniaEquipped::GetPullForce());
     if (plrDistSqr < EnemySpawner::minPlrDist) {
         EnemySpawner::minPlrDist = plrDistSqr;
         EnemySpawner::closestEnemy = this;
