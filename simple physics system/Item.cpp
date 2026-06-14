@@ -87,7 +87,7 @@ void Item::MakeRandItem(int index) {
 		new Insignia(index);
 		break;
 	case wrath:
-		new Insignia(index, "wrath", "wrath", "Fire insignia that burns you\nbut burns enemies more", 3.f, 1.f, .4f, );//TODO: this is where you left off. wrath and whirlpool insignias should inherit from the base "insignia" class.
+		new Insignia(index, "wrath", "wrath", "wrath/wrath_preview", "Fire insignia that burns you\nbut burns enemies more", 3.f, 1.f, .4f, Main::Tag::wrath);
 		break;
 	default:
 		ThrowError("case not supported");

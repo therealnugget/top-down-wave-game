@@ -26,7 +26,7 @@ protected:
 	bool animFinished;
 	static constexpr IntVec2 debuffSize = { 40, 40 };
 	static constexpr int debuffSeparation = 25;
-	static constexpr int default_num_cols_on_frame = 4;
+	static constexpr int default_num_cols_on_frame = 5;
 	static float knockBack;
 	float health;
 	enum debuffType {

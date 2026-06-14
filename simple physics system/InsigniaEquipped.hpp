@@ -13,20 +13,18 @@ private:
 	float effectDilationSpeed;
 	static constexpr float pull_force = 50000.f;
 	static constexpr float pull_dist_sqrd = 19000.f;
+	static constexpr float wrath_plr_dmg_mult = .1f;
 	static bool bWhirlPoolActive;
 	float effectDistSqrd;
 	float initDamage;
 	IntVec2 initEffectSize;
 	//needs to be static so the enemies can check for the condition
-	static std::vector<float> damages;
+	static std::unordered_map<int, float> damages;
 	float noEffectTime;
 	float effectTime;
 	bool bEffectActive;
 	Timer pullTimer;
 	float aliveSeconds;
-#ifdef DEBUG_BUILD
-	static bool instantiated;
-#endif
 public:
 	static inline float GetPullForce(void) {
 		return pull_force;
@@ -43,11 +41,6 @@ public:
 	inline static bool GetWhirlPoolActive(void) {
 		return bWhirlPoolActive;
 	}
-#ifdef DEBUG_BUILD
-	static inline bool IsInstantiated(void) {
-		return instantiated;
-	}
-#endif
 	InsigniaEquipped(SubRBData *, float noEffectTime, float effectTime, float damage, float effectSizeDilation, float effectDilationSpd, float effectDistSqrd);
 	~InsigniaEquipped(void) override;
 	friend class Insignia;

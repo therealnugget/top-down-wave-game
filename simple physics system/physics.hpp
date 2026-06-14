@@ -918,7 +918,7 @@ public:
 	inline bool CompareTag(int compare) const {
 		return collider->tag == compare;
 	}
-	inline int Temp(void) {
+	inline int GetTag(void) {
 		return collider->tag;
 	}
 	inline FVector2 GetNormal() const {

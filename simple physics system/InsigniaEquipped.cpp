@@ -10,7 +10,14 @@ void InsigniaEquipped::Update(void) {
 	if (!enabled) return;
 	if (pullTimer.GetElapsedSeconds() > (effectTime * bEffectActive + noEffectTime * !bEffectActive)) {
 		pullTimer.Reset();
-		bWhirlPoolActive = rb->tag == Main::Tag::whirlPool && bEffectActive;
+		switch (rb->tag) {
+		case Main::Tag::whirlPool:
+			bWhirlPoolActive = bEffectActive;
+			break;
+		case Main::Tag::wrath:
+			Player::TakeDamage(damages[Main::Tag::wrath] * wrath_plr_dmg_mult);
+			break;
+		}
 		bEffectActive = !bEffectActive;
 		damages[rb->tag] = bEffectActive * initDamage;
 	}
@@ -18,17 +25,9 @@ void InsigniaEquipped::Update(void) {
 	aliveSeconds += Main::DeltaTime();
 	Behaviour::Update();
 }
-#ifdef DEBUG_BUILD
-bool InsigniaEquipped::instantiated = false;
-#endif
+std::unordered_map<int, float> InsigniaEquipped::damages;
 bool InsigniaEquipped::bWhirlPoolActive = false;
 InsigniaEquipped::InsigniaEquipped(SubRBData* data, float _noEffectTime, float _effectTime, float _damageAmount, float _effectSizeDilation, float _effectDilationSpeed, float _effectDstSqrd) : bEffectActive(false), aliveSeconds(.0f), pullTimer(Timer(Main::GetRandFloat(.0f, noEffectTime), true)), Behaviour(data) {
-#ifdef DEBUG_BUILD
-	if (instantiated) {
-		ThrowError("there should not be more than one instance of the \"InsigniaEquipped\" class.");
-	}
-	instantiated = true;
-#endif
 	Enemy::AddInsigniaTag(rb->tag);
 	damages[rb->tag] = .0f;
 	effectSizeDilation = _effectSizeDilation;

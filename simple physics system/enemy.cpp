@@ -13,6 +13,7 @@ Enemy::Enemy(SubRBData data, IntVec2 debugOffset, int max_health, float _damage,
 	colsOnFrame.emplace(Main::Tag::player, false);
 	colsOnFrame.emplace(Main::Tag::enemy, false);
 	colsOnFrame.emplace(Main::Tag::whirlPool, false);
+	colsOnFrame.emplace(Main::Tag::wrath, false);
 	isSingleEnemy = ++numEnemies == 1;
 }
 Enemy::~Enemy() {
@@ -39,6 +40,7 @@ void Enemy::LateUpdate(void) {
         Textures::RenderStandaloneTex(confusedTex);
     }
 }
+//don't call this directly. call OnDamaged() instead
 void Enemy::TakeDamage(float damageAmount) {
 	health -= damageAmount;
 }
@@ -70,31 +72,33 @@ void Enemy::CollisionCallback(Collision* collision) {
     if (!curCol && collision->CompareTag(plrTag)) {
         EnactDamage();
         curCol = true;
+        return;
     }
     for (int tag : insigniaTagList) {
-        if (!colsOnFrame[tag]) {
-            bool isWhirlpoolcol = collision->CompareTag(tag);
-            if (isWhirlpoolcol) {
-                OnDamaged(InsigniaEquipped::GetDamage(tag), FVector2::Zero);
-                curCol = true;
-            }
-        }
+        curCol = colsOnFrame[tag];
+        if (curCol) continue;
+        OnDamaged(InsigniaEquipped::GetDamage(tag), FVector2::Zero);
+        curCol = true;
+        return;
     }
     auto enemyTag = Main::Tag::enemy;
     curCol = colsOnFrame[enemyTag];
     if (GetDebuffActive(confused) && !curCol && collision->CompareTag(enemyTag)) {
         touchingEnemy = true;
         curCol = true;
+        return;
     }
     if (!colOnFrame) {
         if (collision->CompareTag(Main::Tag::poison) && !GetDebuffActive(poisoned)) {
             colOnFrame = true;
             AddDebuffTex(poisoned);
+            return;
         }
         if (!isSingleEnemy && !GetDebuffActive(confused) && collision->CompareTag(Main::Tag::enemyTurner)) {
             colOnFrame = true;
             AddDebuffTex(confused);
             rb->tag = Main::Tag::enemyTurned;
+            return;
         }
         auto isPlr = collision->CompareTag(Main::Tag::playerAttack);
         if (!isPlr && !collision->CompareTag(Main::Tag::enemyTurned)) return;

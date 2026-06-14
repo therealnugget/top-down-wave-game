@@ -394,6 +394,7 @@ public:
 		enemyTurned = 6,
 		poison = 7,
 		whirlPool = 8,
+		wrath = 9,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
