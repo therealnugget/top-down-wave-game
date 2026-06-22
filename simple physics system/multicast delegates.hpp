@@ -35,6 +35,7 @@ public:
 	inline Node<std::function<void(void)>>* operator +=(std::function<void(void)> del) {
 		return Node<std::function<void(void)>>::AddAtHead(del, &delegates);
 	}
+	//could have simplified this for the developer by checking if a function is equal to any function in the list by linearly probing through, but the time complexity is O(n) and i prefer performance to developer ease-of-use
 	inline void operator -=(Node<std::function<void(void)>>* node) {
 		if (curNode == node) {
 			Node<std::function<void(void)>>::Advance(&curNode);

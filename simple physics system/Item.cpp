@@ -87,7 +87,7 @@ void Item::MakeRandItem(int index) {
 		new Insignia(index);
 		break;
 	case wrath:
-		new Insignia(index, "wrath", "wrath", "wrath/wrath_preview", "Fire insignia that burns you\nbut burns enemies more", 3.f, 1.f, .4f, Main::Tag::wrath);
+		new Insignia(index, "wrath", "wrath", "wrath/wrath_preview", "Wrath insignia that burns you\nbut burns enemies more", 3.f, 1.f, .4f, Main::Tag::wrath);
 		break;
 	default:
 		ThrowError("case not supported");

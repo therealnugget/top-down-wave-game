@@ -159,6 +159,7 @@
     <ClCompile Include="Crystal.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
+    <ClCompile Include="Environment.cpp" />
     <ClCompile Include="ghost.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="NugMath.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="Crystal.hpp" />
     <ClInclude Include="enemy.hpp" />
     <ClInclude Include="EnemySpawner.hpp" />
+    <ClInclude Include="Environment.hpp" />
     <ClInclude Include="ghost.hpp" />
     <ClInclude Include="Item.hpp" />
     <ClInclude Include="main.hpp" />

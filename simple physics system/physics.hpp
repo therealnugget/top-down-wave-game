@@ -33,8 +33,9 @@ public:
 	Vector2() : x(.0f), y(.0f) {}
 	Vector2(SDL_DisplayMode &mode) : x(mode.w), y(mode.h) {}
 #ifdef DEBUG_BUILD
-	inline void PrintVec() const {
+	inline Vector2 PrintVec() const {
 		cout << x << ", " << y << '\n';
+		return *this;
 	}
 #endif
 	inline explicit operator Vector2<int>() const {
@@ -187,7 +188,7 @@ public:
 	static const Vector2 NegInfinity;
 	static const Vector2 Infinity;
 	//non-const equivalents of the vector primitives
-	inline static Vector2 GetOne(){
+	inline static Vector2 GetOne() {
 		return One;
 	}
 	inline static Vector2 GetZero(){
@@ -251,8 +252,9 @@ public:
 	Vector2(FVector2 v) : x(static_cast<int>(v.x)), y(static_cast<int>(v.y)) {}
 	Vector2() : x(.0f), y(.0f) {}
 #ifdef DEBUG_BUILD
-	inline void PrintVec() const {
+	inline Vector2<int> PrintVec() const {
 		cout << x << ", " << y << '\n';
+		return *this;
 	}
 #endif
 	inline bool operator ==(Vector2 b) {
@@ -443,7 +445,7 @@ private:
 	SDL_Point* centreOfRotation;
 	bool bAffectedByCam;
 public:
-	static Entity* MakeEntity(std::string basePath, std::vector<const char*> animPaths, FVector2 startPos, IntVec2 size, IntVec2 renderOffset = IntVec2::Zero, std::initializer_list<const char*> dirPaths = {""}, float renderOffsetChangeX = .0f) {
+	static Entity* MakeEntity(std::string basePath, std::vector<const char*> animPaths, FVector2 startPos, IntVec2 size, bool affectedByCam = false, IntVec2 renderOffset = IntVec2::Zero, std::initializer_list<const char*> dirPaths = {""}, float renderOffsetChangeX = .0f) {
 		auto data = SubRBData();
 		data.startPos = startPos + Main::defaultPlrPos;
 		data.basePath = basePath;
@@ -452,7 +454,7 @@ public:
 		data.renderOffset = renderOffset;
 		data.endPaths = dirPaths;
 		data.renderOffsetChangeX = renderOffsetChangeX;
-		data.bAffectedByCam = false;
+		data.bAffectedByCam = affectedByCam;
 		return new Entity(&data);
 	}
 	//last boolean argument of image sizes is whether you're using the per-component size

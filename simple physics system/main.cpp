@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <SDL_image.h>
 #include "Item.hpp"
+#include "Environment.hpp"
 #define SHIFT_INDEX 0
 #define ALT_INDEX 1
 #define CONTROL_INDEX 2
@@ -321,6 +322,7 @@ int main(int argc, char* args[])
     EnemySpawner::Init();
     Physics::Init();
     Item::StaticInit();
+    Environment::Init();
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();

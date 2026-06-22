@@ -449,7 +449,7 @@ static int animFramesPassed;
 void Physics::ProcessTexs(void) {
 	if (!currentEntity) return;
 	curRect = currentEntity->rect;
-	if (currentRB) SetRealPos(curRect, currentEntity, currentRB->position);
+	if (currentRB || currentEntity->bAffectedByCam) SetRealPos(curRect, currentEntity, currentRB ? currentRB->position : FVector2::Zero);
 	if (currentEntity->currentAnimation != -1) {
 		animFramesPassed = 0;
 		auto absSpd = fabsf(currentEntity->animSpeed);

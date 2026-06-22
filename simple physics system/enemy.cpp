@@ -48,7 +48,7 @@ IntVec2 Enemy::GetDebuffPos(int index) {
     return IntVec2(debugImgOffset.x + debuffSeparation * index * ((index & 1) * 2 - 1), debugImgOffset.y);
 }
 void Enemy::AddDebuffTex(int debuff) {
-    if (!lateUpdateNode) lateUpdateNode = (Main::LateUpdates += [this]() {LateUpdate(); });
+    if (!lateUpdateNode && !isSingleEnemy) lateUpdateNode = (Main::LateUpdates += [this]() {LateUpdate(); });
     SetDebuffActive(debuff);
     int debuffTexSize = debuffTexes.size();
     auto debuffPos = GetDebuffPos(debuffTexSize);
@@ -76,8 +76,9 @@ void Enemy::CollisionCallback(Collision* collision) {
     }
     for (int tag : insigniaTagList) {
         curCol = colsOnFrame[tag];
-        if (curCol) continue;
-        OnDamaged(InsigniaEquipped::GetDamage(tag), FVector2::Zero);
+        if (curCol || !collision->CompareTag(tag)) continue;
+        auto insigniaDmg = InsigniaEquipped::GetDamage(tag);
+        if (insigniaDmg) OnDamaged(insigniaDmg, FVector2::Zero);
         curCol = true;
         return;
     }
