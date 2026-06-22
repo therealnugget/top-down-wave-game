@@ -226,6 +226,10 @@ void Main::Finalize() {
 FVector2 Main::GetRandFVec(FVector2 min, FVector2 max) {
     return { GetRandFloat(min.x, max.x), GetRandFloat(min.y, max.y) };
 }
+//per-component randomness.
+IntVec2 Main::GetRandIVec(IntVec2 min, IntVec2 max) {
+    return { GetRandInt(min.x, max.x), GetRandInt(min.y, max.y) };
+}
 //if you are on an absolute potato and are calling this function a lot of times in a frame without multithreading for behaviours, store the result at the start of the frame and reuse it (obviously unless you want it to be precise, but that's impractical for, for insance, movement code.)
 float Main::DeltaTime() {
     return static_cast<float>(SDL_GetPerformanceCounter() - pastTime) / frequency * timeScale;

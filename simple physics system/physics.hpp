@@ -125,6 +125,12 @@ public:
 	inline bool operator ==(Vector2 b) {
 		return x == b.x && y == b.y;
 	}
+	inline bool operator <=(Vector2 b) {
+		return x <= b.x && y <= b.y;
+	}
+	inline bool operator >=(Vector2 b) {
+		return x >= b.x && y >= b.y;
+	}
 	static constexpr float rad2deg = 180.f / 3.1415926535f;
 	inline Vector2<T> To(Vector2<T> to) {
 		return to - *this;
@@ -151,6 +157,10 @@ public:
 	inline void IntoRectWH(SDL_Rect* rect) {
 		rect->w = x;
 		rect->h = y;
+	}
+	inline bool InRange(Vector2 min, Vector2 max) {
+		auto& val = *this;
+		return val >= min && val <= max;
 	}
 	//dot product (carret is more readable)
 	inline float operator ^(Vector2 b) {
@@ -260,6 +270,12 @@ public:
 	inline bool operator ==(Vector2 b) {
 		return x == b.x && y == b.y;
 	}
+	inline bool operator <=(Vector2 b) {
+		return x <= b.x && y <= b.y;
+	}
+	inline bool operator >=(Vector2 b) {
+		return x >= b.x && y >= b.y;
+	}
 	inline Vector2 operator +(Vector2 b) const{
 		return Vector2(x + b.x, y + b.y);
 	}
@@ -338,6 +354,11 @@ public:
 	inline void IntoRectXY(SDL_Rect* rect) {
 		rect->x = x;
 		rect->y = y;
+	}
+	//inclusive
+	inline bool InRange(Vector2 min, Vector2 max) {
+		auto& val = *this;
+		return val >= min && val <= max;
 	}
 	static const Vector2 One;
 	static const Vector2 Zero;
@@ -599,7 +620,7 @@ public:
 	inline IntVec2 GetRenderOffset() {
 		return renderOffset;
 	}
-	inline void SetRenderOfffset(IntVec2& offset) {
+	inline void SetRenderOfffset(IntVec2 offset) {
 		renderOffset = offset;
 	}
 private:

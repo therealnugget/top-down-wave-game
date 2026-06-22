@@ -524,6 +524,7 @@ public:
 		return static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min) + min;
 	}
 	static FVector2 GetRandFVec(FVector2 min, FVector2 max);
+	static IntVec2 GetRandIVec(IntVec2 min, IntVec2 max);
 	template<typename T>
 	static inline std::initializer_list<T> VecToInitList(std::vector<T>& vec) {
 		return std::initializer_list<T>(vec._Unchecked_begin(), vec._Unchecked_end());

@@ -14,3 +14,6 @@ IntVec2 Camera::GetCamPos() {
 IntVec2 Camera::GetCamExtentWorld(float multiplier) {
 	return cameraPosition + Main::halfDisplaySize * multiplier;
 }
+IntVec2 Camera::GetCamExtentWorld(FVector2 multiplier) {
+	return cameraPosition + Main::halfDisplaySize * multiplier;
+}

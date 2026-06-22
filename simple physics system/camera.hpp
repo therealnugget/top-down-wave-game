@@ -2,6 +2,7 @@
 template<typename T>
 struct Vector2;
 typedef Vector2<int> IntVec2;
+typedef Vector2<float> FVector2;
 //static
 class Camera final{
 private:
@@ -9,6 +10,7 @@ private:
 public:
 	static IntVec2 GetCamPos(void);
 	static IntVec2 GetCamExtentWorld(float);
+	static IntVec2 GetCamExtentWorld(FVector2);
 	static int GetCamPosX(void);
 	static int GetCamPosY(void);
 	friend class Player;
