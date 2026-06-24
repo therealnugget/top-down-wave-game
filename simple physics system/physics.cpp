@@ -440,6 +440,14 @@ void Main::AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditional
 	AssignIfLess(check.x, assignConditionally.x);
 	AssignIfLess(check.y, assignConditionally.y);
 }
+void Main::AssignIfMore(Vector2<int>& check, Vector2<int>& assignConditionally) {
+	AssignIfMore(check.x, assignConditionally.x);
+	AssignIfMore(check.y, assignConditionally.y);
+}
+void Main::AssignIfLess(Vector2<int>& check, Vector2<int>& assignConditionally) {
+	AssignIfLess(check.x, assignConditionally.x);
+	AssignIfLess(check.y, assignConditionally.y);
+}
 void Physics::SetRealPos(SDL_Rect* rect, Entity* entity, FVector2 origPos, bool useRenderOffset) {
 	register bool affectByCam = entity->bAffectedByCam;
 	rect->x = static_cast<int>(origPos.x) + entity->renderOffset.x + entity->renderOffsetChangeX * useRenderOffset - Camera::GetCamPosX() * affectByCam + Main::defaultPlrPosI.x;

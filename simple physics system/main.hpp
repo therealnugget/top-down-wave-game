@@ -27,11 +27,10 @@ protected:
 	RigidBody* rb;
 	Entity* entity;
 	void SetUpdateNode(Node<std::function<void(void)>>*);
-	void SetFlipX(bool flip);
 	virtual ~Behaviour();
 public:
 	Behaviour(SubRBData);
-	Behaviour(SubRBData *);
+	Behaviour(SubRBData *, bool = false);
 	friend class Player;
 };
 using namespace std;
@@ -354,6 +353,7 @@ public:
 		crystalLayer = 0b0010,
 		enemyLayer = 0b10101,
 		playerProjLayer = 0b10000,
+		all = -1,
 	};
 	static inline bool IsPowTwo(unsigned long long check) {
 		return (((check - 1) | check) + 1) == (check << 1);
@@ -395,6 +395,7 @@ public:
 		poison = 7,
 		whirlPool = 8,
 		wrath = 9,
+		chest = 10,
 	};
 	static FVector2 fInputVec;
 	static FVector2 fInputVec2;
@@ -505,6 +506,14 @@ public:
 		if (check <= assignConditionally) return;
 		assignConditionally = check;
 	}
+	static inline void AssignIfLess(int& check, int& assignConditionally) {
+		if (check >= assignConditionally) return;
+		assignConditionally = check;
+	}
+	static inline void AssignIfMore(int& check, int& assignConditionally) {
+		if (check <= assignConditionally) return;
+		assignConditionally = check;
+	}
 	static inline void SetPauseState(bool state) {
 		Main::timeScale = !state;
 	}
@@ -515,6 +524,10 @@ public:
 	static void AssignIfMore(Vector2<float>& check, Vector2<float>& assignConditionally);
 	//it is NOT the case that both x and y have to be smaller for "assignConditionally" to be assigned. either-or per-component.
 	static void AssignIfLess(Vector2<float>& check, Vector2<float>& assignConditionally);
+	//it is NOT the case that both x and y have to be bigger for "assignConditionally" to be assigned. either-or per-component.
+	static void AssignIfMore(Vector2<int>& check, Vector2<int>& assignConditionally);
+	//it is NOT the case that both x and y have to be smaller for "assignConditionally" to be assigned. either-or per-component.
+	static void AssignIfLess(Vector2<int>& check, Vector2<int>& assignConditionally);
 	//min inclusive, max exclusive
 	static inline int GetRandInt(int min, int max) {
 		return static_cast<int>(ceilf(static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * static_cast<float>(max - min))) + min - 1;

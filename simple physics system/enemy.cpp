@@ -80,6 +80,8 @@ void Enemy::CollisionCallback(Collision* collision) {
         auto insigniaDmg = InsigniaEquipped::GetDamage(tag);
         if (insigniaDmg) OnDamaged(insigniaDmg, FVector2::Zero);
         curCol = true;
+        if (tag != Main::Tag::whirlPool || !InsigniaEquipped::GetWhirlPoolActive()) return;
+        rb->AddForce(toPlr.Normalized() * InsigniaEquipped::GetPullForce());
         return;
     }
     auto enemyTag = Main::Tag::enemy;
@@ -117,7 +119,6 @@ void Enemy::Update(void) {
     animFinished = entity->AnimFinished();
     toPlr = rb->GetPosition().To(Player::GetPosition());
     SetPlayerDist();
-    if (InsigniaEquipped::GetWhirlPoolActive() && plrDistSqr < InsigniaEquipped::GetPullDstSqr()) rb->AddForce(toPlr.Normalized() * InsigniaEquipped::GetPullForce());
     if (plrDistSqr < EnemySpawner::minPlrDist) {
         EnemySpawner::minPlrDist = plrDistSqr;
         EnemySpawner::closestEnemy = this;

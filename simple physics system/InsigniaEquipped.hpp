@@ -11,8 +11,7 @@ private:
 	Node<std::function<void(void)>>* lateUpdateNode;
 	float effectSizeDilation;
 	float effectDilationSpeed;
-	static constexpr float pull_force = 50000.f;
-	static constexpr float pull_dist_sqrd = 19000.f;
+	static constexpr float pull_force = 900000.f;
 	static constexpr float wrath_plr_dmg_mult = .1f;
 	static bool bWhirlPoolActive;
 	float effectDistSqrd;
@@ -28,9 +27,6 @@ private:
 public:
 	static inline float GetPullForce(void) {
 		return pull_force;
-	}
-	static inline float GetPullDstSqr(void) {
-		return pull_dist_sqrd;
 	}
 	inline float GetEffectDstSqr(void) {
 		return effectDistSqrd;

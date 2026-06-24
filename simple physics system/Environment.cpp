@@ -4,8 +4,13 @@
 Node<std::function<void(void)>>* Environment::lateUpdateNode = nullptr;
 Node<Entity*>* Environment::treeEntNodes[Environment::numTrees];
 FVector2 Environment::lastInpVec = FVector2::Zero;
+IntVec2 Environment::minTreePos;
+IntVec2 Environment::maxTreePos;
 IntVec2 Environment::RandTreePos(void) {
-	return Main::GetRandIVec(Camera::GetCamExtentWorld(-1.f), Camera::GetCamExtentWorld(1.f)) + GetRandExtentInput();
+	auto randPos = Main::GetRandIVec(Camera::GetCamExtentWorld(-1.f), Camera::GetCamExtentWorld(1.f)) + GetRandExtentInput();
+	Main::AssignIfLess(randPos, minTreePos);
+	Main::AssignIfMore(randPos, maxTreePos);
+	return randPos;
 }
 IntVec2 Environment::GetRandExtentInput() {
 	return Main::halfDisplaySizeI * lastInpVec * 2;
@@ -16,14 +21,25 @@ void Environment::Init(void) {
 		tree = Physics::SubStandaloneEnt(Entity::MakeEntity("environment", { "green tree" }, FVector2::Zero, treeSize, true, RandTreePos()));
 	}
 }
+void Environment::ResetTreePosExtents(void) {
+	minTreePos = FVector2::Infinity;
+	maxTreePos = FVector2::NegInfinity;
+}
 void Environment::LateUpdate(void) {
 	auto randExtentInpPos = GetRandExtentInput();
 	auto isPosX = lastInpVec.x > .0f;
 	auto isPosY = lastInpVec.y > .0f;
 	auto addNeg = IntVec2(randExtentInpPos.x * !isPosX, randExtentInpPos.y * !isPosY);
 	auto addPos = IntVec2(randExtentInpPos.x * isPosX, randExtentInpPos.y * isPosY);
+	auto minRangeCheck = Camera::GetCamExtentWorld(-1.f) + addNeg;
+	auto maxRangeCheck = Camera::GetCamExtentWorld(1.f) + addPos;
+	if (minTreePos.InRange(minRangeCheck, maxRangeCheck) && maxTreePos.InRange(minRangeCheck, maxRangeCheck) || !Main::moving) {
+		ResetTreePosExtents();
+		return;
+	}
+	ResetTreePosExtents();
 	for (auto& tree : treeEntNodes) {
-		if (tree->value->GetRenderOffset().InRange(Camera::GetCamExtentWorld(-1.f) + addNeg, Camera::GetCamExtentWorld(1.f) + addPos)) continue;
+		if (tree->value->GetRenderOffset().InRange(minRangeCheck, maxRangeCheck)) continue;
 		tree->value->SetRenderOfffset(RandTreePos());
 	}
 	if (Main::moving) lastInpVec = Main::fInputVec;

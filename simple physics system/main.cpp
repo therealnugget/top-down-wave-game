@@ -15,6 +15,7 @@
 #include <SDL_image.h>
 #include "Item.hpp"
 #include "Environment.hpp"
+#include "chest.hpp"
 #define SHIFT_INDEX 0
 #define ALT_INDEX 1
 #define CONTROL_INDEX 2
@@ -55,10 +56,12 @@ Behaviour::Behaviour(SubRBData data): colOnFrame(false), enabled(true) {
     rb = rbNode->value;
     entity = rb->GetEntity();
 }
-Behaviour::Behaviour(SubRBData *data): colOnFrame(false), enabled(true) {
+Behaviour::Behaviour(SubRBData *data, bool subscribeUpdate): colOnFrame(false), enabled(true) {
     rbNode = Physics::SubscribeEntity(data);
     rb = rbNode->value;
     entity = rb->GetEntity();
+    if (!subscribeUpdate) return;
+    SetUpdateNode(Main::Updates += [this]() {Update(); });
 }
 void Behaviour::SetUpdateNode(Node<std::function<void(void)>>* node) {
     rb->updateNode = node;
@@ -327,6 +330,7 @@ int main(int argc, char* args[])
     Physics::Init();
     Item::StaticInit();
     Environment::Init();
+    ChestSpawner::Init();
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();
