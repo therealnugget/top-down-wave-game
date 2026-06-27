@@ -330,7 +330,10 @@ int main(int argc, char* args[])
     Physics::Init();
     Item::StaticInit();
     Environment::Init();
+#define IMPLEMENTED_CHESTS
+#ifdef IMPLEMENTED_CHESTS
     ChestSpawner::Init();
+#endif
     double tempDTCumulative = .0;
     uint tempDTIndex = 0;
     Main::StartDTCounter();

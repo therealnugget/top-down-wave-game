@@ -75,7 +75,7 @@ private:
 	}
 	friend class Textures;
 public:
-	constexpr static float default_anim_fps = 30.f;
+	constexpr static float default_anim_fps = 24.f;
 	constexpr static float default_anim_time = 1.f / default_anim_fps;
 	constexpr static float neg_anim_time = -default_anim_time;
 	inline void DeActivate() {
